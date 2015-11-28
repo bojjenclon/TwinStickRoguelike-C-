@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>Test</title>
+
+<link rel="stylesheet" href="jquery-ui.min.css">
+<script src="external/jquery/jquery.js"></script>
+<script src="jquery-ui.min.js"></script>
+
+<link rel="stylesheet" href="css/responsivegridsystem/html5reset.css" media="all">
+<link rel="stylesheet" href="css/responsivegridsystem/col.css" media="all">
+<link rel="stylesheet" href="css/responsivegridsystem/2cols.css" media="all">
+
+<link rel="stylesheet" href="css/statBars.css">
+<link rel="stylesheet" href="css/itemList.css">
+
+<style>
+body, html {
+  overflow: hidden;
+}
+
+body {
+  color: #121212;
+}
+
+#test {
+  width: 250px;
+  height: 100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#hpBar {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 200px;
+}
+
+.col {
+  padding: 1em 0;
+  text-align:center;
+}
+</style>
+<head>
+<body>
+
+<div class="section group">
+  <div class="col span_1_of_2">
+
+    <div class="section group">
+      <div class="col span_1_of_2">
+        <button onclick='resetHP();'>Reset</button>
+      </div>
+
+      <div class="col span_1_of_2">
+        <button onclick='addItem();'>Add Item</button>
+        <button onclick='removeSelectedItems();'>Remove Selected Items</button>
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="col span_1_of_2">
+    <ol id="selectable">
+      
+    </ol>
+  </div>
+</div>
+
+<div id="hpBar" class="meter">
+  <span style="width: 100%"></span>
+</div>
+
+<script>
+$(function() {
+  $( "#selectable" ).selectable();
+  
+  $( "input[type=submit], a, button" )
+      .button()
+      .click(function( event ) {
+        event.preventDefault();
+      });
+});
+
+var hpBar = document.getElementById('hpBar');
+
+function resetHP() {
+  window.cpp.setHP(5);
+}
+
+function setHP(val) {
+  hpBar.children[0].style.width = val + '%';
+}
+
+function addItem() {
+  $('#selectable').append('<li class="ui-widget-content">Item ' + Math.floor((Math.random() * 500)) + '</li>');
+}
+
+function removeSelectedItems() {
+  var selected = $('#selectable .ui-selected');
+
+  selected.remove();
+}
+</script>
+</body>
+</html>

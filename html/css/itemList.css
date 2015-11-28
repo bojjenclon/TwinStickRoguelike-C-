@@ -1,0 +1,34 @@
+#feedback {
+  font-size: 1.4em;
+}
+
+#selectable {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#selectable .ui-selecting {
+  background: #FECA40 !important;
+}
+
+#selectable .ui-selected {
+  background: #F39814 !important;
+  color: white;
+}
+
+#selectable li:hover {
+  cursor: pointer;
+  background: #DEC78A;
+}
+
+#selectable li {
+  margin: 3px;
+  padding: 8px 10px;
+  font-size: 1.4em;
+  width: 90px;
+  height: 18px;
+}
+
