@@ -5,7 +5,7 @@
 #include <ecstasy/systems/SortedIteratingSystem.h>
 
 #include "Game.hpp"
-#include "RenderComponent.hpp"
+#include "components/RenderComponent.hpp"
 
 struct DepthTest
 {

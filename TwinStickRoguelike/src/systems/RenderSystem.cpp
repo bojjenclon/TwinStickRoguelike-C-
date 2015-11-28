@@ -1,4 +1,4 @@
-#include "RenderSystem.hpp"
+#include "systems/RenderSystem.hpp"
 
 #include <ecstasy/core/Family.h>
 #include <SDL.h>

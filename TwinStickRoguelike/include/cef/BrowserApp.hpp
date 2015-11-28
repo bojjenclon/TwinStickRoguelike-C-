@@ -2,7 +2,6 @@
 #define BROWSER_APP_HPP
 
 #include <include/cef_app.h>
-#include "UIValues.hpp"
 
 class BrowserApp : public CefApp, public CefRenderProcessHandler {
 public:

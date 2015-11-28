@@ -1,8 +1,8 @@
 #include "EntityFactory.hpp"
 
-#include "RenderComponent.hpp"
-#include "HealthComponent.hpp"
-#include "UIComponent.hpp"
+#include "components/RenderComponent.hpp"
+#include "components/HealthComponent.hpp"
+#include "components/UIComponent.hpp"
 
 ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, SDL_Texture* p_texture, CefRefPtr<CefBrowser> p_browser, UIValues* p_uiValues)
 {

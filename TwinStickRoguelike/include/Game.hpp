@@ -6,10 +6,10 @@
 #include <include/cef_app.h>
 #include <ecstasy/core/Engine.h>
 
-#include "RenderHandler.hpp"
-#include "BrowserClient.hpp"
 #include "ResourceManager.hpp"
 #include "UIValues.hpp"
+#include "cef/BrowserClient.hpp"
+#include "cef/RenderHandler.hpp"
 
 class Game
 {

@@ -5,9 +5,9 @@
 #include <SDL_image.h>
 
 #include "EntityFactory.hpp"
-#include "RenderSystem.hpp"
-#include "BrowserApp.hpp"
-#include "UIUpdateSystem.hpp"
+#include "systems/RenderSystem.hpp"
+#include "systems/UIUpdateSystem.hpp"
+#include "cef/BrowserApp.hpp"
 
 Game::Game()
 {

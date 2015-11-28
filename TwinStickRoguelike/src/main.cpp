@@ -1,6 +1,4 @@
 #include "Game.hpp"
-#include <iostream>
-#include "BrowserApp.hpp"
 
 #if _MSC_VER == 1900
 FILE _iob[] = { *stdin, *stdout, *stderr };
