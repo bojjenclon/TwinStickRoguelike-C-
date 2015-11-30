@@ -1,0 +1,23 @@
+#grapes {
+    width: 34px;
+    height: 34px;
+    background: url(../gfx/itemIcons.png) 0 0;
+}
+
+#tomato {
+    width: 34px;
+    height: 34px;
+    background: url(../gfx/itemIcons.png) -34px 0;
+}
+
+#greenApple {
+    width: 34px;
+    height: 34px;
+    background: url(../gfx/itemIcons.png) -68px 0;
+}
+
+#redApple {
+    width: 34px;
+    height: 34px;
+    background: url(../gfx/itemIcons.png) -102px 0;
+}

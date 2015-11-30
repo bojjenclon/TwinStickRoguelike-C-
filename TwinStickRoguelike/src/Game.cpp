@@ -8,6 +8,7 @@
 #include "systems/RenderSystem.hpp"
 #include "systems/UIUpdateSystem.hpp"
 #include "cef/BrowserApp.hpp"
+#include <base64.hpp>
 
 Game::Game()
 {
@@ -16,7 +17,9 @@ Game::Game()
 bool Game::start()
 {
   CefMainArgs args(GetModuleHandle(nullptr));
-
+  /*const char* argv[] = { "--disable-gpu", "--disable-gpu-compositing", "--enable-begin-frame-scheduling" };
+  CefMainArgs args(3, argv);*/
+  
   CefRefPtr<BrowserApp> app(new BrowserApp());
 
   int exit_code = CefExecuteProcess(args, app.get(), nullptr);
@@ -226,6 +229,48 @@ void Game::mainLoop()
             m_uiValues->currentHealth = 0;
           }
         }
+        else if (e.key.keysym.sym == SDLK_i)
+        {
+          m_uiBrowser->GetMainFrame()->LoadURL("http://www.google.com");
+        }
+        else if (e.key.keysym.sym == SDLK_o)
+        {
+          m_uiBrowser->GetMainFrame()->LoadURL("file://" + GetApplicationDir() + "/../html/index.html");
+        }
+        // note: figure out how to base64 encode a texture so I can send it to the UI
+        /*else if (e.key.keysym.sym == SDLK_d)
+        {
+          auto frame = m_uiBrowser->GetMainFrame();
+
+          auto tempTex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 150, 150);
+
+          SDL_SetRenderTarget(m_renderer, tempTex);
+          SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_NONE);
+          SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+          SDL_RenderFillRect(m_renderer, nullptr);
+
+          SDL_SetRenderTarget(m_renderer, nullptr);
+          SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+          SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+
+          int w, h;
+          SDL_QueryTexture(tempTex, nullptr, nullptr, &w, &h);
+
+          int pitch = 0;
+          void* pixels = nullptr;
+          SDL_LockTexture(tempTex, nullptr, &pixels, &pitch);
+          const unsigned char* tempPixels = reinterpret_cast<const unsigned char*>(pixels);
+          
+          std::string encoded = base64_encode(tempPixels, pitch * h);
+          
+          frame->ExecuteJavaScript("displayImage('" + encoded + "');", frame->GetURL(), 0);
+
+          SDL_UnlockTexture(tempTex);
+          SDL_DestroyTexture(tempTex);
+
+          tempTex = nullptr;
+          pixels = nullptr;
+        }*/
       }
       else if (e.type == SDL_WINDOWEVENT)
       {
