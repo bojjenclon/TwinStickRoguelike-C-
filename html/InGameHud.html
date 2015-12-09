@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Test</title>
+<title>HUD</title>
 
 <link rel="stylesheet" href="jquery-ui.min.css">
 <script src="external/jquery/jquery.js"></script>
@@ -10,24 +10,14 @@
 <link rel="stylesheet" href="css/responsivegridsystem/col.css" media="all">
 <link rel="stylesheet" href="css/responsivegridsystem/2cols.css" media="all">
 
+<link rel="stylesheet" href="css/shared.css">
 <link rel="stylesheet" href="css/statBars.css">
 <link rel="stylesheet" href="css/itemList.css">
 <link rel="stylesheet" href="css/itemIcons.css">
 
 <style>
-body, html {
-  overflow: hidden;
-}
-
 body {
   color: #121212;
-}
-
-#test {
-  width: 250px;
-  height: 100px;
-  margin: 0 auto;
-  text-align: center;
 }
 
 #hpBar {
@@ -45,37 +35,43 @@ body {
 <head>
 <body>
 
-<div id="selectable">
+<div id="wrap">
 
-  <div class="section group">
+  <div id="selectable">
 
-    <div class="col span_1_of_2">
+    <div class="section group">
 
-      <div class="section group">
-        <div class="col span_1_of_2">
-          <button onclick='resetHP();'>Reset</button>
+      <div class="col span_1_of_2">
+
+        <div class="section group">
+          <div class="col span_1_of_2">
+            <button onclick='resetHP();'>Reset</button>
+            <br>
+            <input class="textInput" type="text">
+          </div>
+
+          <div class="col span_1_of_2">
+            <button onclick='addItem();'>Add Item</button>
+            <button onclick='removeSelectedItems();'>Remove Selected Items</button>
+          </div>
         </div>
 
-        <div class="col span_1_of_2">
-          <button onclick='addItem();'>Add Item</button>
-          <button onclick='removeSelectedItems();'>Remove Selected Items</button>
-        </div>
       </div>
+      
+      <div class="col span_1_of_2">
 
-    </div>
-    
-    <div class="col span_1_of_2">
+        <ol id="itemList"></ol>
 
-      <ol id="itemList"></ol>
+      </div>
 
     </div>
 
   </div>
 
-</div>
+  <div id="hpBar" class="meter">
+    <span style="width: 100%"></span>
+  </div>
 
-<div id="hpBar" class="meter">
-  <span style="width: 100%"></span>
 </div>
 
 <script>
@@ -95,6 +91,12 @@ $(function() {
     .bind('mouseup', function() {
       $(this).blur();     // prevent jquery ui button from remaining in the active state
     });
+
+  $('.textInput').keyup(function(e) {
+    if (e.which === 27) {
+      $(e.currentTarget).blur();
+    }
+  });
 });
 
 var items = [

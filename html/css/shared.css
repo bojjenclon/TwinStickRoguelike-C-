@@ -1,0 +1,14 @@
+/*  
+  Scrollbar Hiding: 
+  https://stackoverflow.com/questions/16637031/completely-disable-scrolling-of-webpage
+*/
+
+body, html {
+  height: 100%;
+  overflow: hidden;
+}
+
+div.wrap {
+  height:100%;
+  overflow:hidden;
+}

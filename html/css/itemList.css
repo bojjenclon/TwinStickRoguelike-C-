@@ -10,6 +10,15 @@
   height: 100%;
 }
 
+#itemList li {
+  margin: 3px;
+  padding: 8px 10px;
+  font-size: 1.4em;
+  width: 90px;
+  height: 34px;
+}
+
+
 #itemList li.ui-selecting {
   background: #FECA40 !important;
 }
@@ -22,13 +31,5 @@
 #itemList li.ui-selectee:hover {
   cursor: pointer;
   background: #DEC78A;
-}
-
-#itemList li {
-  margin: 3px;
-  padding: 8px 10px;
-  font-size: 1.4em;
-  width: 90px;
-  height: 34px;
 }
 

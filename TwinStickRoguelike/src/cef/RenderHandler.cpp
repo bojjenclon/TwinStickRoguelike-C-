@@ -1,6 +1,6 @@
 #include "cef/RenderHandler.hpp"
 
-RenderHandler::RenderHandler(SDL_Texture* p_texture) : m_renderTexture(p_texture)
+RenderHandler::RenderHandler(sf::Texture* p_texture) : m_renderTexture(p_texture)
 {
 }
 
@@ -11,25 +11,55 @@ void RenderHandler::update()
 
 bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> p_browser, CefRect& p_rect)
 {
-  int w, h;
-  SDL_QueryTexture(m_renderTexture, nullptr, nullptr, &w, &h);
-  p_rect = CefRect(0, 0, w, h);
+  p_rect = CefRect(0, 0, m_renderTexture->getSize().x, m_renderTexture->getSize().y);
 
   return true;
 }
 
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> p_browser, PaintElementType p_type, const RectList& p_dirtyRects, const void* p_buffer, int p_width, int p_height)
 {
-  int w, h;
-  SDL_QueryTexture(m_renderTexture, nullptr, nullptr, &w, &h);
+  char* bitmap = (char*)(p_buffer);
 
-  int pitch;
-  void* pixels = nullptr;
+  CefRenderHandler::RectList::const_iterator i = p_dirtyRects.begin();
+  for (; i != p_dirtyRects.end(); ++i)
+  {
+    const CefRect& rect = *i;
+    //Create a rect sized buffer for the new rectangle data.
+    char* rectBuffer = new char[rect.width * (rect.height + 1) * BYTES_PER_PIXEL];
 
-  SDL_LockTexture(m_renderTexture, nullptr, &pixels, &pitch);
+    for (int jj = 0; jj < rect.height; jj++)
+    {
+      //Copy the new rectangle data out of the full size buffer into our rect sized one.  
+      memcpy(
+        rectBuffer + jj * rect.width * BYTES_PER_PIXEL,
+        bitmap + ((rect.x + ((rect.y + jj) * m_renderTexture->getSize().x)) * BYTES_PER_PIXEL),
+        rect.width * BYTES_PER_PIXEL
+        );
+    }
 
-  memcpy(pixels, p_buffer, pitch * h);
+    //Convert BGRA to RGBA
+    unsigned int* pTmpBuf = (unsigned int*)rectBuffer;
+    const int numPixels = rect.width * rect.height;
+    for (int i = 0; i < numPixels; i++)
+    {
+      pTmpBuf[i] = (pTmpBuf[i] & 0xFF00FF00) | ((pTmpBuf[i] & 0x00FF0000) >> 16) | ((pTmpBuf[i] & 0x000000FF) << 16);
+    }
 
-  SDL_UnlockTexture(m_renderTexture);
+    if (!rectBuffer)
+    {
+      continue;
+    }
+
+    //Update the texture with the new data.  
+    //This can be interrupted if the main thread calls a draw on a sprite which uses this texture
+    // as the texture is bound by openGL calls.  
+    //To rectify this we have the redundancy updating system.  
+    m_renderTexture->update((sf::Uint8*)rectBuffer, rect.width, rect.height, rect.x, rect.y);
+
+    //Here we need to add the data required for the update to the queue for redundancy updates.  
+    /*pWeb->mUpdateRects.push(WebInterface::UpdateRect());
+    pWeb->mUpdateRects.back().buffer = rectBuffer;
+    pWeb->mUpdateRects.back().rect = rect;*/
+  }
 }
 

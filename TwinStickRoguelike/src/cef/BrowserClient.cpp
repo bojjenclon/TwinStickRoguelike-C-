@@ -1,6 +1,6 @@
 #include "cef/BrowserClient.hpp"
 
-BrowserClient::BrowserClient(CefRefPtr<RenderHandler> renderHandler, UIValues* p_uiValues) : m_renderHandler(renderHandler), m_browser(nullptr), m_browserHwnd(nullptr), m_uiValues(p_uiValues)
+BrowserClient::BrowserClient(CefRefPtr<RenderHandler> renderHandler, UIValues& p_uiValues) : m_renderHandler(renderHandler), m_browser(nullptr), m_browserHwnd(nullptr), m_uiValues(p_uiValues)
 {
 }
 
@@ -30,8 +30,8 @@ bool BrowserClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefP
   {
     auto currentHealth = message->GetArgumentList()->GetInt(0);
 
-    m_uiValues->currentHealth = currentHealth;
-    m_uiValues->healthChanged = true;
+    m_uiValues.currentHealth = currentHealth;
+    m_uiValues.healthChanged = true;
   }
 
   return false;

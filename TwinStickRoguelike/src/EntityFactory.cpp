@@ -4,23 +4,35 @@
 #include "components/HealthComponent.hpp"
 #include "components/UIComponent.hpp"
 
-ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, SDL_Texture* p_texture, CefRefPtr<CefBrowser> p_browser, UIValues* p_uiValues)
+ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_drawable, int p_depth = 1)
 {
   auto entity = p_engine->createEntity();
 
   auto cRender = p_engine->createComponent<RenderComponent>();
   entity->add(cRender);
-  cRender->texture = p_texture;
+  cRender->drawable = &p_drawable;
+  cRender->depth = p_depth;
+
+  return entity;
+}
+
+ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
+{
+  auto entity = p_engine->createEntity();
+
+  auto cRender = p_engine->createComponent<RenderComponent>();
+  entity->add(cRender);
+  cRender->drawable = &p_sprite;
   cRender->depth = -999;
 
   auto cUI = p_engine->createComponent<UIComponent>();
   entity->add(cUI);
   cUI->uiBrowser = p_browser;
-  cUI->uiValues = p_uiValues;
+  cUI->uiValues = &p_uiValues;
 
   return entity;
 }
-
+/*
 ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p_resources)
 {
   auto entity = p_engine->createEntity();
@@ -40,3 +52,4 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
   return entity;
 }
 
+*/

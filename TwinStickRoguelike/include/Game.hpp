@@ -2,7 +2,7 @@
 #define GAME_HPP
 
 #include <chrono>
-#include <SDL.h>
+#include <SFML/Graphics.hpp>
 #include <include/cef_app.h>
 #include <ecstasy/core/Engine.h>
 
@@ -20,11 +20,7 @@ public:
   void mainLoop();
   void quit();
 
-  SDL_Window* getWindow() const;
-  SDL_Renderer* getRenderer() const;
-
-  float getScaleX() const;
-  float getScaleY() const;
+  const sf::RenderWindow& getWindow() const;
 
   ECS::Entity* getPlayer() const;
 
@@ -37,23 +33,16 @@ public:
   static const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 private:
-  SDL_Window* m_window = nullptr;
-  SDL_Renderer* m_renderer = nullptr;
-
-  SDL_Texture* m_uiTexture = nullptr;
+  sf::RenderWindow m_window;
+  sf::Sprite m_uiSprite;
 
   CefRefPtr<RenderHandler> m_uiRenderHandler;
   CefRefPtr<CefBrowser> m_uiBrowser;
   CefRefPtr<BrowserClient> m_uiBrowserClient;
 
-  float m_scaleX = 1.0f, m_scaleY = 1.0f;
-
-  std::chrono::high_resolution_clock::time_point m_timePrev;
-  float m_delta = 0;
-
   ResourceManager* m_resources = nullptr;
 
-  UIValues* m_uiValues = nullptr;
+  UIValues m_uiValues;
 
   ECS::Engine* m_engine = nullptr;
   ECS::Entity* m_player = nullptr;

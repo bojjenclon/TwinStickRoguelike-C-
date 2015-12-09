@@ -2,13 +2,11 @@
 
 #include <iostream>
 #include <algorithm>
-#include <SDL_image.h>
 
 #include "EntityFactory.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/UIUpdateSystem.hpp"
 #include "cef/BrowserApp.hpp"
-#include <base64.hpp>
 
 Game::Game()
 {
@@ -17,9 +15,7 @@ Game::Game()
 bool Game::start()
 {
   CefMainArgs args(GetModuleHandle(nullptr));
-  /*const char* argv[] = { "--disable-gpu", "--disable-gpu-compositing", "--enable-begin-frame-scheduling" };
-  CefMainArgs args(3, argv);*/
-  
+
   CefRefPtr<BrowserApp> app(new BrowserApp());
 
   int exit_code = CefExecuteProcess(args, app.get(), nullptr);
@@ -28,45 +24,8 @@ bool Game::start()
     return false;
   }
 
-  if (SDL_Init(SDL_INIT_VIDEO) != 0)
-  {
-    std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-    return false;
-  }
-
-  m_window = SDL_CreateWindow("SDL + CEF3", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-  if (m_window == nullptr)
-  {
-    std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-
-    SDL_Quit();
-
-    return false;
-  }
-  else
-  {
-    //Create renderer for window
-    m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
-    if (m_renderer == NULL)
-    {
-      printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-    }
-    else
-    {
-      //Initialize renderer color
-      SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-
-      //Initialize PNG loading
-      int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG;
-      if (!(IMG_Init(imgFlags) & imgFlags))
-      {
-        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-      }
-    }
-  }
-
-  m_resources = new ResourceManager(m_renderer);
-  //loadMedia();
+  m_window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML + CEF3");
+  m_window.setFramerateLimit(60);
 
   CefSettings settings;
   bool result = CefInitialize(args, settings, app.get(), nullptr);
@@ -77,7 +36,7 @@ bool Game::start()
     return false;
   }
 
-  std::string path = "file://" + GetApplicationDir() + "/../html/index.html";
+  std::string path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
   CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
@@ -87,10 +46,14 @@ bool Game::start()
     path = command_line->GetSwitchValue("url");
   }
 
-  m_uiTexture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-  SDL_SetTextureBlendMode(m_uiTexture, SDL_BLENDMODE_BLEND);
+  sf::Texture* uiTexture = new sf::Texture();
+  uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
+  m_uiSprite.setTexture(*uiTexture);
 
-  m_uiRenderHandler = new RenderHandler(m_uiTexture);
+  m_resources = new ResourceManager(m_window);
+  //loadMedia();
+
+  m_uiRenderHandler = new RenderHandler(uiTexture);
 
   CefWindowInfo window_info;
   CefBrowserSettings browserSettings;
@@ -98,251 +61,358 @@ bool Game::start()
   window_info.windowless_rendering_enabled = true;
   window_info.transparent_painting_enabled = true;
 
-  m_uiValues = new UIValues();
-
   m_uiBrowserClient = new BrowserClient(m_uiRenderHandler, m_uiValues);
   m_uiBrowser = CefBrowserHost::CreateBrowserSync(window_info, m_uiBrowserClient.get(), path, browserSettings, nullptr);
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = new ECS::Engine(10, 100, 100);
 
-  RenderSystem* renderSystem = new RenderSystem(this);
+  RenderSystem* renderSystem = new RenderSystem(m_window);
   m_engine->addSystem(renderSystem);
 
   UIUpdateSystem* uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
-  ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiTexture, m_uiBrowser, m_uiValues);
+  ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
 
-  m_player = EntityFactory::makePlayer(m_engine, m_resources);
-  m_engine->addEntity(m_player);
+  /*m_player = EntityFactory::makePlayer(m_engine, m_resources);
+  m_engine->addEntity(m_player);*/
 
   return true;
 }
 
+WPARAM sfkeyToWparam(sf::Keyboard::Key key)
+{
+  switch (key)
+  {
+    case sf::Keyboard::LControl: return VK_LCONTROL;
+    case sf::Keyboard::RControl: return VK_RCONTROL;
+    case sf::Keyboard::LShift: return VK_LSHIFT;
+    case sf::Keyboard::RShift: return VK_RSHIFT;
+    case sf::Keyboard::LAlt: return VK_LMENU;
+    case sf::Keyboard::RAlt: return VK_RMENU;
+    case sf::Keyboard::LSystem: return VK_LWIN;
+    case sf::Keyboard::RSystem: return VK_RWIN;
+    case sf::Keyboard::Menu: return VK_APPS;
+    case sf::Keyboard::SemiColon: return VK_OEM_1 ;
+    case sf::Keyboard::Slash: return VK_OEM_2 ;
+    case sf::Keyboard::Equal: return VK_OEM_PLUS ;
+    case sf::Keyboard::Dash: return VK_OEM_MINUS ;
+    case sf::Keyboard::LBracket: return VK_OEM_4 ;
+    case sf::Keyboard::RBracket: return VK_OEM_6 ;
+    case sf::Keyboard::Comma: return VK_OEM_COMMA ;
+    case sf::Keyboard::Period: return VK_OEM_PERIOD ;
+    case sf::Keyboard::Quote: return VK_OEM_7 ;
+    case sf::Keyboard::BackSlash: return VK_OEM_5 ;
+    case sf::Keyboard::Tilde: return VK_OEM_3 ;
+    case sf::Keyboard::Escape: return VK_ESCAPE;
+    case sf::Keyboard::Space: return VK_SPACE;
+    case sf::Keyboard::Return: return VK_RETURN;
+    case sf::Keyboard::BackSpace: return VK_BACK;
+    case sf::Keyboard::Tab: return VK_TAB;
+    case sf::Keyboard::PageUp: return VK_PRIOR;
+    case sf::Keyboard::PageDown: return VK_NEXT;
+    case sf::Keyboard::End: return VK_END;
+    case sf::Keyboard::Home: return VK_HOME;
+    case sf::Keyboard::Insert: return VK_INSERT;
+    case sf::Keyboard::Delete: return VK_DELETE;
+    case sf::Keyboard::Add: return VK_ADD;
+    case sf::Keyboard::Subtract: return VK_SUBTRACT;
+    case sf::Keyboard::Multiply: return VK_MULTIPLY;
+    case sf::Keyboard::Divide: return VK_DIVIDE;
+    case sf::Keyboard::Pause: return VK_PAUSE;
+    case sf::Keyboard::F1: return VK_F1;
+    case sf::Keyboard::F2: return VK_F2;
+    case sf::Keyboard::F3: return VK_F3;
+    case sf::Keyboard::F4: return VK_F4;
+    case sf::Keyboard::F5: return VK_F5;
+    case sf::Keyboard::F6: return VK_F6;
+    case sf::Keyboard::F7: return VK_F7;
+    case sf::Keyboard::F8: return VK_F8;
+    case sf::Keyboard::F9: return VK_F9;
+    case sf::Keyboard::F10: return VK_F10;
+    case sf::Keyboard::F11: return VK_F11;
+    case sf::Keyboard::F12: return VK_F12;
+    case sf::Keyboard::F13: return VK_F13;
+    case sf::Keyboard::F14: return VK_F14;
+    case sf::Keyboard::F15: return VK_F15;
+    case sf::Keyboard::Left: return VK_LEFT;
+    case sf::Keyboard::Right: return VK_RIGHT;
+    case sf::Keyboard::Up: return VK_UP;
+    case sf::Keyboard::Down: return VK_DOWN;
+    case sf::Keyboard::Numpad0: return VK_NUMPAD0;
+    case sf::Keyboard::Numpad1: return VK_NUMPAD1;
+    case sf::Keyboard::Numpad2: return VK_NUMPAD2;
+    case sf::Keyboard::Numpad3: return VK_NUMPAD3;
+    case sf::Keyboard::Numpad4: return VK_NUMPAD4;
+    case sf::Keyboard::Numpad5: return VK_NUMPAD5;
+    case sf::Keyboard::Numpad6: return VK_NUMPAD6;
+    case sf::Keyboard::Numpad7: return VK_NUMPAD7;
+    case sf::Keyboard::Numpad8: return VK_NUMPAD8;
+    case sf::Keyboard::Numpad9: return VK_NUMPAD9;
+    case sf::Keyboard::A: return 'A';
+    case sf::Keyboard::B: return 'B';
+    case sf::Keyboard::C: return 'C';
+    case sf::Keyboard::D: return 'D';
+    case sf::Keyboard::E: return 'E';
+    case sf::Keyboard::F: return 'F';
+    case sf::Keyboard::G: return 'G';
+    case sf::Keyboard::H: return 'H';
+    case sf::Keyboard::I: return 'I';
+    case sf::Keyboard::J: return 'J';
+    case sf::Keyboard::K: return 'K';
+    case sf::Keyboard::L: return 'L';
+    case sf::Keyboard::M: return 'M';
+    case sf::Keyboard::N: return 'N';
+    case sf::Keyboard::O: return 'O';
+    case sf::Keyboard::P: return 'P';
+    case sf::Keyboard::Q: return 'Q';
+    case sf::Keyboard::R: return 'R';
+    case sf::Keyboard::S: return 'S';
+    case sf::Keyboard::T: return 'T';
+    case sf::Keyboard::U: return 'U';
+    case sf::Keyboard::V: return 'V';
+    case sf::Keyboard::W: return 'W';
+    case sf::Keyboard::X: return 'X';
+    case sf::Keyboard::Y: return 'Y';
+    case sf::Keyboard::Z: return 'Z';
+    case sf::Keyboard::Num0: return '0';
+    case sf::Keyboard::Num1: return '1';
+    case sf::Keyboard::Num2: return '2';
+    case sf::Keyboard::Num3: return '3';
+    case sf::Keyboard::Num4: return '4';
+    case sf::Keyboard::Num5: return '5';
+    case sf::Keyboard::Num6: return '6';
+    case sf::Keyboard::Num7: return '7';
+    case sf::Keyboard::Num8: return '8';
+    case sf::Keyboard::Num9: return '9';
+  }
+
+  return VK_NONAME;
+}
+
+int GetKeyboardModifiers()
+{
+  int mod = 0;
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+  {
+    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
+  {
+    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+  {
+    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
+  {
+    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))
+  {
+    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
+  {
+    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+
+  return mod;
+}
+
 void Game::mainLoop()
 {
-  SDL_Event e;
-  bool quit = false;
+  sf::Clock deltaClock;
 
-  int hpBarWidth = 100;
+  sf::Clock clickClock;
+  clickClock.restart();
+  float clickTime = 0.25f;
+  sf::Mouse::Button lastClickType = sf::Mouse::Left;
+  int clickCount = 1;
 
-  bool result = m_resources->loadTexture("test.png");
-  SDL_Texture* tex = m_resources->getTexture("test.png");
+  sf::Font font;
+  font.loadFromFile("Adventure Subtitles.ttf");
 
-  m_timePrev = std::chrono::high_resolution_clock::now();
+  sf::Text fpsText("FPS: 60", font);
+  fpsText.setCharacterSize(30);
+  fpsText.setStyle(sf::Text::Bold);
+  fpsText.setColor(sf::Color::Red);
+  fpsText.setPosition(5, SCREEN_HEIGHT - 35);
 
-  while (!quit)
+  auto fpsEntity = EntityFactory::makeDrawable(m_engine, fpsText, -10);
+  m_engine->addEntity(fpsEntity);
+
+  while (m_window.isOpen())
   {
-    while (SDL_PollEvent(&e) != 0)
+    sf::Event event;
+    while (m_window.pollEvent(event))
     {
-      if (e.type == SDL_QUIT)
+      if (event.type == sf::Event::Closed)
       {
-        quit = true;
+        m_window.close();
       }
-      else if (e.type == SDL_MOUSEBUTTONDOWN)
+
+      if (event.type == sf::Event::MouseButtonPressed)
       {
-        const Uint8* state = SDL_GetKeyboardState(nullptr);
-        uint32 modifiers = 0;
-        
-        if (state[SDL_SCANCODE_LCTRL] || state[SDL_SCANCODE_RCTRL])
+        if (clickClock.getElapsedTime().asSeconds() < clickTime && event.mouseButton.button == lastClickType)
         {
-          modifiers = modifiers | EVENTFLAG_CONTROL_DOWN;
+          clickCount++;
         }
-        if (state[SDL_SCANCODE_LSHIFT] || state[SDL_SCANCODE_RSHIFT])
+        else
         {
-          modifiers = modifiers | EVENTFLAG_SHIFT_DOWN;
+          clickCount = 1;
         }
 
-        CefMouseEvent cefEvent({ static_cast<int>(e.button.x / m_scaleX), static_cast<int>(e.button.y / m_scaleY), modifiers });
-        
-        if (e.button.button == SDL_BUTTON_LEFT)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_LEFT, false, 1);
-        }
-        else if (e.button.button == SDL_BUTTON_RIGHT)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_RIGHT, false, 1);
-        }
-        else if (e.button.button == SDL_BUTTON_MIDDLE)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_MIDDLE, false, 1);
-        }
+        lastClickType = event.mouseButton.button;
+
+        m_uiBrowser->GetHost()->SendFocusEvent(true);
+
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        uint32 modifiers = GetKeyboardModifiers();
+
+        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+
+        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
+
+        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, clickCount);
+
+        clickClock.restart();
       }
-      else if (e.type == SDL_MOUSEBUTTONUP)
+      else if (event.type == sf::Event::MouseButtonReleased)
       {
-        const Uint8* state = SDL_GetKeyboardState(nullptr);
-        uint32 modifiers = 0;
+        m_uiBrowser->GetHost()->SendFocusEvent(true);
 
-        if (state[SDL_SCANCODE_LCTRL] || state[SDL_SCANCODE_RCTRL])
-        {
-          modifiers = modifiers | EVENTFLAG_CONTROL_DOWN;
-        }
-        if (state[SDL_SCANCODE_LSHIFT] || state[SDL_SCANCODE_RSHIFT])
-        {
-          modifiers = modifiers | EVENTFLAG_SHIFT_DOWN;
-        }
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        uint32 modifiers = GetKeyboardModifiers();
 
-        CefMouseEvent cefEvent({ static_cast<int>(e.button.x / m_scaleX), static_cast<int>(e.button.y / m_scaleY), modifiers });
+        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
 
-        if (e.button.button == SDL_BUTTON_LEFT)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_LEFT, true, 1);
-        }
-        else if (e.button.button == SDL_BUTTON_RIGHT)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_RIGHT, true, 1);
-        }
-        else if (e.button.button == SDL_BUTTON_MIDDLE)
-        {
-          m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, MBT_MIDDLE, true, 1);
-        }
+        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
+
+        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, clickCount);
       }
-      else if (e.type == SDL_MOUSEMOTION)
+      else if (event.type == sf::Event::MouseMoved)
       {
-        CefMouseEvent cefEvent({ static_cast<int>(e.motion.x / m_scaleX), static_cast<int>(e.motion.y / m_scaleY), 0 });
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        uint32 modifiers = GetKeyboardModifiers();
+
+        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+
+        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
 
         m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
       }
-      else if (e.type == SDL_MOUSEWHEEL)
+      else if (event.type == sf::Event::KeyPressed)
       {
-        int mx, my;
-        SDL_GetMouseState(&mx, &my);
-        CefMouseEvent cefEvent({ mx, my, 0 });
+        WPARAM key = sfkeyToWparam(event.key.code);
 
-        m_uiBrowser->GetHost()->SendMouseWheelEvent(cefEvent, e.wheel.x, e.wheel.y);
-      }
-      else if (e.type == SDL_KEYDOWN)
-      {
-        
-      }
-      else if (e.type == SDL_KEYUP)
-      {        
-        if (e.key.keysym.sym == SDLK_a)
+        if (key != VK_NONAME)
         {
-          m_uiValues->currentHealth--;
-          m_uiValues->healthChanged = true;
+          uint32 modifiers = GetKeyboardModifiers();
 
-          if (m_uiValues->currentHealth < 0)
+          CefKeyEvent e;
+          e.windows_key_code = key;
+          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+          e.type = KEYEVENT_KEYDOWN;
+          e.is_system_key = false;
+          e.character = key;
+          e.unmodified_character = key;
+          //e.native_key_code = 0;
+
+          m_uiBrowser->GetHost()->SendKeyEvent(e);
+        }
+      }
+      else if (event.type == sf::Event::KeyReleased)
+      {
+        if (event.key.code == sf::Keyboard::A)
+        {
+          m_uiValues.currentHealth--;
+          m_uiValues.healthChanged = true;
+
+          if (m_uiValues.currentHealth < 0)
           {
-            m_uiValues->currentHealth = 0;
+            m_uiValues.currentHealth = 0;
           }
         }
-        else if (e.key.keysym.sym == SDLK_i)
+
+        WPARAM key = sfkeyToWparam(event.key.code);
+
+        if (key != VK_NONAME)
         {
-          m_uiBrowser->GetMainFrame()->LoadURL("http://www.google.com");
+          uint32 modifiers = GetKeyboardModifiers();
+
+          CefKeyEvent e;
+          e.windows_key_code = key;
+          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+          e.type = KEYEVENT_KEYUP;
+          e.is_system_key = false;
+          e.character = key;
+          e.unmodified_character = key;
+          //e.native_key_code = 0;
+
+          m_uiBrowser->GetHost()->SendKeyEvent(e);
         }
-        else if (e.key.keysym.sym == SDLK_o)
-        {
-          m_uiBrowser->GetMainFrame()->LoadURL("file://" + GetApplicationDir() + "/../html/index.html");
-        }
-        // note: figure out how to base64 encode a texture so I can send it to the UI
-        /*else if (e.key.keysym.sym == SDLK_d)
-        {
-          auto frame = m_uiBrowser->GetMainFrame();
-
-          auto tempTex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 150, 150);
-
-          SDL_SetRenderTarget(m_renderer, tempTex);
-          SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_NONE);
-          SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
-          SDL_RenderFillRect(m_renderer, nullptr);
-
-          SDL_SetRenderTarget(m_renderer, nullptr);
-          SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-          SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
-
-          int w, h;
-          SDL_QueryTexture(tempTex, nullptr, nullptr, &w, &h);
-
-          int pitch = 0;
-          void* pixels = nullptr;
-          SDL_LockTexture(tempTex, nullptr, &pixels, &pitch);
-          const unsigned char* tempPixels = reinterpret_cast<const unsigned char*>(pixels);
-          
-          std::string encoded = base64_encode(tempPixels, pitch * h);
-          
-          frame->ExecuteJavaScript("displayImage('" + encoded + "');", frame->GetURL(), 0);
-
-          SDL_UnlockTexture(tempTex);
-          SDL_DestroyTexture(tempTex);
-
-          tempTex = nullptr;
-          pixels = nullptr;
-        }*/
       }
-      else if (e.type == SDL_WINDOWEVENT)
+      else if (event.type == sf::Event::TextEntered)
       {
-        if (e.window.event == SDL_WINDOWEVENT_RESIZED)
-        {
-          m_scaleX = static_cast<float>(e.window.data1) / SCREEN_WIDTH;
-          m_scaleY = static_cast<float>(e.window.data2) / SCREEN_HEIGHT;
+        WPARAM key = static_cast<WPARAM>(static_cast<char>(event.text.unicode));
+        uint32 modifiers = GetKeyboardModifiers();
 
-          //m_uiBrowser->GetHost()->WasResized();
-        }
+        CefKeyEvent e;
+        e.windows_key_code = key;
+        e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+        e.type = KEYEVENT_CHAR;
+        e.character = key;
+        e.unmodified_character = key;
+
+        m_uiBrowser->GetHost()->SendKeyEvent(e);
       }
     }
 
-    auto timeCurrent = std::chrono::high_resolution_clock::now();
-    auto timeDiff = std::chrono::duration_cast<std::chrono::nanoseconds>(timeCurrent - m_timePrev);
-    m_delta = static_cast<float>(timeDiff.count());
-    m_delta /= 1000000000;
+    sf::Time dt = deltaClock.restart();
+
+    fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 
     m_uiRenderHandler->update();
 
-    m_engine->update(m_delta);
+    m_window.clear(sf::Color::White);
 
-    m_timePrev = timeCurrent;
+    m_engine->update(dt.asMilliseconds());
+
+    m_window.display();
   }
 }
 
 void Game::quit()
 {
-  //SDL_DestroyTexture(gTexture);
-  SDL_DestroyTexture(m_uiTexture);
+  m_resources->freeAllTextures();
 
-  //m_resources->freeAllTextures();
-  
-  m_uiRenderHandler = nullptr;
-  m_uiBrowser = nullptr;
-  m_uiBrowserClient = nullptr;
-  
   /*auto uiEntities = m_engine->getEntitiesFor(ECS::Family::all<UIComponent>().get());
   for (auto i = 0; i < uiEntities->size(); i++)
   {
     uiEntities->at(i)->get<UIComponent>()->uiBrowser = nullptr;
   }*/
 
-  SetErrorMode(SEM_NOGPFAULTERRORBOX); // used to prevent DebugObjCt error, should really figure out why the error is being thrown instead of suppressing it
   CefShutdown();
 
-  SDL_DestroyWindow(m_window);
-  SDL_Quit();
+  m_uiRenderHandler = nullptr;
+  m_uiBrowser = nullptr;
+  m_uiBrowserClient = nullptr;
 
-  m_resources = nullptr;
-  m_window = nullptr;
+  //m_resources = nullptr;
   m_engine = nullptr;
 }
 
-SDL_Window* Game::getWindow() const
+const sf::RenderWindow& Game::getWindow() const
 {
   return m_window;
-}
-
-SDL_Renderer* Game::getRenderer() const
-{
-  return m_renderer;
-}
-
-float Game::getScaleX() const
-{
-  return m_scaleX;
-}
-
-float Game::getScaleY() const
-{
-  return m_scaleY;
 }
 
 ECS::Entity* Game::getPlayer() const

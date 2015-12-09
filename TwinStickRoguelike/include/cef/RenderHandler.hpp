@@ -1,17 +1,21 @@
 #ifndef RENDER_HANDLER_HPP
 #define RENDER_HANDLER_HPP
 
-#include <SDL.h>
+#include <SFML/Graphics.hpp>
 
 #include <include/cef_app.h>
 #include <include/cef_render_handler.h>
 
+#ifndef BYTES_PER_PIXEL
+#define BYTES_PER_PIXEL 4
+#endif
+
 class RenderHandler : public CefRenderHandler
 {
 public:
-  SDL_Texture* m_renderTexture;
+  sf::Texture* m_renderTexture;
 
-  RenderHandler(SDL_Texture* p_texture);
+  RenderHandler(sf::Texture* p_texture);
 
   // SDL Update
 public:

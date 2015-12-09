@@ -9,7 +9,7 @@
 class BrowserClient : public CefClient, public CefLifeSpanHandler, public CefRenderProcessHandler
 {
 public:
-  BrowserClient(CefRefPtr<RenderHandler> renderHandler, UIValues* p_uiValues);
+  BrowserClient(CefRefPtr<RenderHandler> renderHandler, UIValues& p_uiValues);
   ~BrowserClient();
 
   // CefClient interface
@@ -30,7 +30,7 @@ private:
   CefRefPtr<CefBrowser> m_browser;
   CefWindowHandle m_browserHwnd;
 
-  UIValues* m_uiValues = nullptr;
+  UIValues& m_uiValues;
 
   IMPLEMENT_REFCOUNTING(BrowserClient);
 };

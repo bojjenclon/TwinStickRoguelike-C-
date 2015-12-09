@@ -19,5 +19,5 @@ int main(int argc, char *argv[])
     game.quit();
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

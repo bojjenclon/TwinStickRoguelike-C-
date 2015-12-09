@@ -21,13 +21,12 @@ struct DepthTest
 class RenderSystem : public ECS::SortedIteratingSystem<RenderSystem, DepthTest>
 {
 public:
-  RenderSystem(Game* p_game);
+  RenderSystem(sf::RenderTarget& p_renderTarget);
 
-  void update(float deltaTime) override;
   void processEntity(ECS::Entity* entity, float deltaTime) override;
 
 private:
-  Game* m_game = nullptr;
+  sf::RenderTarget& m_renderTarget;
 };
 
 
