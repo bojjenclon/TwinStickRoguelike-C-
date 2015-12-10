@@ -8,8 +8,7 @@
 
 #include "ResourceManager.hpp"
 #include "UIValues.hpp"
-#include "cef/BrowserClient.hpp"
-#include "cef/RenderHandler.hpp"
+#include "cef/WebSystem.hpp"
 
 class Game
 {
@@ -30,15 +29,12 @@ public:
   static const int SCREEN_WIDTH = 1024;
   static const int SCREEN_HEIGHT = 768;
   static const int SCREEN_FPS = 60;
-  static const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 private:
   sf::RenderWindow m_window;
   sf::Sprite m_uiSprite;
 
-  CefRefPtr<RenderHandler> m_uiRenderHandler;
-  CefRefPtr<CefBrowser> m_uiBrowser;
-  CefRefPtr<BrowserClient> m_uiBrowserClient;
+  CefRefPtr<WebInterface> m_uiBrowser;
 
   ResourceManager* m_resources = nullptr;
 
