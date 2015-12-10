@@ -6,7 +6,15 @@
 #include "EntityFactory.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/UIUpdateSystem.hpp"
-#include "cef/BrowserApp.hpp"
+
+bool jsCallback(CefRefPtr<CefListValue> arguments)
+{
+  //Get argument 0 as a string.  
+  std::string text = arguments->GetString(0);
+  printf("Text: %s\n", text.c_str());
+
+  return true;
+}
 
 Game::Game()
 {
@@ -14,55 +22,19 @@ Game::Game()
 
 bool Game::start()
 {
-  CefMainArgs args(GetModuleHandle(nullptr));
-
-  CefRefPtr<BrowserApp> app(new BrowserApp());
-
-  int exit_code = CefExecuteProcess(args, app.get(), nullptr);
-  if (exit_code >= 0)
-  {
-    return false;
-  }
-
   m_window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML + CEF3");
-  m_window.setFramerateLimit(60);
+  m_window.setFramerateLimit(SCREEN_FPS);
 
-  CefSettings settings;
-  bool result = CefInitialize(args, settings, app.get(), nullptr);
-
-  if (!result)
-  {
-    // handle error
-    return false;
-  }
+  WebSystem::StartWeb();
 
   std::string path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
-  CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
 
-  if (command_line->HasSwitch("url"))
-  {
-    path = command_line->GetSwitchValue("url");
-  }
+  m_uiBrowser = WebSystem::CreateWebInterfaceSync(m_window.getSize().x, m_window.getSize().y, path, true);
+  m_uiBrowser->AddJSBinding("testCallback", &jsCallback);
 
-  sf::Texture* uiTexture = new sf::Texture();
-  uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
-  m_uiSprite.setTexture(*uiTexture);
-
-  m_resources = new ResourceManager(m_window);
-  //loadMedia();
-
-  m_uiRenderHandler = new RenderHandler(uiTexture);
-
-  CefWindowInfo window_info;
-  CefBrowserSettings browserSettings;
-
-  window_info.windowless_rendering_enabled = true;
-  window_info.transparent_painting_enabled = true;
-
-  m_uiBrowserClient = new BrowserClient(m_uiRenderHandler, m_uiValues);
-  m_uiBrowser = CefBrowserHost::CreateBrowserSync(window_info, m_uiBrowserClient.get(), path, browserSettings, nullptr);
+  m_uiSprite.setTexture(*m_uiBrowser->GetTexture());
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = new ECS::Engine(10, 100, 100);
@@ -73,7 +45,7 @@ bool Game::start()
   UIUpdateSystem* uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
-  ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
+  ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser->GetBrowser(), m_uiValues);
   m_engine->addEntity(uiContainer);
 
   /*m_player = EntityFactory::makePlayer(m_engine, m_resources);
@@ -268,46 +240,26 @@ void Game::mainLoop()
 
         lastClickType = event.mouseButton.button;
 
-        m_uiBrowser->GetHost()->SendFocusEvent(true);
-
         sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
         sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
 
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, clickCount);
+        m_uiBrowser->SendMouseClickEvent(static_cast<int>(point.x), static_cast<int>(point.y), event.mouseButton.button, false, clickCount);
 
         clickClock.restart();
       }
       else if (event.type == sf::Event::MouseButtonReleased)
       {
-        m_uiBrowser->GetHost()->SendFocusEvent(true);
-
         sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
         sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
 
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, clickCount);
+        m_uiBrowser->SendMouseClickEvent(static_cast<int>(point.x), static_cast<int>(point.y), event.mouseButton.button, true, clickCount);
       }
       else if (event.type == sf::Event::MouseMoved)
       {
         sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
         sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
 
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+        m_uiBrowser->SendMouseMoveEvent(static_cast<int>(point.x), static_cast<int>(point.y));
       }
       else if (event.type == sf::Event::KeyPressed)
       {
@@ -315,18 +267,7 @@ void Game::mainLoop()
 
         if (key != VK_NONAME)
         {
-          uint32 modifiers = GetKeyboardModifiers();
-
-          CefKeyEvent e;
-          e.windows_key_code = key;
-          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-          e.type = KEYEVENT_KEYDOWN;
-          e.is_system_key = false;
-          e.character = key;
-          e.unmodified_character = key;
-          //e.native_key_code = 0;
-
-          m_uiBrowser->GetHost()->SendKeyEvent(e);
+          m_uiBrowser->SendKeyEvent(key, false, event.key.control);
         }
       }
       else if (event.type == sf::Event::KeyReleased)
@@ -346,33 +287,14 @@ void Game::mainLoop()
 
         if (key != VK_NONAME)
         {
-          uint32 modifiers = GetKeyboardModifiers();
-
-          CefKeyEvent e;
-          e.windows_key_code = key;
-          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-          e.type = KEYEVENT_KEYUP;
-          e.is_system_key = false;
-          e.character = key;
-          e.unmodified_character = key;
-          //e.native_key_code = 0;
-
-          m_uiBrowser->GetHost()->SendKeyEvent(e);
+          m_uiBrowser->SendKeyEvent(key, true, event.key.control);
         }
       }
       else if (event.type == sf::Event::TextEntered)
       {
         WPARAM key = static_cast<WPARAM>(static_cast<char>(event.text.unicode));
-        uint32 modifiers = GetKeyboardModifiers();
 
-        CefKeyEvent e;
-        e.windows_key_code = key;
-        e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-        e.type = KEYEVENT_CHAR;
-        e.character = key;
-        e.unmodified_character = key;
-
-        m_uiBrowser->GetHost()->SendKeyEvent(e);
+        m_uiBrowser->SendKeyEvent(static_cast<char>(event.text.unicode));
       }
     }
 
@@ -380,8 +302,8 @@ void Game::mainLoop()
 
     fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 
-    m_uiRenderHandler->update();
-
+    WebSystem::UpdateInterfaceTextures();
+    
     m_window.clear(sf::Color::White);
 
     m_engine->update(dt.asMilliseconds());
@@ -392,7 +314,7 @@ void Game::mainLoop()
 
 void Game::quit()
 {
-  m_resources->freeAllTextures();
+  //m_resources->freeAllTextures();
 
   /*auto uiEntities = m_engine->getEntitiesFor(ECS::Family::all<UIComponent>().get());
   for (auto i = 0; i < uiEntities->size(); i++)
@@ -400,11 +322,10 @@ void Game::quit()
     uiEntities->at(i)->get<UIComponent>()->uiBrowser = nullptr;
   }*/
 
-  CefShutdown();
+  WebSystem::EndWeb();
+  WebSystem::WaitForWebEnd();
 
-  m_uiRenderHandler = nullptr;
   m_uiBrowser = nullptr;
-  m_uiBrowserClient = nullptr;
 
   //m_resources = nullptr;
   m_engine = nullptr;
