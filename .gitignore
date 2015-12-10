@@ -5,11 +5,11 @@ Release/
 Release (console)/
 backup/
 *.png
-TwinStickRoguelike/TwinStickRoguelike.filters
-TwinStickRoguelike/TwinStickRoguelike.vcxproj
-TwinStickRoguelike/TwinStickRoguelike.vcxproj.filters
-TwinStickRoguelike.opensdf
-TwinStickRoguelike.sdf
-TwinStickRoguelike.sln
 *.jpg
 *.ttf
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.sdf
+*.opensdf
+*.filters
