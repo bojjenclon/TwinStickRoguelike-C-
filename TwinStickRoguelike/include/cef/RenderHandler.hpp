@@ -35,6 +35,8 @@ public:
   IMPLEMENT_REFCOUNTING(RenderHandler);
 
 private:
+  sf::Mutex m_mutex;
+
   struct UpdateRect
   {
   public:
@@ -42,7 +44,7 @@ private:
     CefRect rect;
   };
 
-  std::queue<UpdateRect> mUpdateRects;
+  std::queue<UpdateRect> m_updateRects;
 };
 
 #endif

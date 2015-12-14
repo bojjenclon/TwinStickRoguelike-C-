@@ -16,19 +16,19 @@ void RenderHandler::update()
 
 void RenderHandler::updateTexture()
 {
-  if (mUpdateRects.size() <= 0)
+  if (m_updateRects.size() <= 0)
   {
     return;
   }
 
-  //sf::Lock lock(mMutex);
+  sf::Lock lock(m_mutex);
   
-  while (mUpdateRects.size() > 0)
+  while (m_updateRects.size() > 0)
   {
-    const CefRect& rect = mUpdateRects.front().rect;
-    m_renderTexture->update(reinterpret_cast<sf::Uint8*>(mUpdateRects.front().buffer), rect.width, rect.height, rect.x, rect.y);
-    delete[] mUpdateRects.front().buffer;
-    mUpdateRects.pop();
+    const CefRect& rect = m_updateRects.front().rect;
+    m_renderTexture->update(reinterpret_cast<sf::Uint8*>(m_updateRects.front().buffer), rect.width, rect.height, rect.x, rect.y);
+    delete[] m_updateRects.front().buffer;
+    m_updateRects.pop();
   }
 }
 
@@ -80,9 +80,9 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> p_browser, PaintElementType p_
     m_renderTexture->update(reinterpret_cast<sf::Uint8*>(rectBuffer), rect.width, rect.height, rect.x, rect.y);
 
     //Here we need to add the data required for the update to the queue for redundancy updates.  
-    mUpdateRects.push(UpdateRect());
-    mUpdateRects.back().buffer = rectBuffer;
-    mUpdateRects.back().rect = rect;
+    m_updateRects.push(UpdateRect());
+    m_updateRects.back().buffer = rectBuffer;
+    m_updateRects.back().rect = rect;
   }
 }
 
