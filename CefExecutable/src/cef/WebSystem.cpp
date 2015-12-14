@@ -8,9 +8,6 @@ bool WebSystem::sSingleProcess = false;
 CefMainArgs WebSystem::sArgs;
 CefRefPtr<WebApp> WebSystem::sApp = nullptr;
 CefRefPtr<WebSystem> WebSystem::sInstance = nullptr;
-sf::Thread* WebSystem::spThread = nullptr;
-bool WebSystem::sEndThread = false;
-//std::queue<WebSystem::RegScheme> WebSystem::sRegSchemeQueue;
 std::queue<WebInterface*> WebSystem::sMakeWebInterfaceQueue;
 std::map<int, WebInterface*> WebSystem::sWebInterfaces;
 WebSystem::BindingMap WebSystem::sBindings;
@@ -19,23 +16,27 @@ void SetList(CefRefPtr<CefV8Value> source, CefRefPtr<CefListValue> target);
 void SetList(CefRefPtr<CefListValue> source, CefRefPtr<CefV8Value> target);
 
 // Transfer a V8 value to a List index.
-void SetListValue(CefRefPtr<CefListValue> list, int index,
-  CefRefPtr<CefV8Value> value) {
-  if (value->IsArray()) {
+void SetListValue(CefRefPtr<CefListValue> list, int index, CefRefPtr<CefV8Value> value) {
+  if (value->IsArray()) 
+  {
     CefRefPtr<CefListValue> new_list = CefListValue::Create();
     SetList(value, new_list);
     list->SetList(index, new_list);
   }
-  else if (value->IsString()) {
+  else if (value->IsString()) 
+  {
     list->SetString(index, value->GetStringValue());
   }
-  else if (value->IsBool()) {
+  else if (value->IsBool()) 
+  {
     list->SetBool(index, value->GetBoolValue());
   }
-  else if (value->IsInt()) {
+  else if (value->IsInt()) 
+  {
     list->SetInt(index, value->GetIntValue());
   }
-  else if (value->IsDouble()) {
+  else if (value->IsDouble()) 
+  {
     list->SetDouble(index, value->GetDoubleValue());
   }
 }
@@ -46,13 +47,17 @@ void SetList(CefRefPtr<CefV8Value> source, CefRefPtr<CefListValue> target) {
 
   int arg_length = source->GetArrayLength();
   if (arg_length == 0)
+  {
     return;
+  }
 
   // Start with null types in all spaces.
   target->SetSize(arg_length);
 
   for (int i = 0; i < arg_length; ++i)
+  {
     SetListValue(target, i, source->GetValue(i));
+  }
 }
 
 
@@ -66,7 +71,55 @@ CefRefPtr<WebSystem> WebSystem::GetInstance()
   return sInstance;
 }
 
-void WebSystem::WebThread()
+void WebSystem::AddBrowserToInterface(WebInterface* pWeb)
+{
+  //base::AutoLock lock_scope(mLock);
+
+  CefWindowInfo window_info;
+  window_info.windowless_rendering_enabled = true;
+  window_info.transparent_painting_enabled = true;
+  //window_info.SetAsWindowless(pWeb->mHandle, true);
+  
+  CefBrowserSettings browserSettings;
+  //browserSettings.javascript_access_clipboard = STATE_ENABLED;
+
+  CefRefPtr<CefBrowser> browser = CefBrowserHost::CreateBrowserSync(window_info, this, pWeb->GetCurrentURL(), browserSettings, nullptr);
+
+  pWeb->mBrowser = browser;
+
+  sWebInterfaces[browser->GetIdentifier()] = pWeb;
+}
+
+int WebSystem::Main()
+{
+#if(PLATFORM == WINDOWS)
+  sArgs = CefMainArgs(GetModuleHandle(nullptr));
+#else
+  sArgs = CefMainArgs();
+#endif
+  sApp = new WebApp();
+  
+  int exit_code = CefExecuteProcess(sArgs, sApp.get(), nullptr);
+
+  if (exit_code >= 0)
+  {
+    return exit_code;
+  }
+
+  return -1;
+}
+
+void WebSystem::SetSubprocess(const std::string path)
+{
+  sSubprocess = path;
+}
+
+void WebSystem::SetSingleProcess(bool single)
+{
+  sSingleProcess = single;
+}
+
+void WebSystem::StartWeb()
 {
   if (!sApp)
   {
@@ -90,102 +143,24 @@ void WebSystem::WebThread()
   }
 
   CefInitialize(sArgs, settings, sApp.get(), nullptr);
+}
 
-  while (!sEndThread)
+void WebSystem::RunWeb()
+{
+  while (sMakeWebInterfaceQueue.size() > 0)
   {
-    /*while (sRegSchemeQueue.size() > 0)
-    {
-      CefRegisterSchemeHandlerFactory(sRegSchemeQueue.front().mName, sRegSchemeQueue.front().mDomain, sRegSchemeQueue.front().mFactory);
-      sRegSchemeQueue.pop();
-    }*/
-
-    while (sMakeWebInterfaceQueue.size() > 0)
-    {
-      GetInstance()->AddBrowserToInterface(sMakeWebInterfaceQueue.front());
-      sMakeWebInterfaceQueue.pop();
-    }
-
-    CefDoMessageLoopWork();
+    GetInstance()->AddBrowserToInterface(sMakeWebInterfaceQueue.front());
+    sMakeWebInterfaceQueue.pop();
   }
 
-  //WE SHOULD PROBABLY CHECK IF THERE ARE STILL LIVE BROWSERS HERE
-
-  CefShutdown();
-}
-
-void WebSystem::AddBrowserToInterface(WebInterface* pWeb)
-{
-  //base::AutoLock lock_scope(mLock);
-
-  CefWindowInfo window_info;
-  window_info.windowless_rendering_enabled = true;
-  window_info.transparent_painting_enabled = true;
-  //window_info.SetAsWindowless(pWeb->mHandle, true);
-
-  CefBrowserSettings browserSettings;
-  //browserSettings.javascript_access_clipboard = STATE_ENABLED;
-
-  CefRefPtr<CefBrowser> browser = CefBrowserHost::CreateBrowserSync(window_info, this, pWeb->GetCurrentURL(), browserSettings, nullptr);
-
-  pWeb->mBrowser = browser;
-
-  sWebInterfaces[browser->GetIdentifier()] = pWeb;
-}
-
-int WebSystem::Main()
-{
-#if(PLATFORM == WINDOWS)
-  sArgs = CefMainArgs(GetModuleHandle(nullptr));
-#else
-  sArgs = CefMainArgs();
-#endif
-  sApp = new WebApp();
-
-  int exit_code = CefExecuteProcess(sArgs, sApp.get(), nullptr);
-
-  if (exit_code >= 0)
-  {
-    return exit_code;
-  }
-
-  return -1;
-}
-
-void WebSystem::SetSubprocess(const std::string path)
-{
-  sSubprocess = path;
-}
-
-void WebSystem::SetSingleProcess(bool single)
-{
-  sSingleProcess = single;
-}
-
-void WebSystem::StartWeb()
-{
-  if (!spThread)
-  {
-    spThread = new sf::Thread(&WebThread);
-
-    sEndThread = false;
-    spThread->launch();
-  }
+  CefDoMessageLoopWork();
 }
 
 void WebSystem::EndWeb()
 {
-  sEndThread = true;
-}
+  //WE SHOULD PROBABLY CHECK IF THERE ARE STILL LIVE BROWSERS HERE
 
-void WebSystem::WaitForWebEnd()
-{
-  if (spThread)
-  {
-    spThread->wait();
-
-    delete spThread;
-    spThread = nullptr;
-  }
+  CefShutdown();
 }
 
 WebInterface* WebSystem::CreateWebInterfaceSync(int width, int height, const std::string& url, bool transparent)
@@ -196,6 +171,8 @@ WebInterface* WebSystem::CreateWebInterfaceSync(int width, int height, const std
 
   while (!pWeb->mBrowser)
   {
+    RunWeb();
+
     //Sleep for one millisecond to prevent 100% CPU usage.
     //There is probably a more elegant solution for this.
     Sleep(1);
@@ -404,7 +381,7 @@ bool WebSystem::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
     rect = CefRect();
     return true;
   }
-  
+
   rect = CefRect(0, 0, pWeb->GetWidth(), pWeb->GetHeight());
 
   return true;
@@ -412,16 +389,23 @@ bool WebSystem::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 
 void WebSystem::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const void* buffer, int width, int height)
 {
+  printf("On Paint\n");
   ////Get the web interface we will be working with. 
   if (!sWebInterfaces.count(browser->GetIdentifier()))
+  {
     return;
+  }
 
   WebInterface* pWeb = sWebInterfaces[browser->GetIdentifier()];
   if (!pWeb)
+  {
     return;
+  }
 
   if (!buffer)
+  {
     return;
+  }
 
   if (type == PET_VIEW)
   {
@@ -557,6 +541,8 @@ WebInterface::WebInterface(int width, int height, const std::string& url, bool t
 
 WebInterface::~WebInterface()
 {
+  sf::Lock lock(mMutex);
+
   delete mpTexture;
 
   while (mUpdateRects.size() > 0)
@@ -584,7 +570,13 @@ WebInterface::~WebInterface()
 
 void WebInterface::UpdateTexture()
 {
+  if (mUpdateRects.size() <= 0)
+  {
+    return;
+  }
+
   sf::Lock lock(mMutex);
+
   while (mUpdateRects.size() > 0)
   {
     int size = mUpdateRects.size();
@@ -650,7 +642,9 @@ int WebInterface::GetKeyboardModifiers()
 void WebInterface::SendMouseClickEvent(int x, int y, sf::Mouse::Button button, bool mouseUp, int clickCount)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   CefBrowserHost::MouseButtonType type = button == sf::Mouse::Left ? MBT_LEFT :
     button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
@@ -663,17 +657,20 @@ void WebInterface::SendMouseClickEvent(int x, int y, sf::Mouse::Button button, b
 void WebInterface::SendMouseMoveEvent(int x, int y, bool mouseLeave)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   CefMouseEvent e; e.x = x; e.y = y; e.modifiers = GetMouseModifiers();
   mBrowser->GetHost()->SendMouseMoveEvent(e, mouseLeave);
 }
 
-
 void WebInterface::SendMouseWheelEvent(int x, int y, int deltaX, int deltaY)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   CefMouseEvent e; e.x = x; e.y = y; e.modifiers = GetMouseModifiers();
   mBrowser->GetHost()->SendMouseWheelEvent(e, deltaX, deltaY);
@@ -682,7 +679,10 @@ void WebInterface::SendMouseWheelEvent(int x, int y, int deltaX, int deltaY)
 void WebInterface::SendKeyEvent(WPARAM key, bool keyUp, bool isSystem, int modifiers)
 {
   if (!mBrowser)
+  {
     return;
+  }
+
   CefKeyEvent e; e.windows_key_code = key; e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
   e.type = keyUp ? KEYEVENT_KEYUP : KEYEVENT_KEYDOWN;
   e.is_system_key = isSystem; e.character = key; e.unmodified_character = key; //e.native_key_code = 0;
@@ -692,7 +692,10 @@ void WebInterface::SendKeyEvent(WPARAM key, bool keyUp, bool isSystem, int modif
 void WebInterface::SendKeyEvent(char key, int modifiers)
 {
   if (!mBrowser)
+  {
     return;
+  }
+
   CefKeyEvent e; e.windows_key_code = key; e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
   e.type = KEYEVENT_CHAR; e.character = key; e.unmodified_character = key;
   mBrowser->GetHost()->SendKeyEvent(e);
@@ -732,7 +735,9 @@ void WebInterface::AddJSBindings(const std::vector<JsBinding> bindings)
 void WebInterface::ExecuteJS(const CefString& code)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   ExecuteJS(code, mBrowser->GetMainFrame());
 }
@@ -740,7 +745,9 @@ void WebInterface::ExecuteJS(const CefString& code)
 void WebInterface::ExecuteJS(const CefString& code, CefRefPtr<CefFrame> frame)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   //Should probably check to make sure the frame is from our browser here.
 
@@ -750,7 +757,9 @@ void WebInterface::ExecuteJS(const CefString& code, CefRefPtr<CefFrame> frame)
 void WebInterface::ExecuteJS(const CefString& code, CefRefPtr<CefFrame> frame, int startLine)
 {
   if (!mBrowser)
+  {
     return;
+  }
 
   //Should probably check to make sure the frame is from our browser here.
 
@@ -777,14 +786,18 @@ void WebInterface::SetSize(int width, int height)
   mTextureHeight = height;
 
   if (mBrowser)
+  {
     mBrowser->GetHost()->WasResized();
+  }
 
   sf::Texture* pOldTexture = mpTexture;
   mpTexture = new sf::Texture();
   mpTexture->create(mTextureWidth, mTextureHeight);
   mpTexture->setSmooth(true);
   if (pOldTexture)
+  {
     delete pOldTexture;
+  }
 
   sf::Lock lock(mMutex);
 

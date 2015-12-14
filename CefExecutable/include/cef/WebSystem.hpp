@@ -53,8 +53,8 @@ public:
   static void SetSingleProcess(bool single);
 
   static void StartWeb();
+  static void RunWeb();
   static void EndWeb();
-  static void WaitForWebEnd();
 
   static WebInterface* CreateWebInterfaceSync(int width, int height, const std::string& url, bool transparent);
 
@@ -109,11 +109,6 @@ private:
   // Thread
 
   //base::Lock mLock;
-
-  static void WebThread();
-
-  static sf::Thread* spThread;
-  static bool sEndThread;
 
   static std::queue<WebInterface*> sMakeWebInterfaceQueue;
   static std::map<int, WebInterface*> sWebInterfaces;
