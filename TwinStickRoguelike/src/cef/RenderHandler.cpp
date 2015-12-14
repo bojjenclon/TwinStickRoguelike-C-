@@ -4,9 +4,32 @@ RenderHandler::RenderHandler(sf::Texture* p_texture) : m_renderTexture(p_texture
 {
 }
 
+RenderHandler::~RenderHandler()
+{
+  delete m_renderTexture;
+}
+
 void RenderHandler::update()
 {
   CefDoMessageLoopWork();
+}
+
+void RenderHandler::updateTexture()
+{
+  if (mUpdateRects.size() <= 0)
+  {
+    return;
+  }
+
+  //sf::Lock lock(mMutex);
+  
+  while (mUpdateRects.size() > 0)
+  {
+    const CefRect& rect = mUpdateRects.front().rect;
+    m_renderTexture->update(reinterpret_cast<sf::Uint8*>(mUpdateRects.front().buffer), rect.width, rect.height, rect.x, rect.y);
+    delete[] mUpdateRects.front().buffer;
+    mUpdateRects.pop();
+  }
 }
 
 bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> p_browser, CefRect& p_rect)
@@ -38,7 +61,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> p_browser, PaintElementType p_
     }
 
     //Convert BGRA to RGBA
-    unsigned int* pTmpBuf = (unsigned int*)rectBuffer;
+    unsigned int* pTmpBuf = reinterpret_cast<unsigned int*>(rectBuffer);
     const int numPixels = rect.width * rect.height;
     for (int i = 0; i < numPixels; i++)
     {
@@ -54,12 +77,12 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> p_browser, PaintElementType p_
     //This can be interrupted if the main thread calls a draw on a sprite which uses this texture
     // as the texture is bound by openGL calls.  
     //To rectify this we have the redundancy updating system.  
-    m_renderTexture->update((sf::Uint8*)rectBuffer, rect.width, rect.height, rect.x, rect.y);
+    m_renderTexture->update(reinterpret_cast<sf::Uint8*>(rectBuffer), rect.width, rect.height, rect.x, rect.y);
 
     //Here we need to add the data required for the update to the queue for redundancy updates.  
-    /*pWeb->mUpdateRects.push(WebInterface::UpdateRect());
-    pWeb->mUpdateRects.back().buffer = rectBuffer;
-    pWeb->mUpdateRects.back().rect = rect;*/
+    mUpdateRects.push(UpdateRect());
+    mUpdateRects.back().buffer = rectBuffer;
+    mUpdateRects.back().rect = rect;
   }
 }
 

@@ -6,6 +6,8 @@
 #include <include/cef_app.h>
 #include <include/cef_render_handler.h>
 
+#include <queue>
+
 #ifndef BYTES_PER_PIXEL
 #define BYTES_PER_PIXEL 4
 #endif
@@ -16,10 +18,12 @@ public:
   sf::Texture* m_renderTexture;
 
   RenderHandler(sf::Texture* p_texture);
+  ~RenderHandler();
 
   // SDL Update
 public:
   void update();
+  void updateTexture();
 
   // CefRenderHandler interface
 public:
@@ -29,6 +33,16 @@ public:
   // CefBase interface
 public:
   IMPLEMENT_REFCOUNTING(RenderHandler);
+
+private:
+  struct UpdateRect
+  {
+  public:
+    char* buffer;
+    CefRect rect;
+  };
+
+  std::queue<UpdateRect> mUpdateRects;
 };
 
 #endif

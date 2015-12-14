@@ -39,13 +39,17 @@ bool Game::start()
   std::string path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
+  //std::string               path = "http://www.bojjenclon.com";
+
   CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
+#ifndef _DEBUG
   command_line->AppendSwitch("off-screen-rendering-enabled");
   //command_line->AppendSwitchWithValue("off-screen-frame-rate", "50");
   command_line->AppendSwitch("disable-gpu");
   //command_line->AppendSwitch("enable-media-stream");
   command_line->AppendSwitch("disable-gpu-compositing");
   command_line->AppendSwitch("enable-begin-frame-scheduling");
+#endif
 
   if (command_line->HasSwitch("url"))
   {
@@ -261,6 +265,8 @@ void Game::mainLoop()
         m_window.close();
       }
 
+      m_uiBrowser->GetHost()->SendFocusEvent(true);
+
       if (event.type == sf::Event::MouseButtonPressed)
       {
         if (clickClock.getElapsedTime().asSeconds() < clickTime && event.mouseButton.button == lastClickType)
@@ -273,8 +279,6 @@ void Game::mainLoop()
         }
 
         lastClickType = event.mouseButton.button;
-
-        m_uiBrowser->GetHost()->SendFocusEvent(true);
 
         sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
@@ -291,8 +295,6 @@ void Game::mainLoop()
       }
       else if (event.type == sf::Event::MouseButtonReleased)
       {
-        m_uiBrowser->GetHost()->SendFocusEvent(true);
-
         sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
 
@@ -382,14 +384,16 @@ void Game::mainLoop()
       }
     }
 
+    m_uiRenderHandler->update();
+    m_uiRenderHandler->updateTexture();
+
     sf::Time dt = deltaClock.restart();
 
     fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 
-    m_uiRenderHandler->update();
-
     m_window.clear(sf::Color::White);
 
+    //m_window.draw(m_uiSprite);
     m_engine->update(dt.asMilliseconds());
 
     m_window.display();
@@ -406,13 +410,15 @@ void Game::quit()
     uiEntities->at(i)->get<UIComponent>()->uiBrowser = nullptr;
   }*/
 
-  CefShutdown();
+  m_uiBrowser->GetHost()->CloseBrowser(true);
 
   m_uiRenderHandler = nullptr;
   m_uiBrowser = nullptr;
   m_uiBrowserClient = nullptr;
 
-  //m_resources = nullptr;
+  CefShutdown();
+
+  m_resources = nullptr;
   m_engine = nullptr;
 }
 
