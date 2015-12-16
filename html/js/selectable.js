@@ -60,6 +60,9 @@ Selectable.init = function(options) {
 
   this.marquee.element.hide();
 
+  // simulate mouse-hold event
+  var timeoutId = 0;
+
   this.parent.bind('mousedown', function(e) {
     e.preventDefault();
 
@@ -68,15 +71,18 @@ Selectable.init = function(options) {
       $(selected[i]).removeClass('selected');
     }
 
-    Selectable.marquee.element.show();
+    // after 100ms, fire mouse-hold function
+    timeoutId = setTimeout(function() {
+      Selectable.marquee.element.show();
 
-    Selectable.marquee.x = e.pageX;
-    Selectable.marquee.y = e.pageY;
-    Selectable.marquee.width = 0;
-    Selectable.marquee.height = 0;
+      Selectable.marquee.x = e.pageX;
+      Selectable.marquee.y = e.pageY;
+      Selectable.marquee.width = 0;
+      Selectable.marquee.height = 0;
 
-    Selectable.marquee.element.css('left', Selectable.marquee.x);
-    Selectable.marquee.element.css('top', Selectable.marquee.y);
+      Selectable.marquee.element.css('left', Selectable.marquee.x);
+      Selectable.marquee.element.css('top', Selectable.marquee.y);
+    }, 100);
   });
 
   this.parent.bind('mousemove', function(e) {
@@ -133,8 +139,11 @@ Selectable.init = function(options) {
     }
   });
 
-  this.parent.bind('mouseup', function(e) {
+  this.parent.bind('mouseup mouseleave', function(e) {
     e.preventDefault();
+
+    // prevent mouse-hold event from firing
+    clearTimeout(timeoutId);
 
     Selectable.marquee.element.css('left', 0);
     Selectable.marquee.element.css('top', 0);
