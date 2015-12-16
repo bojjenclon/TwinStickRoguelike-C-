@@ -44,7 +44,7 @@ bool Game::start()
   CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
 #ifndef _DEBUG
   command_line->AppendSwitch("off-screen-rendering-enabled");
-  //command_line->AppendSwitchWithValue("off-screen-frame-rate", "50");
+  command_line->AppendSwitchWithValue("off-screen-frame-rate", "60");
   command_line->AppendSwitch("disable-gpu");
   //command_line->AppendSwitch("enable-media-stream");
   command_line->AppendSwitch("disable-gpu-compositing");
@@ -316,6 +316,17 @@ void Game::mainLoop()
         CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
 
         m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+      }
+      else if (event.type == sf::Event::MouseWheelScrolled)
+      {
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        uint32 modifiers = GetKeyboardModifiers();
+
+        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+
+        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+
+        m_uiBrowser->GetHost()->SendMouseWheelEvent(cefEvent, 0, event.mouseWheelScroll.delta * 10);
       }
       else if (event.type == sf::Event::KeyPressed)
       {

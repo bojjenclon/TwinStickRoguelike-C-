@@ -17,19 +17,3 @@
   width: 90px;
   height: 34px;
 }
-
-
-#itemList li.ui-selecting {
-  background: #FECA40 !important;
-}
-
-#itemList li.ui-selected {
-  background: #F39814 !important;
-  color: white;
-}
-
-#itemList li.ui-selectee:hover {
-  cursor: pointer;
-  background: #DEC78A;
-}
-

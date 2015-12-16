@@ -2,10 +2,6 @@
 <head>
 <title>HUD</title>
 
-<link rel="stylesheet" href="jquery-ui.min.css">
-<script src="external/jquery/jquery.js"></script>
-<script src="jquery-ui.min.js"></script>
-
 <link rel="stylesheet" href="css/responsivegridsystem/html5reset.css" media="all">
 <link rel="stylesheet" href="css/responsivegridsystem/col.css" media="all">
 <link rel="stylesheet" href="css/responsivegridsystem/2cols.css" media="all">
@@ -14,6 +10,15 @@
 <link rel="stylesheet" href="css/statBars.css">
 <link rel="stylesheet" href="css/itemList.css">
 <link rel="stylesheet" href="css/itemIcons.css">
+
+<script src="jquery-2.1.4.min.js"></script>
+
+<script src="js/selectable.js"></script>
+
+<link rel="stylesheet" href="css/jscrollpane/jquery.jscrollpane.css">
+<script src="js/jscrollpane/jquery.mousewheel.js"></script>
+<script src="js/jscrollpane/mwheelIntent.js"></script>
+<script src="js/jscrollpane/jquery.jscrollpane.min.js"></script>
 
 <style>
 body {
@@ -45,14 +50,14 @@ body {
 
         <div class="section group">
           <div class="col span_1_of_2">
-            <button onclick='resetHP();'>Reset</button>
+            <div class="button" onclick='resetHP();'>Reset</div>
             <br>
             <input class="textInput" type="text">
           </div>
 
           <div class="col span_1_of_2">
-            <button onclick='addItem();'>Add Item</button>
-            <button onclick='removeSelectedItems();'>Remove Selected Items</button>
+            <div class="button" onclick='addItem();'>Add Item</div>
+            <div class="button" onclick='removeSelectedItems();'>Remove Selected Items</div>
           </div>
         </div>
 
@@ -60,7 +65,11 @@ body {
       
       <div class="col span_1_of_2">
 
-        <ol id="itemList"></ol>
+        <div id="itemList-scroll-pane" class="scroll-pane">
+
+          <ol id="itemList"></ol>
+
+        </div>
 
       </div>
 
@@ -75,30 +84,6 @@ body {
 </div>
 
 <script>
-$(function() {
-  $("#selectable").selectable({
-    autoRefresh: false,
-    tolerance: "touch",
-    filter: "li"
-  });
-  
-  $("input[type=submit], a, button").button()
-    .click(function(event)  {
-      event.preventDefault();
-    });
-
-  $("button, input[type='button'], input[type='submit']").button()
-    .bind('mouseup', function() {
-      $(this).blur();     // prevent jquery ui button from remaining in the active state
-    });
-
-  $('.textInput').keyup(function(e) {
-    if (e.which === 27) {
-      $(e.currentTarget).blur();
-    }
-  });
-});
-
 var items = [
   'grapes',
   'tomato',
@@ -107,6 +92,48 @@ var items = [
 ];
 
 var hpBar = document.getElementById('hpBar');
+var selectable = $("#selectable");
+var itemList = $('#itemList');
+
+$(function() {
+  $('.scroll-pane').jScrollPane({
+    showArrows: true,
+    maintainPosition: true
+  });
+
+  $('.scroll-pane').each(function() {
+    var api = $(this).data('jsp');
+
+    $(window).bind('resize', function() {
+        api.reinitialise();
+      }
+    );
+  });
+
+  Selectable.init({
+    mode: "touch"
+  });
+  
+  $("input[type=submit], a, button").click(function(event) {
+    event.preventDefault();
+
+    return false;
+  });
+
+  $("button, input[type='button'], input[type='submit']").bind('mouseup', function() {
+    $(this).blur(); // prevent jquery ui button from remaining in the active state
+
+    return false;
+  });
+
+  $('.textInput').keyup(function(e) {
+    if (e.which === 27) {
+      $(e.currentTarget).blur();
+    }
+
+    return false;
+  });
+});
 
 function resetHP() {
   window.cpp.setHP(5);
@@ -123,16 +150,23 @@ function addItem(index) {
 
   index = index || Math.floor((Math.random() * items.length));
 
-  $('#itemList').append('<li class="ui-widget-content"><img id="' + items[index] + '" src="gfx/placeholder.png"></li>');
+  var newItem = $('<li></li>');
+  newItem.addClass('ui-widget-content');
+  newItem.html('<img id="' + items[index] + '" src="gfx/placeholder.png">');
 
-  $("#selectable").selectable("refresh");
+  itemList.append(newItem);
+
+  Selectable.addItem(newItem);
+
+  var api = $('#itemList-scroll-pane').data('jsp');
+  api.reinitialise();
 }
 
 function removeSelectedItems() {
-  var selected = $('#itemList .ui-selected');
-  selected.remove();
-
-  $("#selectable").selectable("refresh");
+  Selectable.removeSelected(function() {
+    var api = $('#itemList-scroll-pane').data('jsp');
+    api.reinitialise();
+  });
 }
 
 function displayImage(base64) {
