@@ -13,3 +13,6 @@ backup/
 *.sdf
 *.opensdf
 *.filters
+html/node_modules/
+html/.sass-cache/
+CefExecutable/

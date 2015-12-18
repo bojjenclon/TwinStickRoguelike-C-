@@ -1,0 +1,22 @@
+{
+  "name": "html",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel babel -d lib",
+    "lint": "eslint babel"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.3.17",
+    "babel-eslint": "^5.0.0-beta6",
+    "eslint": "^1.10.3"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  }
+}

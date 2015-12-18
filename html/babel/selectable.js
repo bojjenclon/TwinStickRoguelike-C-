@@ -1,4 +1,4 @@
-var Selectable = Selectable || {};
+let Selectable = Selectable || {};
 
 Selectable.parent = null;
 Selectable.marquee = {
@@ -16,16 +16,16 @@ Selectable.items = [];
       "cover" = the item must be completed inside the marquee
       "touch" = the item must simply be touching one part of the marquee
 */
-Selectable.mode = "touch";
+Selectable.mode = 'touch';
 
 Selectable.init = function(options) {
   Selectable.parent = $('#selectable');
-  Selectable.mode = options.mode || "touch";
+  Selectable.mode = options.mode || 'touch';
 
-  var children = Selectable.parent.find('*');
+  let children = Selectable.parent.find('*');
 
-  for (var i = 0; i < children.length; i++) {
-    var child = $(children[i]);
+  for (let i = 0; i < children.length; i++) {
+    let child = $(children[i]);
 
     if (!child.hasClass('button') && !child.is('input')) {
       continue;
@@ -37,11 +37,11 @@ Selectable.init = function(options) {
     });
   }
 
-  var allItems = this.parent.find('li');
+  let allItems = this.parent.find('li');
 
-  for (var i = 0; i < allItems.length; i++)
+  for (let i = 0; i < allItems.length; i++)
   {
-    var item = allItems[i];
+    let item = allItems[i];
 
     item.addClass('selectable-item');
 
@@ -56,13 +56,13 @@ Selectable.init = function(options) {
   this.marquee.element.hide();
 
   // simulate mouse-hold event
-  var timeoutId = 0;
+  let timeoutId = 0;
 
   this.parent.bind('mousedown', function(e) {
     e.preventDefault();
 
-    var selected = Selectable.parent.find('.selected');
-    for (var i = 0; i < selected.length; i++) {
+    let selected = Selectable.parent.find('.selected');
+    for (let i = 0; i < selected.length; i++) {
       $(selected[i]).removeClass('selected');
     }
 
@@ -97,18 +97,18 @@ Selectable.init = function(options) {
       Selectable.marquee.element.css('width', Selectable.marquee.width);
       Selectable.marquee.element.css('height', Selectable.marquee.height);
 
-      var marqueeLeft = Selectable.marquee.element.offset().left;
-      var marqueeTop = Selectable.marquee.element.offset().top;
+      let marqueeLeft = Selectable.marquee.element.offset().left;
+      let marqueeTop = Selectable.marquee.element.offset().top;
 
-      for (var i = 0; i < Selectable.items.length; i++) {
-        var item = Selectable.items[i];
+      for (let i = 0; i < Selectable.items.length; i++) {
+        let item = Selectable.items[i];
 
-        var itemLeft = item.offset().left;
-        var itemTop = item.offset().top;
-        var itemWidth = item.outerWidth();
-        var itemHeight = item.outerHeight();
+        let itemLeft = item.offset().left;
+        let itemTop = item.offset().top;
+        let itemWidth = item.outerWidth();
+        let itemHeight = item.outerHeight();
 
-        if (Selectable.mode === "touch") {
+        if (Selectable.mode === 'touch') {
           if (marqueeLeft < itemLeft + itemWidth
               && marqueeLeft + Selectable.marquee.width > itemLeft
               && marqueeTop < itemTop + itemHeight
@@ -162,10 +162,10 @@ Selectable.addItem = function(item) {
 };
 
 Selectable.removeSelected = function(callback) {
-  var allItems = $('#selectable').find('.selected');
+  let allItems = $('#selectable').find('.selected');
 
-  for (var i = 0; i < allItems.length; i++) {
-    var item = $(allItems[i]);
+  for (let i = 0; i < allItems.length; i++) {
+    let item = $(allItems[i]);
 
     item.fadeOut(250, function() {
       this.remove();

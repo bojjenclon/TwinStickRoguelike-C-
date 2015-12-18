@@ -1,3 +1,5 @@
+'use strict';
+
 var Selectable = Selectable || {};
 
 Selectable.parent = null;
@@ -16,11 +18,11 @@ Selectable.items = [];
       "cover" = the item must be completed inside the marquee
       "touch" = the item must simply be touching one part of the marquee
 */
-Selectable.mode = "touch";
+Selectable.mode = 'touch';
 
-Selectable.init = function(options) {
+Selectable.init = function (options) {
   Selectable.parent = $('#selectable');
-  Selectable.mode = options.mode || "touch";
+  Selectable.mode = options.mode || 'touch';
 
   var children = Selectable.parent.find('*');
 
@@ -31,7 +33,7 @@ Selectable.init = function(options) {
       continue;
     }
 
-    child.bind('mousedown', function(e) {
+    child.bind('mousedown', function (e) {
       e.stopPropagation();
       e.preventDefault();
     });
@@ -39,8 +41,7 @@ Selectable.init = function(options) {
 
   var allItems = this.parent.find('li');
 
-  for (var i = 0; i < allItems.length; i++)
-  {
+  for (var i = 0; i < allItems.length; i++) {
     var item = allItems[i];
 
     item.addClass('selectable-item');
@@ -58,7 +59,7 @@ Selectable.init = function(options) {
   // simulate mouse-hold event
   var timeoutId = 0;
 
-  this.parent.bind('mousedown', function(e) {
+  this.parent.bind('mousedown', function (e) {
     e.preventDefault();
 
     var selected = Selectable.parent.find('.selected');
@@ -67,7 +68,7 @@ Selectable.init = function(options) {
     }
 
     // after 100ms, fire mouse-hold function
-    timeoutId = setTimeout(function() {
+    timeoutId = setTimeout(function () {
       Selectable.marquee.element.show();
 
       Selectable.marquee.x = e.pageX;
@@ -80,7 +81,7 @@ Selectable.init = function(options) {
     }, 100);
   });
 
-  this.parent.bind('mousemove', function(e) {
+  this.parent.bind('mousemove', function (e) {
     e.preventDefault();
 
     if (Selectable.marquee.element.css('display') !== 'none') {
@@ -108,25 +109,16 @@ Selectable.init = function(options) {
         var itemWidth = item.outerWidth();
         var itemHeight = item.outerHeight();
 
-        if (Selectable.mode === "touch") {
-          if (marqueeLeft < itemLeft + itemWidth
-              && marqueeLeft + Selectable.marquee.width > itemLeft
-              && marqueeTop < itemTop + itemHeight
-              && marqueeTop + Selectable.marquee.height > itemTop) {
+        if (Selectable.mode === 'touch') {
+          if (marqueeLeft < itemLeft + itemWidth && marqueeLeft + Selectable.marquee.width > itemLeft && marqueeTop < itemTop + itemHeight && marqueeTop + Selectable.marquee.height > itemTop) {
             item.addClass('selected');
-          }
-          else if (item.hasClass('selected')) {
+          } else if (item.hasClass('selected')) {
             item.removeClass('selected');
           }
-        }
-        else {
-          if (itemLeft >= marqueeLeft
-              && itemTop >= marqueeTop
-              && itemLeft + itemWidth <= marqueeLeft + Selectable.marquee.width
-              && itemTop + itemHeight <= marqueeTop + Selectable.marquee.height) {
+        } else {
+          if (itemLeft >= marqueeLeft && itemTop >= marqueeTop && itemLeft + itemWidth <= marqueeLeft + Selectable.marquee.width && itemTop + itemHeight <= marqueeTop + Selectable.marquee.height) {
             item.addClass('selected');
-          }
-          else if (item.hasClass('selected')) {
+          } else if (item.hasClass('selected')) {
             item.removeClass('selected');
           }
         }
@@ -134,7 +126,7 @@ Selectable.init = function(options) {
     }
   });
 
-  this.parent.bind('mouseup mouseleave', function(e) {
+  this.parent.bind('mouseup mouseleave', function (e) {
     e.preventDefault();
 
     // prevent mouse-hold event from firing
@@ -149,10 +141,10 @@ Selectable.init = function(options) {
   });
 };
 
-Selectable.addItem = function(item) {
+Selectable.addItem = function (item) {
   item.addClass('selectable-item');
 
-  item.click(function(e) {
+  item.click(function (e) {
     e.preventDefault();
 
     item.toggleClass('selected');
@@ -161,13 +153,13 @@ Selectable.addItem = function(item) {
   Selectable.items.push(item);
 };
 
-Selectable.removeSelected = function(callback) {
+Selectable.removeSelected = function (callback) {
   var allItems = $('#selectable').find('.selected');
 
   for (var i = 0; i < allItems.length; i++) {
     var item = $(allItems[i]);
 
-    item.fadeOut(250, function() {
+    item.fadeOut(250, function () {
       this.remove();
     });
   }
