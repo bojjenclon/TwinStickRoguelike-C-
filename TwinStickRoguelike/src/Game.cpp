@@ -8,6 +8,7 @@
 #include <systems/UIUpdateSystem.hpp>
 #include <cef/BrowserApp.hpp>
 #include <systems/PlayerInputSystem.hpp>
+#include <systems/AnimationSystem.hpp>
 
 Game::Game()
 {
@@ -19,7 +20,7 @@ bool Game::start()
 
   CefRefPtr<BrowserApp> app(new BrowserApp());
 
-  int exit_code = CefExecuteProcess(args, app.get(), nullptr);
+  auto exit_code = CefExecuteProcess(args, app.get(), nullptr);
   if (exit_code >= 0)
   {
     return false;
@@ -32,7 +33,7 @@ bool Game::start()
   settings.multi_threaded_message_loop = false;
   settings.single_process = false;
 
-  bool result = CefInitialize(args, settings, app.get(), nullptr);
+  auto result = CefInitialize(args, settings, app.get(), nullptr);
 
   if (!result)
   {
@@ -40,15 +41,15 @@ bool Game::start()
     return false;
   }
 
-  std::string path = "file://" + GetApplicationDir() + "/../html/Blank.html";
+  auto path = "file://" + GetApplicationDir() + "/../html/Blank.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
   //std::string               path = "http://www.bojjenclon.com";
 
-  CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
+  auto command_line = CefCommandLine::GetGlobalCommandLine();
 #ifndef _DEBUG
   command_line->AppendSwitch("off-screen-rendering-enabled");
-  command_line->AppendSwitchWithValue("off-screen-frame-rate", "60");
+  //command_line->AppendSwitchWithValue("off-screen-frame-rate", "60");
   command_line->AppendSwitch("disable-gpu");
   //command_line->AppendSwitch("enable-media-stream");
   command_line->AppendSwitch("disable-gpu-compositing");
@@ -60,7 +61,7 @@ bool Game::start()
     path = command_line->GetSwitchValue("url");
   }
 
-  sf::Texture* uiTexture = new sf::Texture();
+  auto uiTexture = new sf::Texture();
   uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
   m_uiSprite.setTexture(*uiTexture);
 
@@ -81,16 +82,19 @@ bool Game::start()
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = new ECS::Engine(10, 100, 100);
 
-  PlayerInputSystem* playerInputSystem = new PlayerInputSystem();
+  auto playerInputSystem = new PlayerInputSystem();
   m_engine->addSystem(playerInputSystem);
 
-  UIUpdateSystem* uiUpdateSystem = new UIUpdateSystem();
+  auto animationSystem = new AnimationSystem();
+  m_engine->addSystem(animationSystem);
+
+  auto uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
-  RenderSystem* renderSystem = new RenderSystem(m_window);
+  auto renderSystem = new RenderSystem(m_window);
   m_engine->addSystem(renderSystem);
 
-  ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
+  auto uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
 
   m_player = EntityFactory::makePlayer(m_engine, m_resources);
@@ -246,9 +250,9 @@ void Game::mainLoop()
 
   sf::Clock clickClock;
   clickClock.restart();
-  float clickTime = 0.25f;
-  sf::Mouse::Button lastClickType = sf::Mouse::Left;
-  int clickCount = 1;
+  auto clickTime = 0.25f;
+  auto lastClickType = sf::Mouse::Left;
+  auto clickCount = 1;
 
   sf::Font font;
   font.loadFromFile("Adventure Subtitles.ttf");
@@ -403,7 +407,7 @@ void Game::mainLoop()
     }
 
     m_uiRenderHandler->update();
-    //m_uiRenderHandler->updateTexture();
+    m_uiRenderHandler->updateTexture();
 
     auto dt = deltaClock.restart();
 
@@ -411,7 +415,7 @@ void Game::mainLoop()
 
     m_window.clear(sf::Color::White);
 
-    m_engine->update(dt.asMilliseconds());
+    m_engine->update(dt.asMilliseconds() / 1000.f);
     
     m_window.display();
   }
@@ -451,7 +455,7 @@ ECS::Entity* Game::getPlayer() const
 
 std::string Game::GetApplicationDir()
 {
-  HMODULE hModule = GetModuleHandleW(nullptr);
+  auto hModule = GetModuleHandleW(nullptr);
   WCHAR wpath[MAX_PATH];
 
   GetModuleFileNameW(hModule, wpath, MAX_PATH);

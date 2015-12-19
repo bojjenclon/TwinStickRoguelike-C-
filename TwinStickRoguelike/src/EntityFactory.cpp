@@ -4,6 +4,9 @@
 #include <components/HealthComponent.hpp>
 #include <components/UIComponent.hpp>
 #include <components/PlayerComponent.hpp>
+#include <components/AnimationComponent.hpp>
+
+#include <Thor/Animations/FrameAnimation.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_drawable, int p_depth = 1)
 {
@@ -40,11 +43,28 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
 
   auto cRender = p_engine->createComponent<RenderComponent>();
   entity->add(cRender);
-  if (!p_resources->isTextureLoaded("test.png"))
+  if (!p_resources->isTextureLoaded("deer.png"))
   {
-    p_resources->loadTexture("test.png");
+    p_resources->loadTexture("deer.png");
   }
-  cRender->drawable = new sf::Sprite(*p_resources->getTexture("test.png"));
+  auto sprite = new sf::Sprite(*p_resources->getTexture("deer.png"));
+  sprite->setTextureRect(sf::IntRect(32, 0, 32, 34));
+  cRender->drawable = sprite;
+
+  auto animator = new thor::Animator<sf::Sprite, std::string>();
+
+  thor::FrameAnimation walkDownAnim;
+  walkDownAnim.addFrame(1.0f, sf::IntRect(0, 0, 32, 34));
+  walkDownAnim.addFrame(1.0f, sf::IntRect(32, 0, 32, 34));
+  walkDownAnim.addFrame(1.0f, sf::IntRect(64, 0, 32, 34));
+  animator->addAnimation("walkDown", walkDownAnim, sf::seconds(1.0f));
+
+  animator->playAnimation("walkDown", true);
+  
+  auto cAnimation = p_engine->createComponent<AnimationComponent>();
+  entity->add(cAnimation);
+  cAnimation->sprite = sprite;
+  cAnimation->animator = animator;
 
   auto cHealth = p_engine->createComponent<HealthComponent>();
   entity->add(cHealth);
