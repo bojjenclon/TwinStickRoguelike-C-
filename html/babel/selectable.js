@@ -33,7 +33,6 @@ Selectable.init = function(options) {
 
     child.bind('mousedown', function(e) {
       e.stopPropagation();
-      e.preventDefault();
     });
   }
 

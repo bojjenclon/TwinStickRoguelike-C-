@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel babel -d lib",
+    "build": "babel babel -d js",
     "lint": "eslint babel"
   },
   "author": "",

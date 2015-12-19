@@ -404,9 +404,8 @@ void Game::mainLoop()
 
     m_window.clear(sf::Color::White);
 
-    //m_window.draw(m_uiSprite);
     m_engine->update(dt.asMilliseconds());
-
+    
     m_window.display();
   }
 }
