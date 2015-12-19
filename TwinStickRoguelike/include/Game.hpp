@@ -46,7 +46,7 @@ private:
 
   UIValues m_uiValues;
 
-  ECS::Engine* m_engine = nullptr;
+  std::unique_ptr<ECS::Engine> m_engine = nullptr;
   ECS::Entity* m_player = nullptr;
 
   sf::Clock m_clickClock;

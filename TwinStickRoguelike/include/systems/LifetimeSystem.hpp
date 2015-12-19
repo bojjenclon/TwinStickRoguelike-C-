@@ -7,12 +7,12 @@
 class LifetimeSystem : public ECS::IteratingSystem<LifetimeSystem>
 {
 public:
-  LifetimeSystem(ECS::Engine* p_engine);
+  LifetimeSystem(std::unique_ptr<ECS::Engine>& p_engine);
 
   void processEntity(ECS::Entity* p_entity, float p_dt) override;
 
 private:
-  ECS::Engine* m_engine = nullptr;
+  std::unique_ptr<ECS::Engine>& m_engine;
 };
 
 #endif

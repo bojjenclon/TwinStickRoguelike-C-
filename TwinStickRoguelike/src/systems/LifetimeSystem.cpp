@@ -1,7 +1,7 @@
 #include <systems/LifetimeSystem.hpp>
 #include <components/LifetimeComponent.hpp>
 
-LifetimeSystem::LifetimeSystem(ECS::Engine* p_engine) : IteratingSystem(ECS::Family::all<LifetimeComponent>().get()), m_engine(p_engine)
+LifetimeSystem::LifetimeSystem(std::unique_ptr<ECS::Engine>& p_engine) : IteratingSystem(ECS::Family::all<LifetimeComponent>().get()), m_engine(p_engine)
 {
 }
 

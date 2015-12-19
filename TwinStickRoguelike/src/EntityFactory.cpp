@@ -11,7 +11,7 @@
 #include <components/VelocityComponent.hpp>
 #include <components/LifetimeComponent.hpp>
 
-ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_drawable, int p_depth = 1)
+ECS::Entity* EntityFactory::makeDrawable(std::unique_ptr<ECS::Engine>& p_engine, sf::Drawable& p_drawable, int p_depth = 1)
 {
   auto entity = p_engine->createEntity();
 
@@ -23,7 +23,7 @@ ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
+ECS::Entity* EntityFactory::makeUIContainer(std::unique_ptr<ECS::Engine>& p_engine, sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
 {
   auto entity = p_engine->createEntity();
 
@@ -40,7 +40,7 @@ ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p
   return entity;
 }
 
-ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position)
+ECS::Entity* EntityFactory::makePlayer(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position)
 {
   auto entity = p_engine->createEntity();
 
@@ -120,7 +120,7 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeBullet(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
+ECS::Entity* EntityFactory::makeBullet(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
 {
   auto entity = p_engine->createEntity();
 

@@ -224,8 +224,8 @@ bool Game::start()
   m_uiBrowser = CefBrowserHost::CreateBrowserSync(window_info, m_uiBrowserClient.get(), path, browserSettings, nullptr);
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
-  m_engine = new ECS::Engine(10, 100, 100);
-
+  m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
+  
   auto playerInputSystem = new PlayerInputSystem(m_window);
   m_engine->addSystem(playerInputSystem);
 
@@ -345,7 +345,7 @@ void Game::quit()
 
   CefShutdown();
 
-  m_engine = nullptr;
+  m_player = nullptr;
 }
 
 void Game::loadMedia()
