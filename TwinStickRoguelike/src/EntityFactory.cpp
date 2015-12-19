@@ -8,6 +8,8 @@
 
 #include <Thor/Animations/FrameAnimation.hpp>
 #include <components/DirectionComponent.hpp>
+#include <components/VelocityComponent.hpp>
+#include <components/LifetimeComponent.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_drawable, int p_depth = 1)
 {
@@ -116,3 +118,24 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p
   return entity;
 }
 
+ECS::Entity* EntityFactory::makeBullet(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f(), sf::Vector2f p_velocity = sf::Vector2f())
+{
+  auto entity = p_engine->createEntity();
+
+  auto cRender = p_engine->createComponent<RenderComponent>();
+  entity->add(cRender);
+  cRender->drawable = new sf::Sprite(p_resources.getTexture("pinkBullet"));
+
+  auto transform = dynamic_cast<sf::Transformable*>(cRender->drawable);
+  transform->setPosition(p_position);
+
+  auto cVelocity = p_engine->createComponent<VelocityComponent>();
+  entity->add(cVelocity);
+  cVelocity->vx = p_velocity.x;
+  cVelocity->vy = p_velocity.y;
+
+  auto cLifetime = p_engine->createComponent<LifetimeComponent>();
+  entity->add(cLifetime);
+
+  return entity;
+}

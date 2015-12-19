@@ -1,7 +1,9 @@
-#include "Game.hpp"
+#include <Game.hpp>
 
 #include <iostream>
 #include <algorithm>
+
+#include <Thor/Math.hpp>
 
 #include <EntityFactory.hpp>
 #include <systems/RenderSystem.hpp>
@@ -9,6 +11,149 @@
 #include <cef/BrowserApp.hpp>
 #include <systems/PlayerInputSystem.hpp>
 #include <systems/AnimationSystem.hpp>
+#include <systems/MovementSystem.hpp>
+#include <systems/LifetimeSystem.hpp>
+
+WPARAM sfkeyToWparam(sf::Keyboard::Key key)
+{
+  switch (key)
+  {
+  case sf::Keyboard::LControl: return VK_LCONTROL;
+  case sf::Keyboard::RControl: return VK_RCONTROL;
+  case sf::Keyboard::LShift: return VK_LSHIFT;
+  case sf::Keyboard::RShift: return VK_RSHIFT;
+  case sf::Keyboard::LAlt: return VK_LMENU;
+  case sf::Keyboard::RAlt: return VK_RMENU;
+  case sf::Keyboard::LSystem: return VK_LWIN;
+  case sf::Keyboard::RSystem: return VK_RWIN;
+  case sf::Keyboard::Menu: return VK_APPS;
+  case sf::Keyboard::SemiColon: return VK_OEM_1;
+  case sf::Keyboard::Slash: return VK_OEM_2;
+  case sf::Keyboard::Equal: return VK_OEM_PLUS;
+  case sf::Keyboard::Dash: return VK_OEM_MINUS;
+  case sf::Keyboard::LBracket: return VK_OEM_4;
+  case sf::Keyboard::RBracket: return VK_OEM_6;
+  case sf::Keyboard::Comma: return VK_OEM_COMMA;
+  case sf::Keyboard::Period: return VK_OEM_PERIOD;
+  case sf::Keyboard::Quote: return VK_OEM_7;
+  case sf::Keyboard::BackSlash: return VK_OEM_5;
+  case sf::Keyboard::Tilde: return VK_OEM_3;
+  case sf::Keyboard::Escape: return VK_ESCAPE;
+  case sf::Keyboard::Space: return VK_SPACE;
+  case sf::Keyboard::Return: return VK_RETURN;
+  case sf::Keyboard::BackSpace: return VK_BACK;
+  case sf::Keyboard::Tab: return VK_TAB;
+  case sf::Keyboard::PageUp: return VK_PRIOR;
+  case sf::Keyboard::PageDown: return VK_NEXT;
+  case sf::Keyboard::End: return VK_END;
+  case sf::Keyboard::Home: return VK_HOME;
+  case sf::Keyboard::Insert: return VK_INSERT;
+  case sf::Keyboard::Delete: return VK_DELETE;
+  case sf::Keyboard::Add: return VK_ADD;
+  case sf::Keyboard::Subtract: return VK_SUBTRACT;
+  case sf::Keyboard::Multiply: return VK_MULTIPLY;
+  case sf::Keyboard::Divide: return VK_DIVIDE;
+  case sf::Keyboard::Pause: return VK_PAUSE;
+  case sf::Keyboard::F1: return VK_F1;
+  case sf::Keyboard::F2: return VK_F2;
+  case sf::Keyboard::F3: return VK_F3;
+  case sf::Keyboard::F4: return VK_F4;
+  case sf::Keyboard::F5: return VK_F5;
+  case sf::Keyboard::F6: return VK_F6;
+  case sf::Keyboard::F7: return VK_F7;
+  case sf::Keyboard::F8: return VK_F8;
+  case sf::Keyboard::F9: return VK_F9;
+  case sf::Keyboard::F10: return VK_F10;
+  case sf::Keyboard::F11: return VK_F11;
+  case sf::Keyboard::F12: return VK_F12;
+  case sf::Keyboard::F13: return VK_F13;
+  case sf::Keyboard::F14: return VK_F14;
+  case sf::Keyboard::F15: return VK_F15;
+  case sf::Keyboard::Left: return VK_LEFT;
+  case sf::Keyboard::Right: return VK_RIGHT;
+  case sf::Keyboard::Up: return VK_UP;
+  case sf::Keyboard::Down: return VK_DOWN;
+  case sf::Keyboard::Numpad0: return VK_NUMPAD0;
+  case sf::Keyboard::Numpad1: return VK_NUMPAD1;
+  case sf::Keyboard::Numpad2: return VK_NUMPAD2;
+  case sf::Keyboard::Numpad3: return VK_NUMPAD3;
+  case sf::Keyboard::Numpad4: return VK_NUMPAD4;
+  case sf::Keyboard::Numpad5: return VK_NUMPAD5;
+  case sf::Keyboard::Numpad6: return VK_NUMPAD6;
+  case sf::Keyboard::Numpad7: return VK_NUMPAD7;
+  case sf::Keyboard::Numpad8: return VK_NUMPAD8;
+  case sf::Keyboard::Numpad9: return VK_NUMPAD9;
+  case sf::Keyboard::A: return 'A';
+  case sf::Keyboard::B: return 'B';
+  case sf::Keyboard::C: return 'C';
+  case sf::Keyboard::D: return 'D';
+  case sf::Keyboard::E: return 'E';
+  case sf::Keyboard::F: return 'F';
+  case sf::Keyboard::G: return 'G';
+  case sf::Keyboard::H: return 'H';
+  case sf::Keyboard::I: return 'I';
+  case sf::Keyboard::J: return 'J';
+  case sf::Keyboard::K: return 'K';
+  case sf::Keyboard::L: return 'L';
+  case sf::Keyboard::M: return 'M';
+  case sf::Keyboard::N: return 'N';
+  case sf::Keyboard::O: return 'O';
+  case sf::Keyboard::P: return 'P';
+  case sf::Keyboard::Q: return 'Q';
+  case sf::Keyboard::R: return 'R';
+  case sf::Keyboard::S: return 'S';
+  case sf::Keyboard::T: return 'T';
+  case sf::Keyboard::U: return 'U';
+  case sf::Keyboard::V: return 'V';
+  case sf::Keyboard::W: return 'W';
+  case sf::Keyboard::X: return 'X';
+  case sf::Keyboard::Y: return 'Y';
+  case sf::Keyboard::Z: return 'Z';
+  case sf::Keyboard::Num0: return '0';
+  case sf::Keyboard::Num1: return '1';
+  case sf::Keyboard::Num2: return '2';
+  case sf::Keyboard::Num3: return '3';
+  case sf::Keyboard::Num4: return '4';
+  case sf::Keyboard::Num5: return '5';
+  case sf::Keyboard::Num6: return '6';
+  case sf::Keyboard::Num7: return '7';
+  case sf::Keyboard::Num8: return '8';
+  case sf::Keyboard::Num9: return '9';
+  }
+
+  return VK_NONAME;
+}
+
+int GetKeyboardModifiers()
+{
+  int mod = 0;
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+  {
+    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
+  {
+    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+  {
+    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
+  {
+    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))
+  {
+    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
+  {
+    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+  }
+
+  return mod;
+}
 
 Game::Game()
 {
@@ -87,6 +232,12 @@ bool Game::start()
   auto animationSystem = new AnimationSystem();
   m_engine->addSystem(animationSystem);
 
+  auto movementSystem = new MovementSystem();
+  m_engine->addSystem(movementSystem);
+
+  auto lifetimeSystem = new LifetimeSystem(m_engine);
+  m_engine->addSystem(lifetimeSystem);
+
   auto uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
@@ -102,156 +253,14 @@ bool Game::start()
   return true;
 }
 
-WPARAM sfkeyToWparam(sf::Keyboard::Key key)
-{
-  switch (key)
-  {
-    case sf::Keyboard::LControl: return VK_LCONTROL;
-    case sf::Keyboard::RControl: return VK_RCONTROL;
-    case sf::Keyboard::LShift: return VK_LSHIFT;
-    case sf::Keyboard::RShift: return VK_RSHIFT;
-    case sf::Keyboard::LAlt: return VK_LMENU;
-    case sf::Keyboard::RAlt: return VK_RMENU;
-    case sf::Keyboard::LSystem: return VK_LWIN;
-    case sf::Keyboard::RSystem: return VK_RWIN;
-    case sf::Keyboard::Menu: return VK_APPS;
-    case sf::Keyboard::SemiColon: return VK_OEM_1 ;
-    case sf::Keyboard::Slash: return VK_OEM_2 ;
-    case sf::Keyboard::Equal: return VK_OEM_PLUS ;
-    case sf::Keyboard::Dash: return VK_OEM_MINUS ;
-    case sf::Keyboard::LBracket: return VK_OEM_4 ;
-    case sf::Keyboard::RBracket: return VK_OEM_6 ;
-    case sf::Keyboard::Comma: return VK_OEM_COMMA ;
-    case sf::Keyboard::Period: return VK_OEM_PERIOD ;
-    case sf::Keyboard::Quote: return VK_OEM_7 ;
-    case sf::Keyboard::BackSlash: return VK_OEM_5 ;
-    case sf::Keyboard::Tilde: return VK_OEM_3 ;
-    case sf::Keyboard::Escape: return VK_ESCAPE;
-    case sf::Keyboard::Space: return VK_SPACE;
-    case sf::Keyboard::Return: return VK_RETURN;
-    case sf::Keyboard::BackSpace: return VK_BACK;
-    case sf::Keyboard::Tab: return VK_TAB;
-    case sf::Keyboard::PageUp: return VK_PRIOR;
-    case sf::Keyboard::PageDown: return VK_NEXT;
-    case sf::Keyboard::End: return VK_END;
-    case sf::Keyboard::Home: return VK_HOME;
-    case sf::Keyboard::Insert: return VK_INSERT;
-    case sf::Keyboard::Delete: return VK_DELETE;
-    case sf::Keyboard::Add: return VK_ADD;
-    case sf::Keyboard::Subtract: return VK_SUBTRACT;
-    case sf::Keyboard::Multiply: return VK_MULTIPLY;
-    case sf::Keyboard::Divide: return VK_DIVIDE;
-    case sf::Keyboard::Pause: return VK_PAUSE;
-    case sf::Keyboard::F1: return VK_F1;
-    case sf::Keyboard::F2: return VK_F2;
-    case sf::Keyboard::F3: return VK_F3;
-    case sf::Keyboard::F4: return VK_F4;
-    case sf::Keyboard::F5: return VK_F5;
-    case sf::Keyboard::F6: return VK_F6;
-    case sf::Keyboard::F7: return VK_F7;
-    case sf::Keyboard::F8: return VK_F8;
-    case sf::Keyboard::F9: return VK_F9;
-    case sf::Keyboard::F10: return VK_F10;
-    case sf::Keyboard::F11: return VK_F11;
-    case sf::Keyboard::F12: return VK_F12;
-    case sf::Keyboard::F13: return VK_F13;
-    case sf::Keyboard::F14: return VK_F14;
-    case sf::Keyboard::F15: return VK_F15;
-    case sf::Keyboard::Left: return VK_LEFT;
-    case sf::Keyboard::Right: return VK_RIGHT;
-    case sf::Keyboard::Up: return VK_UP;
-    case sf::Keyboard::Down: return VK_DOWN;
-    case sf::Keyboard::Numpad0: return VK_NUMPAD0;
-    case sf::Keyboard::Numpad1: return VK_NUMPAD1;
-    case sf::Keyboard::Numpad2: return VK_NUMPAD2;
-    case sf::Keyboard::Numpad3: return VK_NUMPAD3;
-    case sf::Keyboard::Numpad4: return VK_NUMPAD4;
-    case sf::Keyboard::Numpad5: return VK_NUMPAD5;
-    case sf::Keyboard::Numpad6: return VK_NUMPAD6;
-    case sf::Keyboard::Numpad7: return VK_NUMPAD7;
-    case sf::Keyboard::Numpad8: return VK_NUMPAD8;
-    case sf::Keyboard::Numpad9: return VK_NUMPAD9;
-    case sf::Keyboard::A: return 'A';
-    case sf::Keyboard::B: return 'B';
-    case sf::Keyboard::C: return 'C';
-    case sf::Keyboard::D: return 'D';
-    case sf::Keyboard::E: return 'E';
-    case sf::Keyboard::F: return 'F';
-    case sf::Keyboard::G: return 'G';
-    case sf::Keyboard::H: return 'H';
-    case sf::Keyboard::I: return 'I';
-    case sf::Keyboard::J: return 'J';
-    case sf::Keyboard::K: return 'K';
-    case sf::Keyboard::L: return 'L';
-    case sf::Keyboard::M: return 'M';
-    case sf::Keyboard::N: return 'N';
-    case sf::Keyboard::O: return 'O';
-    case sf::Keyboard::P: return 'P';
-    case sf::Keyboard::Q: return 'Q';
-    case sf::Keyboard::R: return 'R';
-    case sf::Keyboard::S: return 'S';
-    case sf::Keyboard::T: return 'T';
-    case sf::Keyboard::U: return 'U';
-    case sf::Keyboard::V: return 'V';
-    case sf::Keyboard::W: return 'W';
-    case sf::Keyboard::X: return 'X';
-    case sf::Keyboard::Y: return 'Y';
-    case sf::Keyboard::Z: return 'Z';
-    case sf::Keyboard::Num0: return '0';
-    case sf::Keyboard::Num1: return '1';
-    case sf::Keyboard::Num2: return '2';
-    case sf::Keyboard::Num3: return '3';
-    case sf::Keyboard::Num4: return '4';
-    case sf::Keyboard::Num5: return '5';
-    case sf::Keyboard::Num6: return '6';
-    case sf::Keyboard::Num7: return '7';
-    case sf::Keyboard::Num8: return '8';
-    case sf::Keyboard::Num9: return '9';
-  }
-
-  return VK_NONAME;
-}
-
-int GetKeyboardModifiers()
-{
-  int mod = 0;
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-  {
-    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_LEFT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
-  {
-    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-  {
-    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
-  {
-    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))
-  {
-    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
-  {
-    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
-  }
-
-  return mod;
-}
-
 void Game::mainLoop()
 {
   sf::Clock deltaClock;
 
-  sf::Clock clickClock;
-  clickClock.restart();
-  auto clickTime = 0.25f;
-  auto lastClickType = sf::Mouse::Left;
-  auto clickCount = 1;
+  m_clickClock.restart();
+  m_clickTime = 0.25f;
+  m_lastClickType = sf::Mouse::Left;
+  m_clickCount = 1;
 
   sf::Font font;
   font.loadFromFile("Adventure Subtitles.ttf");
@@ -275,133 +284,33 @@ void Game::mainLoop()
         m_window.close();
       }
 
-      m_uiBrowser->GetHost()->SendFocusEvent(true);
-
+      handleBrowserEvents(event);
+      
       if (event.type == sf::Event::MouseButtonPressed)
       {
-        if (clickClock.getElapsedTime().asSeconds() < clickTime && event.mouseButton.button == lastClickType)
+        if (event.mouseButton.button == sf::Mouse::Button::Left)
         {
-          clickCount++;
+          auto mousePos = sf::Mouse::getPosition(m_window);
+          auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
+
+          auto dx = mousePos.x - playerTransform->getPosition().x;
+          auto dy = mousePos.y - playerTransform->getPosition().y;
+
+          auto angle = atan2(dy, dx);
+
+          auto bullet = EntityFactory::makeBullet(
+            m_engine, 
+            m_resources, 
+            sf::Vector2f(
+              playerTransform->getPosition().x,
+              playerTransform->getPosition().y
+            ),
+            sf::Vector2f(
+              90 * cos(angle),
+              90 * sin(angle)
+            ));
+          m_engine->addEntity(bullet);
         }
-        else
-        {
-          clickCount = 1;
-        }
-
-        lastClickType = event.mouseButton.button;
-
-        auto mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
-        auto point = m_window.mapPixelToCoords(mousePosition);
-
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        auto type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, clickCount);
-
-        clickClock.restart();
-      }
-      else if (event.type == sf::Event::MouseButtonReleased)
-      {
-        auto mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
-        auto point = m_window.mapPixelToCoords(mousePosition);
-
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        auto type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-        m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, clickCount);
-      }
-      else if (event.type == sf::Event::MouseMoved)
-      {
-        auto mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
-        auto point = m_window.mapPixelToCoords(mousePosition);
-
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-
-        m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-      }
-      else if (event.type == sf::Event::MouseWheelScrolled)
-      {
-        auto mousePosition = sf::Mouse::getPosition(m_window);
-        uint32 modifiers = GetKeyboardModifiers();
-
-        auto point = m_window.mapPixelToCoords(mousePosition);
-
-        CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-
-        m_uiBrowser->GetHost()->SendMouseWheelEvent(cefEvent, 0, event.mouseWheelScroll.delta * 10);
-      }
-      else if (event.type == sf::Event::KeyPressed)
-      {
-        auto key = sfkeyToWparam(event.key.code);
-
-        if (key != VK_NONAME)
-        {
-          uint32 modifiers = GetKeyboardModifiers();
-
-          CefKeyEvent e;
-          e.windows_key_code = key;
-          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-          e.type = KEYEVENT_KEYDOWN;
-          e.is_system_key = false;
-          e.character = key;
-          e.unmodified_character = key;
-          //e.native_key_code = 0;
-
-          m_uiBrowser->GetHost()->SendKeyEvent(e);
-        }
-      }
-      else if (event.type == sf::Event::KeyReleased)
-      {
-        if (event.key.code == sf::Keyboard::A)
-        {
-          m_uiValues.currentHealth--;
-          m_uiValues.healthChanged = true;
-
-          if (m_uiValues.currentHealth < 0)
-          {
-            m_uiValues.currentHealth = 0;
-          }
-        }
-
-        auto key = sfkeyToWparam(event.key.code);
-
-        if (key != VK_NONAME)
-        {
-          uint32 modifiers = GetKeyboardModifiers();
-
-          CefKeyEvent e;
-          e.windows_key_code = key;
-          e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-          e.type = KEYEVENT_KEYUP;
-          e.is_system_key = false;
-          e.character = key;
-          e.unmodified_character = key;
-          //e.native_key_code = 0;
-
-          m_uiBrowser->GetHost()->SendKeyEvent(e);
-        }
-      }
-      else if (event.type == sf::Event::TextEntered)
-      {
-        auto key = static_cast<WPARAM>(static_cast<char>(event.text.unicode));
-        uint32 modifiers = GetKeyboardModifiers();
-
-        CefKeyEvent e;
-        e.windows_key_code = key;
-        e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-        e.type = KEYEVENT_CHAR;
-        e.character = key;
-        e.unmodified_character = key;
-
-        m_uiBrowser->GetHost()->SendKeyEvent(e);
       }
     }
 
@@ -442,6 +351,140 @@ void Game::quit()
 void Game::loadMedia()
 {
   m_resources.loadTexture("deer", "deer.png");
+  m_resources.loadTexture("pinkBullet", "pinkBullet.png");
+}
+
+void Game::handleBrowserEvents(sf::Event& p_event)
+{
+
+  m_uiBrowser->GetHost()->SendFocusEvent(true);
+
+  if (p_event.type == sf::Event::MouseButtonPressed)
+  {
+    if (m_clickClock.getElapsedTime().asSeconds() < m_clickTime && p_event.mouseButton.button == m_lastClickType)
+    {
+      m_clickCount++;
+    }
+    else
+    {
+      m_clickCount = 1;
+    }
+
+    m_lastClickType = p_event.mouseButton.button;
+
+    auto mousePosition = sf::Mouse::getPosition(m_window);
+    uint32 modifiers = GetKeyboardModifiers();
+
+    auto point = m_window.mapPixelToCoords(mousePosition);
+
+    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+    auto type = p_event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : p_event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
+
+    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+    m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, m_clickCount);
+
+    m_clickClock.restart();
+  }
+  else if (p_event.type == sf::Event::MouseButtonReleased)
+  {
+    auto mousePosition = sf::Mouse::getPosition(m_window);
+    uint32 modifiers = GetKeyboardModifiers();
+
+    auto point = m_window.mapPixelToCoords(mousePosition);
+
+    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+    auto type = p_event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
+
+    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+    m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, m_clickCount);
+  }
+  else if (p_event.type == sf::Event::MouseMoved)
+  {
+    auto mousePosition = sf::Mouse::getPosition(m_window);
+    uint32 modifiers = GetKeyboardModifiers();
+
+    auto point = m_window.mapPixelToCoords(mousePosition);
+
+    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+
+    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
+  }
+  else if (p_event.type == sf::Event::MouseWheelScrolled)
+  {
+    auto mousePosition = sf::Mouse::getPosition(m_window);
+    uint32 modifiers = GetKeyboardModifiers();
+
+    auto point = m_window.mapPixelToCoords(mousePosition);
+
+    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
+
+    m_uiBrowser->GetHost()->SendMouseWheelEvent(cefEvent, 0, p_event.mouseWheelScroll.delta * 10);
+  }
+  else if (p_event.type == sf::Event::KeyPressed)
+  {
+    auto key = sfkeyToWparam(p_event.key.code);
+
+    if (key != VK_NONAME)
+    {
+      uint32 modifiers = GetKeyboardModifiers();
+
+      CefKeyEvent e;
+      e.windows_key_code = key;
+      e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+      e.type = KEYEVENT_KEYDOWN;
+      e.is_system_key = false;
+      e.character = key;
+      e.unmodified_character = key;
+      //e.native_key_code = 0;
+
+      m_uiBrowser->GetHost()->SendKeyEvent(e);
+    }
+  }
+  else if (p_event.type == sf::Event::KeyReleased)
+  {
+    if (p_event.key.code == sf::Keyboard::A)
+    {
+      m_uiValues.currentHealth--;
+      m_uiValues.healthChanged = true;
+
+      if (m_uiValues.currentHealth < 0)
+      {
+        m_uiValues.currentHealth = 0;
+      }
+    }
+
+    auto key = sfkeyToWparam(p_event.key.code);
+
+    if (key != VK_NONAME)
+    {
+      uint32 modifiers = GetKeyboardModifiers();
+
+      CefKeyEvent e;
+      e.windows_key_code = key;
+      e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+      e.type = KEYEVENT_KEYUP;
+      e.is_system_key = false;
+      e.character = key;
+      e.unmodified_character = key;
+      //e.native_key_code = 0;
+
+      m_uiBrowser->GetHost()->SendKeyEvent(e);
+    }
+  }
+  else if (p_event.type == sf::Event::TextEntered)
+  {
+    auto key = static_cast<WPARAM>(static_cast<char>(p_event.text.unicode));
+    uint32 modifiers = GetKeyboardModifiers();
+
+    CefKeyEvent e;
+    e.windows_key_code = key;
+    e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
+    e.type = KEYEVENT_CHAR;
+    e.character = key;
+    e.unmodified_character = key;
+
+    m_uiBrowser->GetHost()->SendKeyEvent(e);
+  }
 }
 
 const sf::RenderWindow& Game::getWindow() const

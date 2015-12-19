@@ -21,8 +21,9 @@ public:
 
   void loadMedia();
 
-  const sf::RenderWindow& getWindow() const;
+  void handleBrowserEvents(sf::Event& p_event);
 
+  const sf::RenderWindow& getWindow() const;
   ECS::Entity* getPlayer() const;
 
   static std::string GetApplicationDir();
@@ -47,6 +48,11 @@ private:
 
   ECS::Engine* m_engine = nullptr;
   ECS::Entity* m_player = nullptr;
+
+  sf::Clock m_clickClock;
+  float m_clickTime;
+  sf::Mouse::Button m_lastClickType;
+  int m_clickCount;
 };
 
 #endif

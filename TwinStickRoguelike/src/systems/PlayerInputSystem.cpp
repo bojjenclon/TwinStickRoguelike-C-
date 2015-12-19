@@ -22,6 +22,8 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   auto sprite = cAnimation->sprite;
   auto animator = cAnimation->animator;
 
+  auto isMoving = false;
+
   if (m_keyMaps.isActive("moveLeft"))
   {
     sprite->move(-60 * p_dt, 0);
@@ -32,6 +34,8 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
     }
 
     cDirection->direction = Left;
+
+    isMoving = true;
   }
   else if (m_keyMaps.isActive("moveRight"))
   {
@@ -43,30 +47,44 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
     }
 
     cDirection->direction = Right;
+
+    isMoving = true;
   }
-  else if (m_keyMaps.isActive("moveUp"))
+  
+  if (m_keyMaps.isActive("moveUp"))
   {
     sprite->move(0, -60 * p_dt);
 
-    if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkUp")
+    if (!isMoving)
     {
-      animator->playAnimation("walkUp", true);
+      if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkUp")
+      {
+        animator->playAnimation("walkUp", true);
+      }
+
+      cDirection->direction = Up;
     }
 
-    cDirection->direction = Up;
+    isMoving = true;
   }
   else if (m_keyMaps.isActive("moveDown"))
   {
     sprite->move(0, 60 * p_dt);
 
-    if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkDown")
+    if (!isMoving)
     {
-      animator->playAnimation("walkDown", true);
+      if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkDown")
+      {
+        animator->playAnimation("walkDown", true);
+      }
+
+      cDirection->direction = Down;
     }
 
-    cDirection->direction = Down;
+    isMoving = true;
   }
-  else
+  
+  if (!isMoving)
   {
     if (cDirection->direction == Left && animator->isPlayingAnimation())
     {

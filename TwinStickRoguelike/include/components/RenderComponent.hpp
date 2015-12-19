@@ -12,6 +12,7 @@ struct RenderComponent : public ECS::Component<RenderComponent>
 
   void reset() override
   {
+    drawable = nullptr;
     depth = 1;
   }
 };
