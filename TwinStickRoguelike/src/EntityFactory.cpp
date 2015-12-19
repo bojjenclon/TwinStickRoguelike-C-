@@ -48,12 +48,13 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("deer"));
   sprite->setTextureRect(sf::IntRect(32, 0, 32, 34));
+  sprite->setOrigin(sprite->getTextureRect().width / 2, sprite->getTextureRect().height / 2);
   cRender->drawable = sprite;
 
   /* Begin Animation Setup */
 
   auto animator = new thor::Animator<sf::Sprite, std::string>();
-
+  
   thor::FrameAnimation walkDownAnim;
   walkDownAnim.addFrame(1.0f, sf::IntRect(0, 0, 32, 34));
   walkDownAnim.addFrame(1.0f, sf::IntRect(32, 0, 32, 34));
@@ -124,10 +125,10 @@ ECS::Entity* EntityFactory::makeBullet(ECS::Engine* p_engine, ResourceManager& p
 
   auto cRender = p_engine->createComponent<RenderComponent>();
   entity->add(cRender);
-  cRender->drawable = new sf::Sprite(p_resources.getTexture("pinkBullet"));
-
-  auto transform = dynamic_cast<sf::Transformable*>(cRender->drawable);
-  transform->setPosition(p_position);
+  auto sprite = new sf::Sprite(p_resources.getTexture("pinkBullet"));
+  sprite->setOrigin(sprite->getTextureRect().width / 2, sprite->getTextureRect().height / 2);
+  sprite->setPosition(p_position);
+  cRender->drawable = sprite;
 
   auto cVelocity = p_engine->createComponent<VelocityComponent>();
   entity->add(cVelocity);
