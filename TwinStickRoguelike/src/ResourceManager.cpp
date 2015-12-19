@@ -1,52 +1,32 @@
 #include <ResourceManager.hpp>
 
-ResourceManager::ResourceManager(const sf::RenderTarget& p_renderTarget) : m_renderTarget(p_renderTarget)
+#include <iostream>
+#include <Thor/Resources/SfmlLoaders.hpp>
+
+ResourceManager::ResourceManager()
 {
+  
 }
 
-bool ResourceManager::loadTexture(const std::string& path)
+bool ResourceManager::loadTexture(std::string p_id, std::string p_path)
 {
-  sf::Texture* texture = new sf::Texture();
-  bool success = texture->loadFromFile(path);
-
-  if (success)
+  try
   {
-    m_textures[path] = texture;
+    m_textureHolder.acquire(p_id, thor::Resources::fromFile<sf::Texture>(p_path));
   }
-
-  return success;
-}
-
-bool ResourceManager::isTextureLoaded(const std::string& path) const
-{
-  return m_textures.count(path) > 0;
-}
-
-sf::Texture* ResourceManager::getTexture(const std::string& path)
-{
-  if (!isTextureLoaded(path))
+  catch (thor::ResourceLoadingException& e)
   {
-    printf("Error: Texture located at %s is not loaded. Please call loadTexture first.\n", path.c_str());
+    std::cout << "Error: " << e.what() << std::endl;
 
-    return nullptr;
-  }
-
-  return m_textures[path];
-}
-
-bool ResourceManager::freeTexture(const std::string& path)
-{
-  if (!isTextureLoaded(path))
-  {
     return false;
   }
-
-  m_textures.erase(path);
 
   return true;
 }
 
-void ResourceManager::freeAllTextures()
+sf::Texture& ResourceManager::getTexture(std::string p_id)
 {
-  m_textures.clear();
+  return m_textureHolder[p_id];
 }
+
+

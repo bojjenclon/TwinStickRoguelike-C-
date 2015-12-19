@@ -19,6 +19,8 @@ public:
   void mainLoop();
   void quit();
 
+  void loadMedia();
+
   const sf::RenderWindow& getWindow() const;
 
   ECS::Entity* getPlayer() const;
@@ -39,7 +41,7 @@ private:
   CefRefPtr<CefBrowser> m_uiBrowser;
   CefRefPtr<BrowserClient> m_uiBrowserClient;
 
-  ResourceManager* m_resources = nullptr;
+  ResourceManager m_resources;
 
   UIValues m_uiValues;
 

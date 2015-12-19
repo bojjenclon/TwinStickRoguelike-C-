@@ -38,19 +38,17 @@ ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p
   return entity;
 }
 
-ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p_resources)
+ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p_resources)
 {
   auto entity = p_engine->createEntity();
 
   auto cRender = p_engine->createComponent<RenderComponent>();
   entity->add(cRender);
-  if (!p_resources->isTextureLoaded("deer.png"))
-  {
-    p_resources->loadTexture("deer.png");
-  }
-  auto sprite = new sf::Sprite(*p_resources->getTexture("deer.png"));
+  auto sprite = new sf::Sprite(p_resources.getTexture("deer"));
   sprite->setTextureRect(sf::IntRect(32, 0, 32, 34));
   cRender->drawable = sprite;
+
+  /* Begin Animation Setup */
 
   auto animator = new thor::Animator<sf::Sprite, std::string>();
 
@@ -102,6 +100,8 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
   entity->add(cAnimation);
   cAnimation->sprite = sprite;
   cAnimation->animator = animator;
+
+  /* End Animation Setup */
 
   auto cDirection = p_engine->createComponent<DirectionComponent>();
   entity->add(cDirection);

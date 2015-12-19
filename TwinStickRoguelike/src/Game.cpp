@@ -65,8 +65,7 @@ bool Game::start()
   uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
   m_uiSprite.setTexture(*uiTexture);
 
-  m_resources = new ResourceManager(m_window);
-  //loadMedia();
+  loadMedia();
 
   m_uiRenderHandler = new RenderHandler(uiTexture);
 
@@ -423,8 +422,6 @@ void Game::mainLoop()
 
 void Game::quit()
 {
-  m_resources->freeAllTextures();
-
   /*auto uiEntities = m_engine->getEntitiesFor(ECS::Family::all<UIComponent>().get());
   for (auto i = 0; i < uiEntities->size(); i++)
   {
@@ -439,8 +436,12 @@ void Game::quit()
 
   CefShutdown();
 
-  m_resources = nullptr;
   m_engine = nullptr;
+}
+
+void Game::loadMedia()
+{
+  m_resources.loadTexture("deer", "deer.png");
 }
 
 const sf::RenderWindow& Game::getWindow() const
