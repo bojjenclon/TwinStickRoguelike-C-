@@ -4,19 +4,25 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <components/DirectionComponent.hpp>
 
-PlayerInputSystem::PlayerInputSystem() : IteratingSystem(ECS::Family::all<PlayerComponent, AnimationComponent, DirectionComponent>().get())
+PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS::Family::all<PlayerComponent, AnimationComponent, DirectionComponent>().get()), m_window(p_window)
 {
+  m_keyMaps["moveLeft"] = thor::Action(sf::Keyboard::Left, thor::Action::Hold) || thor::Action(sf::Keyboard::A, thor::Action::Hold);
+  m_keyMaps["moveRight"] = thor::Action(sf::Keyboard::Right, thor::Action::Hold) || thor::Action(sf::Keyboard::D, thor::Action::Hold);
+  m_keyMaps["moveUp"] = thor::Action(sf::Keyboard::Up, thor::Action::Hold) || thor::Action(sf::Keyboard::W, thor::Action::Hold);
+  m_keyMaps["moveDown"] = thor::Action(sf::Keyboard::Down, thor::Action::Hold) || thor::Action(sf::Keyboard::S, thor::Action::Hold);
 }
 
 void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
+  m_keyMaps.update(m_window);
+
   auto cDirection = p_entity->get<DirectionComponent>();
   auto cAnimation = p_entity->get<AnimationComponent>();
 
   auto sprite = cAnimation->sprite;
   auto animator = cAnimation->animator;
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+  if (m_keyMaps.isActive("moveLeft"))
   {
     sprite->move(-60 * p_dt, 0);
 
@@ -27,7 +33,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
     cDirection->direction = Left;
   }
-  else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+  else if (m_keyMaps.isActive("moveRight"))
   {
     sprite->move(60 * p_dt, 0);
 
@@ -38,7 +44,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
     cDirection->direction = Right;
   }
-  else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+  else if (m_keyMaps.isActive("moveUp"))
   {
     sprite->move(0, -60 * p_dt);
 
@@ -49,7 +55,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
     cDirection->direction = Up;
   }
-  else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+  else if (m_keyMaps.isActive("moveDown"))
   {
     sprite->move(0, 60 * p_dt);
 

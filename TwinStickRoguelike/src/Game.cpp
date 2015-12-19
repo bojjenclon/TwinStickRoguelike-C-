@@ -81,7 +81,7 @@ bool Game::start()
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = new ECS::Engine(10, 100, 100);
 
-  auto playerInputSystem = new PlayerInputSystem();
+  auto playerInputSystem = new PlayerInputSystem(m_window);
   m_engine->addSystem(playerInputSystem);
 
   auto animationSystem = new AnimationSystem();
