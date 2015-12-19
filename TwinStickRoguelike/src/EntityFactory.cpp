@@ -40,7 +40,7 @@ ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p
   return entity;
 }
 
-ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p_resources)
+ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position)
 {
   auto entity = p_engine->createEntity();
 
@@ -48,7 +48,8 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("deer"));
   sprite->setTextureRect(sf::IntRect(32, 0, 32, 34));
-  sprite->setOrigin(sprite->getTextureRect().width / 2, sprite->getTextureRect().height / 2);
+  sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
+  sprite->setPosition(p_position);
   cRender->drawable = sprite;
 
   /* Begin Animation Setup */
@@ -119,14 +120,14 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager& p
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeBullet(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f(), sf::Vector2f p_velocity = sf::Vector2f())
+ECS::Entity* EntityFactory::makeBullet(ECS::Engine* p_engine, ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
 {
   auto entity = p_engine->createEntity();
 
   auto cRender = p_engine->createComponent<RenderComponent>();
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("pinkBullet"));
-  sprite->setOrigin(sprite->getTextureRect().width / 2, sprite->getTextureRect().height / 2);
+  sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
   sprite->setPosition(p_position);
   cRender->drawable = sprite;
 

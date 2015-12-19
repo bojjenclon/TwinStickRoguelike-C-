@@ -247,7 +247,7 @@ bool Game::start()
   auto uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
 
-  m_player = EntityFactory::makePlayer(m_engine, m_resources);
+  m_player = EntityFactory::makePlayer(m_engine, m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
   return true;
