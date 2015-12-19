@@ -32,7 +32,7 @@ ECS::Entity* EntityFactory::makeUIContainer(ECS::Engine* p_engine, sf::Sprite& p
 
   return entity;
 }
-/*
+
 ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p_resources)
 {
   auto entity = p_engine->createEntity();
@@ -43,7 +43,7 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
   {
     p_resources->loadTexture("test.png");
   }
-  cRender->texture = p_resources->getTexture("test.png");
+  cRender->drawable = new sf::Sprite(*p_resources->getTexture("test.png"));
 
   auto cHealth = p_engine->createComponent<HealthComponent>();
   entity->add(cHealth);
@@ -52,4 +52,3 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
   return entity;
 }
 
-*/

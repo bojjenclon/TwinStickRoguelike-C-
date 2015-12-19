@@ -28,6 +28,9 @@ bool Game::start()
   m_window.setFramerateLimit(60);
 
   CefSettings settings;
+  settings.multi_threaded_message_loop = false;
+  settings.single_process = false;
+
   bool result = CefInitialize(args, settings, app.get(), nullptr);
 
   if (!result)
@@ -36,7 +39,7 @@ bool Game::start()
     return false;
   }
 
-  std::string path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
+  std::string path = "file://" + GetApplicationDir() + "/../html/Blank.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
   //std::string               path = "http://www.bojjenclon.com";
@@ -86,8 +89,8 @@ bool Game::start()
   ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
 
-  /*m_player = EntityFactory::makePlayer(m_engine, m_resources);
-  m_engine->addEntity(m_player);*/
+  m_player = EntityFactory::makePlayer(m_engine, m_resources);
+  m_engine->addEntity(m_player);
 
   return true;
 }
@@ -247,10 +250,10 @@ void Game::mainLoop()
   font.loadFromFile("Adventure Subtitles.ttf");
 
   sf::Text fpsText("FPS: 60", font);
-  fpsText.setCharacterSize(30);
+  fpsText.setCharacterSize(16);
   fpsText.setStyle(sf::Text::Bold);
   fpsText.setColor(sf::Color::Red);
-  fpsText.setPosition(5, SCREEN_HEIGHT - 35);
+  fpsText.setPosition(5, SCREEN_HEIGHT - 21);
 
   auto fpsEntity = EntityFactory::makeDrawable(m_engine, fpsText, -10);
   m_engine->addEntity(fpsEntity);
@@ -280,13 +283,13 @@ void Game::mainLoop()
 
         lastClickType = event.mouseButton.button;
 
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        auto mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
 
-        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+        auto point = m_window.mapPixelToCoords(mousePosition);
 
         CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
+        auto type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
 
         m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
         m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, clickCount);
@@ -295,23 +298,23 @@ void Game::mainLoop()
       }
       else if (event.type == sf::Event::MouseButtonReleased)
       {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        auto mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
 
-        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+        auto point = m_window.mapPixelToCoords(mousePosition);
 
         CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-        CefBrowserHost::MouseButtonType type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
+        auto type = event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
 
         m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
         m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, clickCount);
       }
       else if (event.type == sf::Event::MouseMoved)
       {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        auto mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
 
-        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+        auto point = m_window.mapPixelToCoords(mousePosition);
 
         CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
 
@@ -319,10 +322,10 @@ void Game::mainLoop()
       }
       else if (event.type == sf::Event::MouseWheelScrolled)
       {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(m_window);
+        auto mousePosition = sf::Mouse::getPosition(m_window);
         uint32 modifiers = GetKeyboardModifiers();
 
-        sf::Vector2f point = m_window.mapPixelToCoords(mousePosition);
+        auto point = m_window.mapPixelToCoords(mousePosition);
 
         CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
 
@@ -330,7 +333,7 @@ void Game::mainLoop()
       }
       else if (event.type == sf::Event::KeyPressed)
       {
-        WPARAM key = sfkeyToWparam(event.key.code);
+        auto key = sfkeyToWparam(event.key.code);
 
         if (key != VK_NONAME)
         {
@@ -361,7 +364,7 @@ void Game::mainLoop()
           }
         }
 
-        WPARAM key = sfkeyToWparam(event.key.code);
+        auto key = sfkeyToWparam(event.key.code);
 
         if (key != VK_NONAME)
         {
@@ -381,7 +384,7 @@ void Game::mainLoop()
       }
       else if (event.type == sf::Event::TextEntered)
       {
-        WPARAM key = static_cast<WPARAM>(static_cast<char>(event.text.unicode));
+        auto key = static_cast<WPARAM>(static_cast<char>(event.text.unicode));
         uint32 modifiers = GetKeyboardModifiers();
 
         CefKeyEvent e;
@@ -396,9 +399,9 @@ void Game::mainLoop()
     }
 
     m_uiRenderHandler->update();
-    m_uiRenderHandler->updateTexture();
+    //m_uiRenderHandler->updateTexture();
 
-    sf::Time dt = deltaClock.restart();
+    auto dt = deltaClock.restart();
 
     fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 

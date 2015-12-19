@@ -2,10 +2,11 @@
 
 AFSM::~AFSM()
 {
+  m_states.clear();
   m_currentState = nullptr;
 }
 
-void AFSM::addState(std::string p_name, State& p_state)
+void AFSM::addState(std::string p_name, State* p_state)
 {
   m_states[p_name] = p_state;
 }

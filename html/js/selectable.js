@@ -20,6 +20,8 @@ Selectable.items = [];
 */
 Selectable.mode = 'touch';
 
+Selectable.multiSelect = false;
+
 Selectable.init = function (options) {
   Selectable.parent = $('#selectable');
   Selectable.mode = options.mode || 'touch';
@@ -55,15 +57,29 @@ Selectable.init = function (options) {
 
   this.marquee.element.hide();
 
+  $(window).bind('keydown', function (e) {
+    if (e.which === 17 || e.which === 162 || e.which === 163) {
+      Selectable.multiSelect = true;
+    }
+  });
+
+  $(window).bind('keyup', function (e) {
+    if (e.which === 17 || e.which === 162 || e.which === 163) {
+      Selectable.multiSelect = false;
+    }
+  });
+
   // simulate mouse-hold event
   var timeoutId = 0;
 
   this.parent.bind('mousedown', function (e) {
     e.preventDefault();
 
-    var selected = Selectable.parent.find('.selected');
-    for (var i = 0; i < selected.length; i++) {
-      $(selected[i]).removeClass('selected');
+    if (Selectable.multiSelect === false) {
+      var selected = Selectable.parent.find('.selected');
+      for (var i = 0; i < selected.length; i++) {
+        $(selected[i]).removeClass('selected');
+      }
     }
 
     // after 100ms, fire mouse-hold function
@@ -111,13 +127,13 @@ Selectable.init = function (options) {
         if (Selectable.mode === 'touch') {
           if (marqueeLeft < itemLeft + itemWidth && marqueeLeft + Selectable.marquee.width > itemLeft && marqueeTop < itemTop + itemHeight && marqueeTop + Selectable.marquee.height > itemTop) {
             item.addClass('selected');
-          } else if (item.hasClass('selected')) {
+          } else if (Selectable.multiSelect === false && item.hasClass('selected')) {
             item.removeClass('selected');
           }
         } else {
           if (itemLeft >= marqueeLeft && itemTop >= marqueeTop && itemLeft + itemWidth <= marqueeLeft + Selectable.marquee.width && itemTop + itemHeight <= marqueeTop + Selectable.marquee.height) {
             item.addClass('selected');
-          } else if (item.hasClass('selected')) {
+          } else if (Selectable.multiSelect === false && item.hasClass('selected')) {
             item.removeClass('selected');
           }
         }

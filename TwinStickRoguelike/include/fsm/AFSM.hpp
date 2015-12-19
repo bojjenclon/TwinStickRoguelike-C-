@@ -11,7 +11,7 @@ class AFSM
 public:
   virtual ~AFSM();
 
-  void addState(std::string p_name, State& p_state);
+  void addState(std::string p_name, State* p_state);
   void act(float p_dt) const;
   void reset();
 
@@ -19,7 +19,7 @@ public:
   virtual void exitState(std::string p_name) = 0;
 
 protected:
-  std::map<std::string, State> m_states;
+  std::map<std::string, State*> m_states;
   State* m_currentState = nullptr;
 };
 

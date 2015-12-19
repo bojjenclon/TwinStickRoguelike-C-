@@ -18,6 +18,8 @@ Selectable.items = [];
 */
 Selectable.mode = 'touch';
 
+Selectable.multiSelect = false;
+
 Selectable.init = function(options) {
   Selectable.parent = $('#selectable');
   Selectable.mode = options.mode || 'touch';
@@ -54,15 +56,29 @@ Selectable.init = function(options) {
 
   this.marquee.element.hide();
 
+  $(window).bind('keydown', function(e) {
+    if (e.which === 17 || e.which === 162 || e.which === 163) {
+      Selectable.multiSelect = true;
+    }
+  });
+
+  $(window).bind('keyup', function(e) {
+    if (e.which === 17 || e.which === 162 || e.which === 163) {
+      Selectable.multiSelect = false;
+    }
+  });
+
   // simulate mouse-hold event
   let timeoutId = 0;
 
   this.parent.bind('mousedown', function(e) {
     e.preventDefault();
 
-    let selected = Selectable.parent.find('.selected');
-    for (let i = 0; i < selected.length; i++) {
-      $(selected[i]).removeClass('selected');
+    if (Selectable.multiSelect === false) {
+      let selected = Selectable.parent.find('.selected');
+      for (let i = 0; i < selected.length; i++) {
+        $(selected[i]).removeClass('selected');
+      }
     }
 
     // after 100ms, fire mouse-hold function
@@ -114,7 +130,7 @@ Selectable.init = function(options) {
               && marqueeTop + Selectable.marquee.height > itemTop) {
             item.addClass('selected');
           }
-          else if (item.hasClass('selected')) {
+          else if (Selectable.multiSelect === false && item.hasClass('selected')) {
             item.removeClass('selected');
           }
         }
@@ -125,7 +141,7 @@ Selectable.init = function(options) {
               && itemTop + itemHeight <= marqueeTop + Selectable.marquee.height) {
             item.addClass('selected');
           }
-          else if (item.hasClass('selected')) {
+          else if (Selectable.multiSelect === false && item.hasClass('selected')) {
             item.removeClass('selected');
           }
         }
