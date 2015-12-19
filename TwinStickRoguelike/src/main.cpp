@@ -1,4 +1,4 @@
-#include "Game.hpp"
+#include <Game.hpp>
 
 #if _MSC_VER == 1900
 FILE _iob[] = { *stdin, *stdout, *stderr };

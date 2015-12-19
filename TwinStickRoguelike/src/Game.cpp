@@ -3,10 +3,11 @@
 #include <iostream>
 #include <algorithm>
 
-#include "EntityFactory.hpp"
-#include "systems/RenderSystem.hpp"
-#include "systems/UIUpdateSystem.hpp"
-#include "cef/BrowserApp.hpp"
+#include <EntityFactory.hpp>
+#include <systems/RenderSystem.hpp>
+#include <systems/UIUpdateSystem.hpp>
+#include <cef/BrowserApp.hpp>
+#include <systems/PlayerInputSystem.hpp>
 
 Game::Game()
 {
@@ -80,11 +81,14 @@ bool Game::start()
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = new ECS::Engine(10, 100, 100);
 
-  RenderSystem* renderSystem = new RenderSystem(m_window);
-  m_engine->addSystem(renderSystem);
+  PlayerInputSystem* playerInputSystem = new PlayerInputSystem();
+  m_engine->addSystem(playerInputSystem);
 
   UIUpdateSystem* uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
+
+  RenderSystem* renderSystem = new RenderSystem(m_window);
+  m_engine->addSystem(renderSystem);
 
   ECS::Entity* uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);

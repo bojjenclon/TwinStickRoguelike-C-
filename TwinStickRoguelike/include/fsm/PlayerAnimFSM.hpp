@@ -1,7 +1,7 @@
 #ifndef PLAYER_ANIM_FSM_HPP
 #define PLAYER_ANIM_FSM_HPP
 
-#include "fsm/AFSM.hpp"
+#include <fsm/AFSM.hpp>
 
 class PlayerAnimFSM : AFSM
 {

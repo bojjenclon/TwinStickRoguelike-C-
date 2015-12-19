@@ -1,8 +1,9 @@
-#include "EntityFactory.hpp"
+#include <EntityFactory.hpp>
 
-#include "components/RenderComponent.hpp"
-#include "components/HealthComponent.hpp"
-#include "components/UIComponent.hpp"
+#include <components/RenderComponent.hpp>
+#include <components/HealthComponent.hpp>
+#include <components/UIComponent.hpp>
+#include <components/PlayerComponent.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(ECS::Engine* p_engine, sf::Drawable& p_drawable, int p_depth = 1)
 {
@@ -48,6 +49,9 @@ ECS::Entity* EntityFactory::makePlayer(ECS::Engine* p_engine, ResourceManager* p
   auto cHealth = p_engine->createComponent<HealthComponent>();
   entity->add(cHealth);
   cHealth->currentHealth = cHealth->maxHealth = 10;
+
+  auto cPlayer = p_engine->createComponent<PlayerComponent>();
+  entity->add(cPlayer);
 
   return entity;
 }

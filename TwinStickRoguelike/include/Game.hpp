@@ -1,15 +1,14 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include <chrono>
 #include <SFML/Graphics.hpp>
 #include <include/cef_app.h>
 #include <ecstasy/core/Engine.h>
 
-#include "ResourceManager.hpp"
-#include "UIValues.hpp"
-#include "cef/BrowserClient.hpp"
-#include "cef/RenderHandler.hpp"
+#include <ResourceManager.hpp>
+#include <UIValues.hpp>
+#include <cef/BrowserClient.hpp>
+#include <cef/RenderHandler.hpp>
 
 class Game
 {

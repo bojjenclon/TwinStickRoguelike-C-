@@ -1,5 +1,6 @@
 #ifndef STATE_HPP
 #define STATE_HPP
+
 #include <string>
 
 class State

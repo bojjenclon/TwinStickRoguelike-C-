@@ -2,8 +2,10 @@
 #define UI_COMPONENT_HPP
 
 #include <ecstasy/core/Component.h>
+
 #include <include/cef_browser.h>
-#include "UIValues.hpp"
+
+#include <UIValues.hpp>
 
 struct UIComponent : public ECS::Component<UIComponent>
 {
@@ -18,3 +20,4 @@ struct UIComponent : public ECS::Component<UIComponent>
 };
 
 #endif
+

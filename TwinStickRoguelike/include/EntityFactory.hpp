@@ -6,8 +6,8 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "ResourceManager.hpp"
-#include "UIValues.hpp"
+#include <ResourceManager.hpp>
+#include <UIValues.hpp>
 
 namespace EntityFactory
 {

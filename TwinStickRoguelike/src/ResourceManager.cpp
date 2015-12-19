@@ -1,4 +1,4 @@
-#include "ResourceManager.hpp"
+#include <ResourceManager.hpp>
 
 ResourceManager::ResourceManager(const sf::RenderTarget& p_renderTarget) : m_renderTarget(p_renderTarget)
 {

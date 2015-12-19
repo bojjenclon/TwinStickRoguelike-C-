@@ -1,5 +1,5 @@
-#include "systems/UIUpdateSystem.hpp"
-#include "components/UIComponent.hpp"
+#include <systems/UIUpdateSystem.hpp>
+#include <components/UIComponent.hpp>
 
 UIUpdateSystem::UIUpdateSystem() : IteratingSystem(ECS::Family::all<UIComponent>().get())
 {
