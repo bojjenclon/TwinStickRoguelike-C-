@@ -11,10 +11,10 @@
 
 namespace EntityFactory
 {
-  ECS::Entity* makeDrawable(std::unique_ptr<ECS::Engine>& p_engine, sf::Drawable& p_drawable, int p_depth);
-  ECS::Entity* makeUIContainer(std::unique_ptr<ECS::Engine>& p_engine, sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues);
-  ECS::Entity* makePlayer(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f());
-  ECS::Entity* makeBullet(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f(), sf::Vector2f p_velocity = sf::Vector2f());
+  ECS::Entity* makeDrawable(sf::Drawable& p_drawable, int p_depth = 1);
+  ECS::Entity* makeUIContainer(sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues);
+  ECS::Entity* makePlayer(ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f());
+  ECS::Entity* makeBullet(ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f(), sf::Vector2f p_velocity = sf::Vector2f());
 };
 
 #endif

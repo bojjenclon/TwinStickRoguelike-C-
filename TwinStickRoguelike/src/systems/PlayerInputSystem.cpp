@@ -3,8 +3,9 @@
 #include <components/AnimationComponent.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <components/DirectionComponent.hpp>
+#include <components/PhysicsComponent.hpp>
 
-PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS::Family::all<PlayerComponent, AnimationComponent, DirectionComponent>().get()), m_window(p_window)
+PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS::Family::all<PlayerComponent, AnimationComponent, DirectionComponent, PhysicsComponent>().get()), m_window(p_window)
 {
   m_keyMaps["moveLeft"] = thor::Action(sf::Keyboard::Left, thor::Action::Hold) || thor::Action(sf::Keyboard::A, thor::Action::Hold);
   m_keyMaps["moveRight"] = thor::Action(sf::Keyboard::Right, thor::Action::Hold) || thor::Action(sf::Keyboard::D, thor::Action::Hold);
@@ -18,15 +19,15 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
   auto cDirection = p_entity->get<DirectionComponent>();
   auto cAnimation = p_entity->get<AnimationComponent>();
+  auto cPhysics = p_entity->get<PhysicsComponent>();
 
-  auto sprite = cAnimation->sprite;
   auto animator = cAnimation->animator;
 
   auto isMoving = false;
 
   if (m_keyMaps.isActive("moveLeft"))
   {
-    sprite->move(-60 * p_dt, 0);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(-600, 0), cPhysics->body->GetWorldCenter(), true);
 
     if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkLeft")
     {
@@ -39,7 +40,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else if (m_keyMaps.isActive("moveRight"))
   {
-    sprite->move(60 * p_dt, 0);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(600, 0), cPhysics->body->GetWorldCenter(), true);
 
     if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkRight")
     {
@@ -50,10 +51,14 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
     isMoving = true;
   }
+  else
+  {
+    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x * 0.95f, cPhysics->body->GetLinearVelocity().y));
+  }
   
   if (m_keyMaps.isActive("moveUp"))
   {
-    sprite->move(0, -60 * p_dt);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, -600), cPhysics->body->GetWorldCenter(), true);
 
     if (!isMoving)
     {
@@ -69,7 +74,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else if (m_keyMaps.isActive("moveDown"))
   {
-    sprite->move(0, 60 * p_dt);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, 600), cPhysics->body->GetWorldCenter(), true);
 
     if (!isMoving)
     {
@@ -82,6 +87,10 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
     }
 
     isMoving = true;
+  }
+  else
+  {
+    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x, cPhysics->body->GetLinearVelocity().y * 0.95f));
   }
   
   if (!isMoving)

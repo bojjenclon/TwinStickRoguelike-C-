@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <include/cef_app.h>
 #include <ecstasy/core/Engine.h>
+#include <Box2D/Box2d.h>
 
 #include <ResourceManager.hpp>
 #include <UIValues.hpp>
@@ -13,8 +14,6 @@
 class Game
 {
 public:
-  Game();
-
   bool start();
   void mainLoop();
   void quit();
@@ -25,7 +24,10 @@ public:
 
   const sf::RenderWindow& getWindow() const;
   ECS::Entity* getPlayer() const;
+  ECS::Engine& getEngine() const;
+  b2World& getWorld() const;
 
+  static Game& Get();
   static std::string GetApplicationDir();
 
 public:
@@ -35,6 +37,8 @@ public:
   static const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 private:
+  Game();
+
   sf::RenderWindow m_window;
   sf::Sprite m_uiSprite;
 
@@ -53,6 +57,12 @@ private:
   float m_clickTime;
   sf::Mouse::Button m_lastClickType;
   int m_clickCount;
+  
+  std::unique_ptr<b2World> m_world;
+
+public:
+  Game(Game const&) = delete;
+  void operator=(Game const&) = delete;
 };
 
 #endif

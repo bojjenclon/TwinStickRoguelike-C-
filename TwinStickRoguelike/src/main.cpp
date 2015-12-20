@@ -10,7 +10,7 @@ extern "C" FILE * __cdecl __iob_func(void)
 
 int main(int argc, char *argv[])
 {
-  Game game;
+  auto& game = Game::Get();
 
   if (game.start())
   {

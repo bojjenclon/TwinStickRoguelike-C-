@@ -1,6 +1,7 @@
 #include <systems/MovementSystem.hpp>
 #include <components/VelocityComponent.hpp>
 #include <components/RenderComponent.hpp>
+#include <components/PhysicsComponent.hpp>
 
 MovementSystem::MovementSystem() : IteratingSystem(ECS::Family::all<RenderComponent, VelocityComponent>().get())
 {
@@ -19,4 +20,11 @@ void MovementSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
 
   transform->move(cVelocity->vx * p_dt, cVelocity->vy * p_dt);
+
+  if (p_entity->has<PhysicsComponent>())
+  {
+    auto cPhysics = p_entity->get<PhysicsComponent>();
+    
+    cPhysics->body->SetTransform(b2Vec2(transform->getPosition().x, transform->getPosition().y), transform->getRotation());
+  }
 }

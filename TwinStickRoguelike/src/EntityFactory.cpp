@@ -10,12 +10,16 @@
 #include <components/DirectionComponent.hpp>
 #include <components/VelocityComponent.hpp>
 #include <components/LifetimeComponent.hpp>
+#include <Game.hpp>
+#include <components/PhysicsComponent.hpp>
 
-ECS::Entity* EntityFactory::makeDrawable(std::unique_ptr<ECS::Engine>& p_engine, sf::Drawable& p_drawable, int p_depth = 1)
+ECS::Entity* EntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
-  auto entity = p_engine->createEntity();
+  auto& engine = Game::Get().getEngine();
 
-  auto cRender = p_engine->createComponent<RenderComponent>();
+  auto entity = engine.createEntity();
+
+  auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);
   cRender->drawable = &p_drawable;
   cRender->depth = p_depth;
@@ -23,16 +27,18 @@ ECS::Entity* EntityFactory::makeDrawable(std::unique_ptr<ECS::Engine>& p_engine,
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeUIContainer(std::unique_ptr<ECS::Engine>& p_engine, sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
+ECS::Entity* EntityFactory::makeUIContainer(sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
 {
-  auto entity = p_engine->createEntity();
+  auto& engine = Game::Get().getEngine();
 
-  auto cRender = p_engine->createComponent<RenderComponent>();
+  auto entity = engine.createEntity();
+
+  auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);
   cRender->drawable = &p_sprite;
   cRender->depth = -999;
 
-  auto cUI = p_engine->createComponent<UIComponent>();
+  auto cUI = engine.createComponent<UIComponent>();
   entity->add(cUI);
   cUI->uiBrowser = p_browser;
   cUI->uiValues = &p_uiValues;
@@ -40,11 +46,13 @@ ECS::Entity* EntityFactory::makeUIContainer(std::unique_ptr<ECS::Engine>& p_engi
   return entity;
 }
 
-ECS::Entity* EntityFactory::makePlayer(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position)
+ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2f p_position)
 {
-  auto entity = p_engine->createEntity();
+  auto& engine = Game::Get().getEngine();
 
-  auto cRender = p_engine->createComponent<RenderComponent>();
+  auto entity = engine.createEntity();
+
+  auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("deer"));
   sprite->setTextureRect(sf::IntRect(32, 0, 32, 34));
@@ -100,44 +108,99 @@ ECS::Entity* EntityFactory::makePlayer(std::unique_ptr<ECS::Engine>& p_engine, R
   idleUpAnim.addFrame(1.0f, sf::IntRect(32, 102, 32, 34));
   animator->addAnimation("idleUp", idleUpAnim, sf::seconds(1.0f));
   
-  auto cAnimation = p_engine->createComponent<AnimationComponent>();
+  auto cAnimation = engine.createComponent<AnimationComponent>();
   entity->add(cAnimation);
   cAnimation->sprite = sprite;
   cAnimation->animator = animator;
 
   /* End Animation Setup */
 
-  auto cDirection = p_engine->createComponent<DirectionComponent>();
+  auto cDirection = engine.createComponent<DirectionComponent>();
   entity->add(cDirection);
 
-  auto cHealth = p_engine->createComponent<HealthComponent>();
+  auto cHealth = engine.createComponent<HealthComponent>();
   entity->add(cHealth);
   cHealth->currentHealth = cHealth->maxHealth = 10;
 
-  auto cPlayer = p_engine->createComponent<PlayerComponent>();
+  /* Physics Begin */
+
+  auto& world = Game::Get().getWorld();
+
+  auto cPhysics = engine.createComponent<PhysicsComponent>();
+  entity->add(cPhysics);
+
+  b2BodyDef bodyDef;
+  bodyDef.type = b2_dynamicBody;
+  bodyDef.position.Set(p_position.x, p_position.y);
+  auto body = world.CreateBody(&bodyDef);
+  
+  b2CircleShape dynamicCircle;
+  dynamicCircle.m_radius = 20.0f;
+
+  b2FixtureDef fixtureDef;
+  fixtureDef.shape = &dynamicCircle;
+  fixtureDef.density = 1.0f;
+  fixtureDef.friction = 0.3f;
+
+  body->CreateFixture(&fixtureDef);
+
+  cPhysics->body = body;
+
+  /* Physics End */
+
+  auto cPlayer = engine.createComponent<PlayerComponent>();
   entity->add(cPlayer);
 
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeBullet(std::unique_ptr<ECS::Engine>& p_engine, ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
+ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
 {
-  auto entity = p_engine->createEntity();
+  auto& engine = Game::Get().getEngine();
 
-  auto cRender = p_engine->createComponent<RenderComponent>();
+  auto entity = engine.createEntity();
+
+  auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("pinkBullet"));
   sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
   sprite->setPosition(p_position);
   cRender->drawable = sprite;
 
-  auto cVelocity = p_engine->createComponent<VelocityComponent>();
+  auto cVelocity = engine.createComponent<VelocityComponent>();
   entity->add(cVelocity);
   cVelocity->vx = p_velocity.x;
   cVelocity->vy = p_velocity.y;
 
-  auto cLifetime = p_engine->createComponent<LifetimeComponent>();
+  auto cLifetime = engine.createComponent<LifetimeComponent>();
   entity->add(cLifetime);
+
+  /* Physics Begin */
+
+  auto& world = Game::Get().getWorld();
+
+  auto cPhysics = engine.createComponent<PhysicsComponent>();
+  entity->add(cPhysics);
+
+  b2BodyDef bodyDef;
+  bodyDef.type = b2_dynamicBody;
+  bodyDef.position.Set(0.0f, 4.0f);
+  auto body = world.CreateBody(&bodyDef);
+  
+  b2CircleShape dynamicCircle;
+  dynamicCircle.m_radius = 20.0f;
+
+  b2FixtureDef fixtureDef;
+  fixtureDef.shape = &dynamicCircle;
+
+  fixtureDef.density = 1.0f;
+  fixtureDef.friction = 0.3f;
+
+  body->CreateFixture(&fixtureDef);
+
+  cPhysics->body = body;
+
+  /* Physics End */
 
   return entity;
 }

@@ -13,6 +13,7 @@
 #include <systems/AnimationSystem.hpp>
 #include <systems/MovementSystem.hpp>
 #include <systems/LifetimeSystem.hpp>
+#include <systems/PhysicsSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -157,6 +158,11 @@ int GetKeyboardModifiers()
 
 Game::Game()
 {
+  m_world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));
+
+  m_clickTime = 0.25f;
+  m_lastClickType = sf::Mouse::Left;
+  m_clickCount = 1;
 }
 
 bool Game::start()
@@ -235,6 +241,9 @@ bool Game::start()
   auto movementSystem = new MovementSystem();
   m_engine->addSystem(movementSystem);
 
+  auto physicsSystem = new PhysicsSystem();
+  m_engine->addSystem(physicsSystem);
+
   auto lifetimeSystem = new LifetimeSystem(m_engine);
   m_engine->addSystem(lifetimeSystem);
 
@@ -244,10 +253,10 @@ bool Game::start()
   auto renderSystem = new RenderSystem(m_window);
   m_engine->addSystem(renderSystem);
 
-  auto uiContainer = EntityFactory::makeUIContainer(m_engine, m_uiSprite, m_uiBrowser, m_uiValues);
+  auto uiContainer = EntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
 
-  m_player = EntityFactory::makePlayer(m_engine, m_resources, sf::Vector2f(300, 200));
+  m_player = EntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
   return true;
@@ -255,13 +264,6 @@ bool Game::start()
 
 void Game::mainLoop()
 {
-  sf::Clock deltaClock;
-
-  m_clickClock.restart();
-  m_clickTime = 0.25f;
-  m_lastClickType = sf::Mouse::Left;
-  m_clickCount = 1;
-
   sf::Font font;
   font.loadFromFile("Adventure Subtitles.ttf");
 
@@ -271,8 +273,11 @@ void Game::mainLoop()
   fpsText.setColor(sf::Color::Red);
   fpsText.setPosition(5, SCREEN_HEIGHT - 21);
 
-  auto fpsEntity = EntityFactory::makeDrawable(m_engine, fpsText, -10);
+  auto fpsEntity = EntityFactory::makeDrawable( fpsText, -10);
   m_engine->addEntity(fpsEntity);
+
+  sf::Clock deltaClock;
+  m_clickClock.restart();
 
   while (m_window.isOpen())
   {
@@ -299,7 +304,6 @@ void Game::mainLoop()
           auto angle = atan2(dy, dx);
 
           auto bullet = EntityFactory::makeBullet(
-            m_engine, 
             m_resources, 
             sf::Vector2f(
               playerTransform->getPosition().x,
@@ -308,7 +312,8 @@ void Game::mainLoop()
             sf::Vector2f(
               90 * cos(angle),
               90 * sin(angle)
-            ));
+            )
+          );
           m_engine->addEntity(bullet);
         }
       }
@@ -318,12 +323,13 @@ void Game::mainLoop()
     m_uiRenderHandler->updateTexture();
 
     auto dt = deltaClock.restart();
+    auto dtMillis = dt.asMilliseconds() / 1000.f;
 
     fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 
     m_window.clear(sf::Color::White);
 
-    m_engine->update(dt.asMilliseconds() / 1000.f);
+    m_engine->update(dtMillis);
     
     m_window.display();
   }
@@ -350,6 +356,7 @@ void Game::quit()
 
 void Game::loadMedia()
 {
+  m_resources.loadTexture("duck", "duck.png");
   m_resources.loadTexture("deer", "deer.png");
   m_resources.loadTexture("pinkBullet", "pinkBullet.png");
 }
@@ -495,6 +502,23 @@ const sf::RenderWindow& Game::getWindow() const
 ECS::Entity* Game::getPlayer() const
 {
   return m_player;
+}
+
+ECS::Engine& Game::getEngine() const
+{
+  return *m_engine;
+}
+
+b2World& Game::getWorld() const
+{
+  return *m_world;
+}
+
+Game& Game::Get()
+{
+  static Game s_singleton;
+
+  return s_singleton;
 }
 
 std::string Game::GetApplicationDir()
