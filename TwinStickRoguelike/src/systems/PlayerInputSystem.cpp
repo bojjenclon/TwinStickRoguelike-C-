@@ -15,6 +15,8 @@ PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS
 
 void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
+  static const float MOVE_SPEED = 0.01f;
+
   m_keyMaps.update(m_window);
 
   auto cDirection = p_entity->get<DirectionComponent>();
@@ -27,7 +29,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
   if (m_keyMaps.isActive("moveLeft"))
   {
-    cPhysics->body->ApplyLinearImpulse(b2Vec2(-600, 0), cPhysics->body->GetWorldCenter(), true);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(-MOVE_SPEED, 0), cPhysics->body->GetWorldCenter(), true);
 
     if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkLeft")
     {
@@ -40,7 +42,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else if (m_keyMaps.isActive("moveRight"))
   {
-    cPhysics->body->ApplyLinearImpulse(b2Vec2(600, 0), cPhysics->body->GetWorldCenter(), true);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(MOVE_SPEED, 0), cPhysics->body->GetWorldCenter(), true);
 
     if (!animator->isPlayingAnimation() || animator->getPlayingAnimation() != "walkRight")
     {
@@ -58,7 +60,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   
   if (m_keyMaps.isActive("moveUp"))
   {
-    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, -600), cPhysics->body->GetWorldCenter(), true);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, -MOVE_SPEED), cPhysics->body->GetWorldCenter(), true);
 
     if (!isMoving)
     {
@@ -74,7 +76,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else if (m_keyMaps.isActive("moveDown"))
   {
-    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, 600), cPhysics->body->GetWorldCenter(), true);
+    cPhysics->body->ApplyLinearImpulse(b2Vec2(0, MOVE_SPEED), cPhysics->body->GetWorldCenter(), true);
 
     if (!isMoving)
     {

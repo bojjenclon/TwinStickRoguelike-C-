@@ -131,16 +131,19 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
 
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
-  bodyDef.position.Set(p_position.x, p_position.y);
+  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
   auto body = world.CreateBody(&bodyDef);
   
   b2CircleShape dynamicCircle;
-  dynamicCircle.m_radius = 20.0f;
+  dynamicCircle.m_radius = 0.25f;
 
   b2FixtureDef fixtureDef;
   fixtureDef.shape = &dynamicCircle;
   fixtureDef.density = 1.0f;
   fixtureDef.friction = 0.3f;
+
+  fixtureDef.filter.categoryBits = Player;
+  fixtureDef.filter.maskBits = Obstacle | Enemy | EnemyBullet;
 
   body->CreateFixture(&fixtureDef);
 
@@ -181,22 +184,28 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2
 
   auto cPhysics = engine.createComponent<PhysicsComponent>();
   entity->add(cPhysics);
+  cPhysics->hasMaxSpeed = false;
 
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
-  bodyDef.position.Set(0.0f, 4.0f);
+  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
   auto body = world.CreateBody(&bodyDef);
   
   b2CircleShape dynamicCircle;
-  dynamicCircle.m_radius = 20.0f;
+  dynamicCircle.m_radius = 0.05f;
 
   b2FixtureDef fixtureDef;
   fixtureDef.shape = &dynamicCircle;
-
   fixtureDef.density = 1.0f;
   fixtureDef.friction = 0.3f;
 
+  fixtureDef.filter.categoryBits = PlayerBullet;
+  fixtureDef.filter.maskBits = Obstacle | Enemy | PlayerBullet | EnemyBullet;
+  
   body->CreateFixture(&fixtureDef);
+  body->SetBullet(true);
+
+  body->ApplyLinearImpulse(b2Vec2(p_velocity.x, p_velocity.y), body->GetWorldCenter(), true);
 
   cPhysics->body = body;
 

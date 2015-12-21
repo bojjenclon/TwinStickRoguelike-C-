@@ -23,7 +23,7 @@ class RenderSystem : public ECS::SortedIteratingSystem<RenderSystem, DepthTest>
 public:
   RenderSystem(sf::RenderTarget& p_renderTarget);
 
-  void processEntity(ECS::Entity* entity, float deltaTime) override;
+  void processEntity(ECS::Entity* p_entity, float p_dt) override;
 
 private:
   sf::RenderTarget& m_renderTarget;

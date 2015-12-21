@@ -156,6 +156,8 @@ int GetKeyboardModifiers()
   return mod;
 }
 
+const float Game::PIXELS_PER_METER = 100.0f;
+
 Game::Game()
 {
   m_world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));
@@ -238,8 +240,8 @@ bool Game::start()
   auto animationSystem = new AnimationSystem();
   m_engine->addSystem(animationSystem);
 
-  auto movementSystem = new MovementSystem();
-  m_engine->addSystem(movementSystem);
+  /*auto movementSystem = new MovementSystem();
+  m_engine->addSystem(movementSystem);*/
 
   auto physicsSystem = new PhysicsSystem();
   m_engine->addSystem(physicsSystem);
@@ -264,6 +266,8 @@ bool Game::start()
 
 void Game::mainLoop()
 {
+  m_world->SetContinuousPhysics(true);
+
   sf::Font font;
   font.loadFromFile("Adventure Subtitles.ttf");
 
@@ -290,12 +294,12 @@ void Game::mainLoop()
       }
 
       handleBrowserEvents(event);
-      
+
       if (event.type == sf::Event::MouseButtonPressed)
       {
         if (event.mouseButton.button == sf::Mouse::Button::Left)
         {
-          auto mousePos = sf::Mouse::getPosition(m_window);
+          auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
           auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
 
           auto dx = mousePos.x - playerTransform->getPosition().x;
@@ -304,14 +308,14 @@ void Game::mainLoop()
           auto angle = atan2(dy, dx);
 
           auto bullet = EntityFactory::makeBullet(
-            m_resources, 
+            m_resources,
             sf::Vector2f(
               playerTransform->getPosition().x,
               playerTransform->getPosition().y
             ),
             sf::Vector2f(
-              90 * cos(angle),
-              90 * sin(angle)
+              0.05 * cos(angle),
+              0.05 * sin(angle)
             )
           );
           m_engine->addEntity(bullet);

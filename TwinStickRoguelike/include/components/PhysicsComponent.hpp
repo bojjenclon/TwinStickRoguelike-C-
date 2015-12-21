@@ -8,9 +8,15 @@ struct PhysicsComponent : public ECS::Component<PhysicsComponent>
 {
   b2Body* body = nullptr;
 
+  bool hasMaxSpeed = true;
+  b2Vec2 maxSpeed = b2Vec2(2, 2);
+
   void reset() override
   {
     body = nullptr;
+
+    hasMaxSpeed = true;
+    maxSpeed = b2Vec2(50, 50);
   }
 };
 
