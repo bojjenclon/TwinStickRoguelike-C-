@@ -144,8 +144,8 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
   fixtureDef.friction = 0.3f;
   fixtureDef.restitution = 0.15f;
 
-  fixtureDef.filter.categoryBits = Player;
-  fixtureDef.filter.maskBits = Obstacle | Enemy | EnemyBullet;
+  fixtureDef.filter.categoryBits = Collision::Player;
+  fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Enemy | Collision::EnemyBullet;
 
   body->CreateFixture(&fixtureDef);
 
@@ -159,7 +159,7 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
   return entity;
 }
 
-ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2f p_position, sf::Vector2f p_velocity)
+ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Options p_options)
 {
   auto& engine = Game::Get().getEngine();
 
@@ -169,13 +169,13 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2
   entity->add(cRender);
   auto sprite = new sf::Sprite(p_resources.getTexture("pinkBullet"));
   sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
-  sprite->setPosition(p_position);
+  sprite->setPosition(p_options.position);
   cRender->drawable = sprite;
 
   auto cVelocity = engine.createComponent<VelocityComponent>();
   entity->add(cVelocity);
-  cVelocity->vx = p_velocity.x;
-  cVelocity->vy = p_velocity.y;
+  cVelocity->vx = p_options.velocity.x;
+  cVelocity->vy = p_options.velocity.y;
 
   auto cLifetime = engine.createComponent<LifetimeComponent>();
   entity->add(cLifetime);
@@ -190,7 +190,7 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2
 
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
-  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+  bodyDef.position.Set(p_options.position.x / Game::PIXELS_PER_METER, p_options.position.y / Game::PIXELS_PER_METER);
   auto body = world.CreateBody(&bodyDef);
   
   b2CircleShape dynamicCircle;
@@ -202,13 +202,21 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2
   fixtureDef.friction = 0.3f;
   fixtureDef.restitution = 0.5f;
 
-  fixtureDef.filter.categoryBits = PlayerBullet;
-  fixtureDef.filter.maskBits = Obstacle | Enemy | PlayerBullet | EnemyBullet;
+  if (p_options.owner == Entity::Player)
+  {
+    fixtureDef.filter.categoryBits = p_options.owner == Collision::PlayerBullet;
+    fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Enemy | Collision::PlayerBullet | Collision::EnemyBullet;
+  }
+  else if (p_options.owner == Entity::Enemy)
+  {
+    fixtureDef.filter.categoryBits = p_options.owner == Collision::EnemyBullet;
+    fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Player | Collision::PlayerBullet | Collision::EnemyBullet;
+  }
   
   body->CreateFixture(&fixtureDef);
   body->SetBullet(true);
 
-  body->ApplyLinearImpulse(b2Vec2(p_velocity.x, p_velocity.y), body->GetWorldCenter(), true);
+  body->ApplyLinearImpulse(b2Vec2(p_options.velocity.x, p_options.velocity.y), body->GetWorldCenter(), true);
 
   cPhysics->body = body;
 

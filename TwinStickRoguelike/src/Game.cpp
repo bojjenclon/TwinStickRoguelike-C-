@@ -312,14 +312,18 @@ void Game::mainLoop()
 
           auto bullet = EntityFactory::makeBullet(
             m_resources,
-            sf::Vector2f(
-              playerTransform->getPosition().x,
-              playerTransform->getPosition().y
-            ),
-            sf::Vector2f(
-              0.05 * cos(angle),
-              0.05 * sin(angle)
-            )
+            // Options
+            {
+              Entity::Player,
+              sf::Vector2f(
+                playerTransform->getPosition().x,
+                playerTransform->getPosition().y
+              ),
+              sf::Vector2f(
+                0.05f * cos(angle),
+                0.05f * sin(angle)
+              )
+            }
           );
           m_engine->addEntity(bullet);
         }
