@@ -256,11 +256,12 @@ bool Game::start()
   m_engine->addSystem(renderSystem);
 
   auto physicsDebugDrawSystem = new PhysicsDebugDrawSystem(m_window);
+  physicsDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(physicsDebugDrawSystem);
 
   auto uiContainer = EntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
-
+  
   m_player = EntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
@@ -329,6 +330,14 @@ void Game::mainLoop()
             }
           );
           m_engine->addEntity(bullet);
+        }
+      }
+      else if (event.type == sf::Event::KeyPressed)
+      {
+        if (event.key.code == sf::Keyboard::Numpad0)
+        {
+          auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
+          physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
         }
       }
     }

@@ -133,8 +133,9 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
   bodyDef.type = b2_dynamicBody;
   bodyDef.fixedRotation = true;
   bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+
   auto body = world.CreateBody(&bodyDef);
-  
+
   b2CircleShape dynamicCircle;
   dynamicCircle.m_radius = 0.25f;
 
@@ -271,13 +272,6 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
 
   fixtureDef.shape = &topCircle;
   body->CreateFixture(&fixtureDef);
-
-  /*b2CircleShape middleCircle;
-  middleCircle.m_radius = 0.25f;
-  middleCircle.m_p.y = 0;
-
-  fixtureDef.shape = &middleCircle;
-  body->CreateFixture(&fixtureDef);*/
 
   b2PolygonShape middleRect;
   middleRect.SetAsBox(0.25f, 0.2f);
