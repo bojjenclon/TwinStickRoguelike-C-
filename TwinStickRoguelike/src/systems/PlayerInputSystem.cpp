@@ -15,7 +15,7 @@ PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS
 
 void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
-  static const float MOVE_SPEED = 0.01f;
+  static const float MOVE_SPEED = 0.005f;
 
   m_keyMaps.update(m_window);
 
@@ -55,7 +55,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else
   {
-    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x * 0.95f, cPhysics->body->GetLinearVelocity().y));
+    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x * 0.9f, cPhysics->body->GetLinearVelocity().y));
   }
   
   if (m_keyMaps.isActive("moveUp"))
@@ -92,7 +92,7 @@ void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   }
   else
   {
-    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x, cPhysics->body->GetLinearVelocity().y * 0.95f));
+    cPhysics->body->SetLinearVelocity(b2Vec2(cPhysics->body->GetLinearVelocity().x, cPhysics->body->GetLinearVelocity().y * 0.9f));
   }
   
   if (!isMoving)

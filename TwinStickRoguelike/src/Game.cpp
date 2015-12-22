@@ -14,6 +14,7 @@
 #include <systems/MovementSystem.hpp>
 #include <systems/LifetimeSystem.hpp>
 #include <systems/PhysicsSystem.hpp>
+#include <systems/PhysicsDebugDrawSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -254,6 +255,9 @@ bool Game::start()
 
   auto renderSystem = new RenderSystem(m_window);
   m_engine->addSystem(renderSystem);
+
+  auto physicsDebugDrawSystem = new PhysicsDebugDrawSystem(m_window);
+  m_engine->addSystem(physicsDebugDrawSystem);
 
   auto uiContainer = EntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
