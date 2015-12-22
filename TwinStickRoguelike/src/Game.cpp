@@ -264,6 +264,9 @@ bool Game::start()
   m_player = EntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
+  auto enemy = EntityFactory::makeEnemy(m_resources, sf::Vector2f(600, 200));
+  m_engine->addEntity(enemy);
+
   return true;
 }
 

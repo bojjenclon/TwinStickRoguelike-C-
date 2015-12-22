@@ -204,12 +204,12 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Opt
 
   if (p_options.owner == Entity::Player)
   {
-    fixtureDef.filter.categoryBits = p_options.owner == Collision::PlayerBullet;
+    fixtureDef.filter.categoryBits = Collision::PlayerBullet;
     fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Enemy | Collision::PlayerBullet | Collision::EnemyBullet;
   }
   else if (p_options.owner == Entity::Enemy)
   {
-    fixtureDef.filter.categoryBits = p_options.owner == Collision::EnemyBullet;
+    fixtureDef.filter.categoryBits = Collision::EnemyBullet;
     fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Player | Collision::PlayerBullet | Collision::EnemyBullet;
   }
   
@@ -217,6 +217,60 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Opt
   body->SetBullet(true);
 
   body->ApplyLinearImpulse(b2Vec2(p_options.velocity.x, p_options.velocity.y), body->GetWorldCenter(), true);
+
+  cPhysics->body = body;
+
+  /* Physics End */
+
+  return entity;
+}
+
+ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f p_position)
+{
+  auto& engine = Game::Get().getEngine();
+
+  auto entity = engine.createEntity();
+
+  auto cRender = engine.createComponent<RenderComponent>();
+  entity->add(cRender);
+  auto sprite = new sf::Sprite(p_resources.getTexture("duck"));
+  sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
+  sprite->setPosition(p_position);
+  cRender->drawable = sprite;
+
+  auto cDirection = engine.createComponent<DirectionComponent>();
+  entity->add(cDirection);
+
+  auto cHealth = engine.createComponent<HealthComponent>();
+  entity->add(cHealth);
+  cHealth->currentHealth = cHealth->maxHealth = 10;
+
+  /* Physics Begin */
+
+  auto& world = Game::Get().getWorld();
+
+  auto cPhysics = engine.createComponent<PhysicsComponent>();
+  entity->add(cPhysics);
+
+  b2BodyDef bodyDef;
+  bodyDef.type = b2_dynamicBody;
+  bodyDef.fixedRotation = true;
+  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+  auto body = world.CreateBody(&bodyDef);
+
+  b2CircleShape dynamicCircle;
+  dynamicCircle.m_radius = 0.25f;
+
+  b2FixtureDef fixtureDef;
+  fixtureDef.shape = &dynamicCircle;
+  fixtureDef.density = 1.0f;
+  fixtureDef.friction = 0.3f;
+  fixtureDef.restitution = 0.15f;
+
+  fixtureDef.filter.categoryBits = Collision::Enemy;
+  fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Player | Collision::PlayerBullet;
+
+  body->CreateFixture(&fixtureDef);
 
   cPhysics->body = body;
 

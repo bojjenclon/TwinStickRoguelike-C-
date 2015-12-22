@@ -45,8 +45,12 @@ namespace EntityFactory
 {
   ECS::Entity* makeDrawable(sf::Drawable& p_drawable, int p_depth = 1);
   ECS::Entity* makeUIContainer(sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues);
+
   ECS::Entity* makePlayer(ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f());
+
   ECS::Entity* makeBullet(ResourceManager& p_resources, Bullet::Options p_options);
+
+  ECS::Entity* makeEnemy(ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f());
 };
 
 #endif
