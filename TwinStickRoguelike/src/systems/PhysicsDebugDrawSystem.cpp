@@ -28,4 +28,24 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
     circle.setOutlineThickness(1);
     m_renderTarget.draw(circle);
   }
+  else if (shape->GetType() == b2Shape::Type::e_polygon)
+  {
+    auto boxPolygon = dynamic_cast<b2PolygonShape*>(shape);
+
+    sf::ConvexShape sfPolygon;
+    sfPolygon.setPosition(body->GetPosition().x * Game::PIXELS_PER_METER, body->GetPosition().y * Game::PIXELS_PER_METER);
+    sfPolygon.setFillColor(sf::Color::Transparent);
+    sfPolygon.setOutlineColor(sf::Color::Red);
+    sfPolygon.setOutlineThickness(1);
+
+    sfPolygon.setPointCount(boxPolygon->GetVertexCount());
+    for (auto i = 0; i < boxPolygon->GetVertexCount(); i++)
+    {
+      auto vertex = boxPolygon->GetVertex(i);
+
+      sfPolygon.setPoint(i, sf::Vector2f(vertex.x * Game::PIXELS_PER_METER, vertex.y * Game::PIXELS_PER_METER));
+    }
+  
+    m_renderTarget.draw(sfPolygon);
+  }
 }
