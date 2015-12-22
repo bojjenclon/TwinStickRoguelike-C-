@@ -258,18 +258,38 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
   bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
   auto body = world.CreateBody(&bodyDef);
 
-  b2CircleShape dynamicCircle;
-  dynamicCircle.m_radius = 0.25f;
-
   b2FixtureDef fixtureDef;
-  fixtureDef.shape = &dynamicCircle;
   fixtureDef.density = 1.0f;
   fixtureDef.friction = 0.3f;
   fixtureDef.restitution = 0.15f;
-
   fixtureDef.filter.categoryBits = Collision::Enemy;
   fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Player | Collision::PlayerBullet;
 
+  b2CircleShape topCircle;
+  topCircle.m_radius = 0.25f;
+  topCircle.m_p.y = -0.15f;
+
+  fixtureDef.shape = &topCircle;
+  body->CreateFixture(&fixtureDef);
+
+  /*b2CircleShape middleCircle;
+  middleCircle.m_radius = 0.25f;
+  middleCircle.m_p.y = 0;
+
+  fixtureDef.shape = &middleCircle;
+  body->CreateFixture(&fixtureDef);*/
+
+  b2PolygonShape middleRect;
+  middleRect.SetAsBox(0.25f, 0.2f);
+
+  fixtureDef.shape = &middleRect;
+  body->CreateFixture(&fixtureDef);
+
+  b2CircleShape bottomCircle;
+  bottomCircle.m_radius = 0.25f;
+  bottomCircle.m_p.y = 0.15f;
+
+  fixtureDef.shape = &bottomCircle;
   body->CreateFixture(&fixtureDef);
 
   cPhysics->body = body;

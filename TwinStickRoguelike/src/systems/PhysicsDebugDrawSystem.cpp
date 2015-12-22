@@ -16,16 +16,21 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   for (auto fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext())
   {
     auto shape = fixture->GetShape();
-
+    
     if (shape->GetType() == b2Shape::Type::e_circle)
     {
-      auto radius = shape->m_radius;
-      radius *= Game::PIXELS_PER_METER;
+      auto boxCircle = dynamic_cast<b2CircleShape*>(shape);
 
+      auto radius = boxCircle->m_radius;
+      radius *= Game::PIXELS_PER_METER;
+      
       sf::CircleShape circle;
       circle.setRadius(radius);
       circle.setOrigin(radius, radius);
-      circle.setPosition(body->GetPosition().x * Game::PIXELS_PER_METER, body->GetPosition().y * Game::PIXELS_PER_METER);
+      circle.setPosition(
+        body->GetPosition().x * Game::PIXELS_PER_METER + boxCircle->m_p.x * Game::PIXELS_PER_METER, 
+        body->GetPosition().y * Game::PIXELS_PER_METER + boxCircle->m_p.y * Game::PIXELS_PER_METER
+      );
       circle.setFillColor(sf::Color::Transparent);
       circle.setOutlineColor(sf::Color::Red);
       circle.setOutlineThickness(1);
