@@ -131,6 +131,7 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
 
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
+  bodyDef.fixedRotation = true;
   bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
   auto body = world.CreateBody(&bodyDef);
   
@@ -141,6 +142,7 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
   fixtureDef.shape = &dynamicCircle;
   fixtureDef.density = 1.0f;
   fixtureDef.friction = 0.3f;
+  fixtureDef.restitution = 0.15f;
 
   fixtureDef.filter.categoryBits = Player;
   fixtureDef.filter.maskBits = Obstacle | Enemy | EnemyBullet;
@@ -198,6 +200,7 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, sf::Vector2
   fixtureDef.shape = &dynamicCircle;
   fixtureDef.density = 1.0f;
   fixtureDef.friction = 0.3f;
+  fixtureDef.restitution = 0.5f;
 
   fixtureDef.filter.categoryBits = PlayerBullet;
   fixtureDef.filter.maskBits = Obstacle | Enemy | PlayerBullet | EnemyBullet;
