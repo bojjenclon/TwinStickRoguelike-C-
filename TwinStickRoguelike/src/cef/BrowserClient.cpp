@@ -30,8 +30,8 @@ bool BrowserClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefP
   {
     auto currentHealth = message->GetArgumentList()->GetInt(0);
 
-    m_uiValues.currentHealth = currentHealth;
-    m_uiValues.healthChanged = true;
+    m_uiValues.player.currentHealth = currentHealth;
+    m_uiValues.player.healthChanged = true;
   }
 
   return false;

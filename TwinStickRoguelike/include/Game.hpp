@@ -27,6 +27,10 @@ public:
   ECS::Engine& getEngine() const;
   b2World& getWorld() const;
 
+  ECS::Entity* getTarget() const;
+  void setTarget(ECS::Entity* p_target);
+  void clearTarget();
+
   static Game& Get();
   static std::string GetApplicationDir();
 
@@ -61,6 +65,8 @@ private:
   int m_clickCount;
   
   std::unique_ptr<b2World> m_world;
+
+  ECS::Entity* m_target = nullptr;
 
 public:
   Game(Game const&) = delete;

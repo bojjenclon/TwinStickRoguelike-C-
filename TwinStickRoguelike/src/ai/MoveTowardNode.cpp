@@ -1,7 +1,6 @@
 #include <ai/MoveTowardNode.hpp>
 #include <ecstasy/core/Entity.h>
 #include <components/RenderComponent.hpp>
-#include <components/VelocityComponent.hpp>
 #include <components/PhysicsComponent.hpp>
 
 MoveTowardNode::MoveTowardNode(ECS::Entity* p_target, float p_speed, float p_leashDistance) : m_target(p_target), m_speed(p_speed), m_leashDistance(p_leashDistance)

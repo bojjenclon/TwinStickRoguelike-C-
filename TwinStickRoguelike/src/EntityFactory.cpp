@@ -18,6 +18,8 @@
 #include <ai/MoveTowardNode.hpp>
 #include <collisions/CollisionData.hpp>
 #include <collisions/BulletCollisionData.hpp>
+#include <components/TargetComponent.hpp>
+#include <components/HitOnceComponent.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
@@ -193,6 +195,9 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Opt
   auto cLifetime = engine.createComponent<LifetimeComponent>();
   entity->add(cLifetime);
 
+  auto cHitOnce = engine.createComponent<HitOnceComponent>();
+  entity->add(cHitOnce);
+
   /* Physics Begin */
 
   auto& world = game.getWorld();
@@ -316,7 +321,7 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
   cPhysics->body = body;
 
   /* Physics End */
-
+  
   /* AI Begin */
 
   auto cBehaviorTree = engine.createComponent<BehaviorTreeComponent>();

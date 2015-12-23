@@ -2,6 +2,8 @@
 #include <collisions/CollisionData.hpp>
 #include <components/HealthComponent.hpp>
 #include <collisions/BulletCollisionData.hpp>
+#include <Game.hpp>
+#include <components/HitOnceComponent.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -47,7 +49,23 @@ void ContactListener::BulletEnemyContactBegin(CollisionData* p_dataA, CollisionD
 
   if (bulletCollisionData->owner == Entity::Player)
   {
-    auto cHealth = enemyCollisionData->entity->get<HealthComponent>();
-    cHealth->currentHealth--;
+    auto cHitOnce = bulletCollisionData->entity->get<HitOnceComponent>();
+
+    if (find(cHitOnce->alreadyHit.begin(), cHitOnce->alreadyHit.end(), enemyCollisionData->entity->getId()) == cHitOnce->alreadyHit.end())
+    {
+      auto& game = Game::Get();
+
+      game.setTarget(enemyCollisionData->entity);
+
+      auto cHealth = enemyCollisionData->entity->get<HealthComponent>();
+      cHealth->currentHealth--;
+
+      if (cHealth->currentHealth <= 0)
+      {
+        game.clearTarget();
+      }
+      
+      cHitOnce->alreadyHit.push_back(enemyCollisionData->entity->getId());
+    }
   }
 }

@@ -6,7 +6,8 @@
     // I write for browser
     "browser": true,
     // in CommonJS
-    "node": true
+    "node": true,
+    "jsx": false
   },
   
   // To give you an idea how to override rule options:
@@ -14,6 +15,14 @@
     "quotes": [2, "single"],
     "eol-last": [0],
     "no-mixed-requires": [0],
-    "no-underscore-dangle": [0]
+    "no-underscore-dangle": [0],
+    "no-extra-semi": 2,
+    "no-obj-calls": 2,
+    "no-unreachable": 2,
+    "curly": 2,
+    "eqeqeq": 2,
+    "no-floating-decimal": 2,
+    "brace-style": [2, "stroustrup", { "allowSingleLine": true }],
+    "no-var": 2
   }
 }

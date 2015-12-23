@@ -15,7 +15,7 @@ PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS
 
 void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
-  static const float MOVE_SPEED = 0.005f;
+  static const auto MOVE_SPEED = 0.005f;
 
   m_keyMaps.update(m_window);
 

@@ -4,19 +4,13 @@
 
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/statBars.css">
+    <link rel="stylesheet" href="sass/InGameHud.css">
 
     <script src="js/jquery-2.1.4.min.js"></script>
 
     <style>
       body {
         color: #121212;
-      }
-
-      #hpBar {
-        position: absolute;
-        left: 10px;
-        top: 10px;
-        width: 200px;
       }
     </style>
     
@@ -26,23 +20,26 @@
 
     <div id="wrap">
 
-      <div id="hpBar" class="meter">
-        <span style="width: 100%"></span>
+      <div id="playerHud">
+
+        <div id="hpBar" class="meter">
+          <span style="width: 100%"></span>
+        </div>
+
+      </div>
+
+      <div id="enemyHud">
+
+        <div id="hpBar" class="meter red">
+          <span style="width: 100%"></span>
+        </div>
+
       </div>
 
     </div>
 
-    <script>
-      var hpBar = document.getElementById('hpBar');
-
-      function resetHP() {
-        window.cpp.setHP(5);
-      }
-
-      function setHP(val) {
-        hpBar.children[0].style.width = val + '%';
-      }
-    </script>
+    <script src="js/InGameHud.min.js"></script>
 
   </body>
+
 </html>

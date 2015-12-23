@@ -18,6 +18,8 @@
 #include <collisions/ContactListener.hpp>
 #include <systems/PlayerStatsSyncSystem.hpp>
 #include <systems/DeathCheckSystem.hpp>
+#include <components/TargetComponent.hpp>
+#include <systems/TargetStatsSyncSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -260,6 +262,9 @@ bool Game::start()
 
   auto playerStatsSyncSystem = new PlayerStatsSyncSystem(m_uiValues);
   m_engine->addSystem(playerStatsSyncSystem);
+
+  auto targetStatsSyncSystem = new TargetStatsSyncSystem(m_uiValues);
+  m_engine->addSystem(targetStatsSyncSystem);
 
   auto deathCheckSystem = new DeathCheckSystem(m_engine, m_world);
   m_engine->addSystem(deathCheckSystem);
@@ -558,6 +563,43 @@ ECS::Engine& Game::getEngine() const
 b2World& Game::getWorld() const
 {
   return *m_world;
+}
+
+ECS::Entity* Game::getTarget() const
+{
+  return m_target;
+}
+
+void Game::setTarget(ECS::Entity* p_target)
+{
+  if (m_target == p_target)
+  {
+    return;
+  }
+
+  if (m_target == nullptr)
+  {
+    m_uiValues.enemy.display = true;
+    m_uiValues.enemy.displayChanged = true;
+  }
+  else
+  {
+    m_target->remove<TargetComponent>();
+  }
+
+  m_target = p_target;
+
+  auto cTarget = m_engine->createComponent<TargetComponent>();
+  m_target->add(cTarget);
+}
+
+void Game::clearTarget()
+{
+  m_target->remove<TargetComponent>();
+  m_target = nullptr;
+
+  m_uiValues.enemy.display = false;
+  m_uiValues.enemy.displayChanged = true;
 }
 
 Game& Game::Get()
