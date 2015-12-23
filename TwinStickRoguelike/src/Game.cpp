@@ -14,6 +14,7 @@
 #include <systems/LifetimeSystem.hpp>
 #include <systems/PhysicsSystem.hpp>
 #include <systems/PhysicsDebugDrawSystem.hpp>
+#include <systems/BehaviorTreeSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -234,6 +235,9 @@ bool Game::start()
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
   
+  auto behaviorTreeSystem = new BehaviorTreeSystem();
+  m_engine->addSystem(behaviorTreeSystem);
+
   auto playerInputSystem = new PlayerInputSystem(m_window);
   m_engine->addSystem(playerInputSystem);
 
@@ -380,6 +384,8 @@ void Game::quit()
 void Game::loadMedia()
 {
   m_resources.loadTexture("duck", "duck.png");
+  m_resources.loadTexture("iffrit", "iffrit.png");
+
   m_resources.loadTexture("deer", "deer.png");
   m_resources.loadTexture("pinkBullet", "pinkBullet.png");
 }
