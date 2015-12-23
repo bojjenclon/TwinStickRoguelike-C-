@@ -7,7 +7,7 @@
 class MoveTowardNode : public BehaviorTree::BehaviorTreeNode
 {
 public:
-  MoveTowardNode(ECS::Entity* p_target, float p_speed = 0.005f);
+  MoveTowardNode(ECS::Entity* p_target, float p_speed = 0.005f, float p_leashDistance = 50.0f);
   virtual ~MoveTowardNode();
 
   void init(void* p_agent) override;
@@ -16,6 +16,7 @@ public:
 private:
   ECS::Entity* m_target;
   float m_speed;
+  float m_leashDistance;
 };
 
 #endif

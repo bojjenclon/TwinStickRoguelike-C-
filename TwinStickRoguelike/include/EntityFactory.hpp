@@ -13,6 +13,7 @@ struct Entity
 {
   enum Type
   {
+    Obstacle,
     Player,
     Enemy,
     Bullet

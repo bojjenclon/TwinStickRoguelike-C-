@@ -16,6 +16,7 @@
 #include <BehaviorTree.h>
 #include <components/BehaviorTreeComponent.hpp>
 #include <ai/MoveTowardNode.hpp>
+#include <collisions/CollisionData.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
@@ -140,6 +141,11 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
 
   auto body = world.CreateBody(&bodyDef);
 
+  auto collisionData = new CollisionData();
+  collisionData->type = Entity::Player;
+  collisionData->entity = entity;
+  body->SetUserData(collisionData);
+  
   b2CircleShape dynamicCircle;
   dynamicCircle.m_radius = 0.25f;
 
@@ -166,7 +172,8 @@ ECS::Entity* EntityFactory::makePlayer(ResourceManager& p_resources, sf::Vector2
 
 ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Options p_options)
 {
-  auto& engine = Game::Get().getEngine();
+  auto& game = Game::Get();
+  auto& engine = game.getEngine();
 
   auto entity = engine.createEntity();
 
@@ -187,7 +194,7 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Opt
 
   /* Physics Begin */
 
-  auto& world = Game::Get().getWorld();
+  auto& world = game.getWorld();
 
   auto cPhysics = engine.createComponent<PhysicsComponent>();
   entity->add(cPhysics);
@@ -254,7 +261,7 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
 
   /* Physics Begin */
 
-  auto& world = Game::Get().getWorld();
+  auto& world = game.getWorld();
 
   auto cPhysics = engine.createComponent<PhysicsComponent>();
   entity->add(cPhysics);
@@ -263,7 +270,13 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
   bodyDef.type = b2_dynamicBody;
   bodyDef.fixedRotation = true;
   bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+
   auto body = world.CreateBody(&bodyDef);
+
+  auto collisionData = new CollisionData();
+  collisionData->type = Entity::Enemy;
+  collisionData->entity = entity;
+  body->SetUserData(collisionData);
 
   b2FixtureDef fixtureDef;
   fixtureDef.density = 1.0f;
@@ -304,7 +317,7 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
   auto rootNode = new BehaviorTree::ParallelNode();
 
   rootNode
-    ->addChild(new MoveTowardNode(game.getPlayer()));
+    ->addChild(new MoveTowardNode(game.getPlayer(), 0.005f, 250.0f));
 
   cBehaviorTree->rootNode = rootNode;
 

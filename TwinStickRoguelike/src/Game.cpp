@@ -15,6 +15,8 @@
 #include <systems/PhysicsSystem.hpp>
 #include <systems/PhysicsDebugDrawSystem.hpp>
 #include <systems/BehaviorTreeSystem.hpp>
+#include <collisions/ContactListener.hpp>
+#include <systems/PlayerStatsSyncSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -195,7 +197,7 @@ bool Game::start()
     return false;
   }
 
-  auto path = "file://" + GetApplicationDir() + "/../html/Blank.html";
+  auto path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
   //std::string               path = "http://www.bojjenclon.com";
@@ -235,6 +237,8 @@ bool Game::start()
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
   
+  /* Systems Setup Begin */
+
   auto behaviorTreeSystem = new BehaviorTreeSystem();
   m_engine->addSystem(behaviorTreeSystem);
 
@@ -253,6 +257,9 @@ bool Game::start()
   auto lifetimeSystem = new LifetimeSystem(m_engine);
   m_engine->addSystem(lifetimeSystem);
 
+  auto playerStatsSyncSystem = new PlayerStatsSyncSystem(m_uiValues);
+  m_engine->addSystem(playerStatsSyncSystem);
+
   auto uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
@@ -263,6 +270,16 @@ bool Game::start()
   physicsDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(physicsDebugDrawSystem);
 
+  /* Systems Setup End */
+
+  /* Box2D Setup Begin */
+
+  m_world->SetContactListener(new ContactListener());
+
+  /* Box2D Setup End */
+
+  /* Entity Setup Begin */
+
   auto uiContainer = EntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
   
@@ -271,6 +288,8 @@ bool Game::start()
 
   auto enemy = EntityFactory::makeEnemy(m_resources, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
+
+  /* Entity Setup End */
 
   return true;
 }
@@ -310,6 +329,8 @@ void Game::mainLoop()
       {
         if (event.mouseButton.button == sf::Mouse::Button::Left)
         {
+          static const auto BULLET_SPEED = 0.07f;
+
           auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
           auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
 
@@ -328,8 +349,8 @@ void Game::mainLoop()
                 playerTransform->getPosition().y
               ),
               sf::Vector2f(
-                0.05f * cos(angle),
-                0.05f * sin(angle)
+                BULLET_SPEED * cos(angle),
+                BULLET_SPEED * sin(angle)
               )
             }
           );
@@ -478,17 +499,6 @@ void Game::handleBrowserEvents(sf::Event& p_event)
   }
   else if (p_event.type == sf::Event::KeyReleased)
   {
-    if (p_event.key.code == sf::Keyboard::A)
-    {
-      m_uiValues.currentHealth--;
-      m_uiValues.healthChanged = true;
-
-      if (m_uiValues.currentHealth < 0)
-      {
-        m_uiValues.currentHealth = 0;
-      }
-    }
-
     auto key = sfkeyToWparam(p_event.key.code);
 
     if (key != VK_NONAME)
