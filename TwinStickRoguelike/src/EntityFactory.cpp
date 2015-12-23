@@ -17,6 +17,7 @@
 #include <components/BehaviorTreeComponent.hpp>
 #include <ai/MoveTowardNode.hpp>
 #include <collisions/CollisionData.hpp>
+#include <collisions/BulletCollisionData.hpp>
 
 ECS::Entity* EntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
@@ -203,7 +204,14 @@ ECS::Entity* EntityFactory::makeBullet(ResourceManager& p_resources, Bullet::Opt
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
   bodyDef.position.Set(p_options.position.x / Game::PIXELS_PER_METER, p_options.position.y / Game::PIXELS_PER_METER);
+
   auto body = world.CreateBody(&bodyDef);
+
+  auto collisionData = new BulletCollisionData();
+  collisionData->type = Entity::Bullet;
+  collisionData->entity = entity;
+  collisionData->owner = p_options.owner;
+  body->SetUserData(collisionData);
   
   b2CircleShape dynamicCircle;
   dynamicCircle.m_radius = 0.05f;
@@ -257,12 +265,12 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
 
   auto cHealth = engine.createComponent<HealthComponent>();
   entity->add(cHealth);
-  cHealth->currentHealth = cHealth->maxHealth = 10;
-
+  cHealth->currentHealth = cHealth->maxHealth = 5;
+  
   /* Physics Begin */
 
   auto& world = game.getWorld();
-
+  
   auto cPhysics = engine.createComponent<PhysicsComponent>();
   entity->add(cPhysics);
 

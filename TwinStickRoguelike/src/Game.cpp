@@ -17,6 +17,7 @@
 #include <systems/BehaviorTreeSystem.hpp>
 #include <collisions/ContactListener.hpp>
 #include <systems/PlayerStatsSyncSystem.hpp>
+#include <systems/DeathCheckSystem.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -256,6 +257,9 @@ bool Game::start()
 
   auto lifetimeSystem = new LifetimeSystem(m_engine);
   m_engine->addSystem(lifetimeSystem);
+
+  auto deathCheckSystem = new DeathCheckSystem(m_engine, m_world);
+  m_engine->addSystem(deathCheckSystem);
 
   auto playerStatsSyncSystem = new PlayerStatsSyncSystem(m_uiValues);
   m_engine->addSystem(playerStatsSyncSystem);

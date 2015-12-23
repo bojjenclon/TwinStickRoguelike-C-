@@ -1,6 +1,7 @@
 #include <collisions/ContactListener.hpp>
 #include <collisions/CollisionData.hpp>
 #include <components/HealthComponent.hpp>
+#include <collisions/BulletCollisionData.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -19,6 +20,10 @@ void ContactListener::BeginContact(b2Contact* p_contact)
   {
     PlayerEnemyContactBegin(collisionDataA, collisionDataB);
   }
+  else if ((collisionDataA->type == Entity::Bullet || collisionDataB->type == Entity::Bullet) && (collisionDataA->type == Entity::Enemy || collisionDataB->type == Entity::Enemy))
+  {
+    BulletEnemyContactBegin(collisionDataA, collisionDataB);
+  }
 }
 
 void ContactListener::EndContact(b2Contact* p_contact)
@@ -33,4 +38,16 @@ void ContactListener::PlayerEnemyContactBegin(CollisionData* p_dataA, CollisionD
 
   auto cHealth = playerCollisionData->entity->get<HealthComponent>();
   cHealth->currentHealth--;
+}
+
+void ContactListener::BulletEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
+{
+  auto bulletCollisionData = p_dataA->type == Entity::Type::Bullet ? static_cast<BulletCollisionData*>(p_dataA) : static_cast<BulletCollisionData*>(p_dataB);
+  auto enemyCollisionData = p_dataA->type == Entity::Type::Enemy ? p_dataA : p_dataB;
+
+  if (bulletCollisionData->owner == Entity::Player)
+  {
+    auto cHealth = enemyCollisionData->entity->get<HealthComponent>();
+    cHealth->currentHealth--;
+  }
 }

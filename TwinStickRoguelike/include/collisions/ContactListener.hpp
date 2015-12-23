@@ -13,6 +13,7 @@ public:
 
 private:
   static void PlayerEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
+  static void BulletEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
 };
 
 #endif
