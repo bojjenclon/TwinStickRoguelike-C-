@@ -258,11 +258,11 @@ bool Game::start()
   auto lifetimeSystem = new LifetimeSystem(m_engine);
   m_engine->addSystem(lifetimeSystem);
 
-  auto deathCheckSystem = new DeathCheckSystem(m_engine, m_world);
-  m_engine->addSystem(deathCheckSystem);
-
   auto playerStatsSyncSystem = new PlayerStatsSyncSystem(m_uiValues);
   m_engine->addSystem(playerStatsSyncSystem);
+
+  auto deathCheckSystem = new DeathCheckSystem(m_engine, m_world);
+  m_engine->addSystem(deathCheckSystem);
 
   auto uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
@@ -333,32 +333,35 @@ void Game::mainLoop()
       {
         if (event.mouseButton.button == sf::Mouse::Button::Left)
         {
-          static const auto BULLET_SPEED = 0.07f;
+          if (m_player->getId() != 0)
+          {
+            static const auto BULLET_SPEED = 0.07f;
 
-          auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
-          auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
+            auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+            auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
 
-          auto dx = mousePos.x - playerTransform->getPosition().x;
-          auto dy = mousePos.y - playerTransform->getPosition().y;
+            auto dx = mousePos.x - playerTransform->getPosition().x;
+            auto dy = mousePos.y - playerTransform->getPosition().y;
 
-          auto angle = atan2(dy, dx);
+            auto angle = atan2(dy, dx);
 
-          auto bullet = EntityFactory::makeBullet(
-            m_resources,
-            // Options
-            {
-              Entity::Player,
-              sf::Vector2f(
-                playerTransform->getPosition().x,
-                playerTransform->getPosition().y
-              ),
-              sf::Vector2f(
-                BULLET_SPEED * cos(angle),
-                BULLET_SPEED * sin(angle)
-              )
-            }
-          );
-          m_engine->addEntity(bullet);
+            auto bullet = EntityFactory::makeBullet(
+              m_resources,
+              // Options
+              {
+                Entity::Player,
+                sf::Vector2f(
+                  playerTransform->getPosition().x,
+                  playerTransform->getPosition().y
+                ),
+                sf::Vector2f(
+                  BULLET_SPEED * cos(angle),
+                  BULLET_SPEED * sin(angle)
+                )
+              }
+            );
+            m_engine->addEntity(bullet);
+          }
         }
       }
       else if (event.type == sf::Event::KeyPressed)

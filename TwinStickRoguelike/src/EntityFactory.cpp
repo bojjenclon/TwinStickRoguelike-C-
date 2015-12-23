@@ -325,7 +325,7 @@ ECS::Entity* EntityFactory::makeEnemy(ResourceManager& p_resources, sf::Vector2f
   auto rootNode = new BehaviorTree::ParallelNode();
 
   rootNode
-    ->addChild(new MoveTowardNode(game.getPlayer(), 0.005f, 250.0f));
+    ->addChild(new MoveTowardNode(game.getPlayer(), 0.005f, 150.0f));
 
   cBehaviorTree->rootNode = rootNode;
 

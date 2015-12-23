@@ -20,6 +20,11 @@ void MoveTowardNode::init(void* p_agent)
 
 BehaviorTree::BEHAVIOR_STATUS MoveTowardNode::execute(void* p_agent)
 {
+  if (m_target == nullptr || m_target->getId() == 0)
+  {
+    return BehaviorTree::BT_FAILURE;
+  }
+
   auto entity = static_cast<ECS::Entity*>(p_agent);
   auto parentCRender = entity->get<RenderComponent>();
   auto parentSprite = dynamic_cast<sf::Sprite*>(parentCRender->drawable);

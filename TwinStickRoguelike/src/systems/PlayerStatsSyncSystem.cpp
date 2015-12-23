@@ -9,9 +9,8 @@ PlayerStatsSyncSystem::PlayerStatsSyncSystem(UIValues& p_uiValues) : IteratingSy
 
 void PlayerStatsSyncSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
-  auto cPlayer = p_entity->get<PlayerComponent>();
   auto cHealth = p_entity->get<HealthComponent>();
-
+  
   if (m_uiValues.currentHealth != cHealth->currentHealth)
   {
     m_uiValues.currentHealth = cHealth->currentHealth;
