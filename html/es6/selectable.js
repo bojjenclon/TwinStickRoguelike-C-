@@ -40,8 +40,7 @@ Selectable.init = function(options) {
 
   let allItems = this.parent.find('li');
 
-  for (let i = 0; i < allItems.length; i++)
-  {
+  for (let i = 0; i < allItems.length; i++) {
     let item = allItems[i];
 
     item.addClass('selectable-item');

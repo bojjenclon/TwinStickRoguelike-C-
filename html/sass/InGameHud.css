@@ -1,2 +1,25 @@
-#playerHud{position:absolute;left:10px;top:10px;width:250px}#playerHud #hpBar{position:relative;left:5px;top:5px;width:200px}#enemyHud{position:absolute;right:10px;top:10px;width:250px;display:none}#enemyHud #hpBar{position:relative;right:5px;top:5px;width:200px;margin-left:auto}
+#playerHud {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 250px; }
+  #playerHud #hpBar {
+    position: relative;
+    left: 5px;
+    top: 5px;
+    width: 200px; }
+
+#enemyHud {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 250px;
+  display: none; }
+  #enemyHud #hpBar {
+    position: relative;
+    right: 5px;
+    top: 5px;
+    width: 200px;
+    margin-left: auto; }
+
 /*# sourceMappingURL=InGameHud.css.map */

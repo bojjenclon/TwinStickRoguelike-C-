@@ -20,8 +20,7 @@ $(document).ready(function() {
   HUD.setHP = function(val, owner) {
     owner = owner || 'player';
 
-    if (HUD.POSSIBLE_OWNERS.indexOf(owner) < 0)
-    {
+    if (HUD.POSSIBLE_OWNERS.indexOf(owner) < 0) {
       return;
     }
 
