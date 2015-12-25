@@ -1,11 +1,12 @@
 #ifndef COLLISION_DATA_HPP
 #define COLLISION_DATA_HPP
 
-#include <EntityFactory.hpp>
+#include <ecstasy/core/Entity.h>
+#include <EntityInfo.hpp>
 
 struct CollisionData
 {
-  Entity::Type type = Entity::Obstacle;
+  EntityInfo::Type type = EntityInfo::Obstacle;
   ECS::Entity* entity = nullptr;
 };
 

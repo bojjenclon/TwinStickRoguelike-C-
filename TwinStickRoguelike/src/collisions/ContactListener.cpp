@@ -1,9 +1,8 @@
 #include <collisions/ContactListener.hpp>
 #include <collisions/CollisionData.hpp>
 #include <components/HealthComponent.hpp>
-#include <collisions/BulletCollisionData.hpp>
-#include <Game.hpp>
-#include <components/HitOnceComponent.hpp>
+#include <components/BulletComponent.hpp>
+#include <EntityInfo.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -18,13 +17,13 @@ void ContactListener::BeginContact(b2Contact* p_contact)
   auto collisionDataA = static_cast<CollisionData*>(userDataA);
   auto collisionDataB = static_cast<CollisionData*>(userDataB);
 
-  if ((collisionDataA->type == Entity::Player || collisionDataB->type == Entity::Player) && (collisionDataA->type == Entity::Enemy || collisionDataB->type == Entity::Enemy))
+  if ((collisionDataA->type == EntityInfo::Player || collisionDataB->type == EntityInfo::Player) && (collisionDataA->type == EntityInfo::Enemy || collisionDataB->type == EntityInfo::Enemy))
   {
     PlayerEnemyContactBegin(collisionDataA, collisionDataB);
   }
-  else if ((collisionDataA->type == Entity::Bullet || collisionDataB->type == Entity::Bullet) && (collisionDataA->type == Entity::Enemy || collisionDataB->type == Entity::Enemy))
+  else if (collisionDataA->type == EntityInfo::Bullet || collisionDataB->type == EntityInfo::Bullet)
   {
-    BulletEnemyContactBegin(collisionDataA, collisionDataB);
+    BulletContactBegin(collisionDataA, collisionDataB);
   }
 }
 
@@ -35,37 +34,21 @@ void ContactListener::EndContact(b2Contact* p_contact)
 
 void ContactListener::PlayerEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
 {
-  auto playerCollisionData = p_dataA->type == Entity::Type::Player ? p_dataA : p_dataB;
-  auto enemyCollisionData = p_dataA->type == Entity::Type::Enemy ? p_dataA : p_dataB;;
+  auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
+  //auto enemyCollisionData = p_dataA->type == Entity::Type::Enemy ? p_dataA : p_dataB;;
 
   auto cHealth = playerCollisionData->entity->get<HealthComponent>();
   cHealth->currentHealth--;
 }
 
-void ContactListener::BulletEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
+void ContactListener::BulletContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
 {
-  auto bulletCollisionData = p_dataA->type == Entity::Type::Bullet ? static_cast<BulletCollisionData*>(p_dataA) : static_cast<BulletCollisionData*>(p_dataB);
-  auto enemyCollisionData = p_dataA->type == Entity::Type::Enemy ? p_dataA : p_dataB;
+  auto bulletCollisionData = p_dataA->type == EntityInfo::Bullet ? p_dataA : p_dataB;
 
-  if (bulletCollisionData->owner == Entity::Player)
+  auto cBullet = bulletCollisionData->entity->get<BulletComponent>();
+
+  if (cBullet->collisionCallback != nullptr)
   {
-    auto cHitOnce = bulletCollisionData->entity->get<HitOnceComponent>();
-
-    if (find(cHitOnce->alreadyHit.begin(), cHitOnce->alreadyHit.end(), enemyCollisionData->entity->getId()) == cHitOnce->alreadyHit.end())
-    {
-      auto& game = Game::Get();
-
-      game.setTarget(enemyCollisionData->entity);
-
-      auto cHealth = enemyCollisionData->entity->get<HealthComponent>();
-      cHealth->currentHealth--;
-
-      if (cHealth->currentHealth <= 0)
-      {
-        game.clearTarget();
-      }
-      
-      cHitOnce->alreadyHit.push_back(enemyCollisionData->entity->getId());
-    }
+    cBullet->collisionCallback(p_dataA, p_dataB);
   }
 }

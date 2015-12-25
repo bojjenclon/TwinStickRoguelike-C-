@@ -5,7 +5,7 @@
 
 #include <Thor/Math.hpp>
 
-#include <EntityFactory.hpp>
+#include <BasicEntityFactory.hpp>
 #include <systems/RenderSystem.hpp>
 #include <systems/UIUpdateSystem.hpp>
 #include <cef/BrowserApp.hpp>
@@ -20,6 +20,9 @@
 #include <systems/DeathCheckSystem.hpp>
 #include <components/TargetComponent.hpp>
 #include <systems/TargetStatsSyncSystem.hpp>
+#include <systems/BulletSystem.hpp>
+#include <BulletEntityFactory.hpp>
+#include <EnemyEntityFactory.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -248,6 +251,9 @@ bool Game::start()
   auto playerInputSystem = new PlayerInputSystem(m_window);
   m_engine->addSystem(playerInputSystem);
 
+  auto bulletSystem = new BulletSystem();
+  m_engine->addSystem(bulletSystem);
+
   auto animationSystem = new AnimationSystem();
   m_engine->addSystem(animationSystem);
 
@@ -289,13 +295,13 @@ bool Game::start()
 
   /* Entity Setup Begin */
 
-  auto uiContainer = EntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
+  auto uiContainer = BasicEntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
   m_engine->addEntity(uiContainer);
   
-  m_player = EntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
+  m_player = BasicEntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
-  auto enemy = EntityFactory::makeEnemy(m_resources, sf::Vector2f(600, 200));
+  auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
 
   /* Entity Setup End */
@@ -316,7 +322,7 @@ void Game::mainLoop()
   fpsText.setColor(sf::Color::Red);
   fpsText.setPosition(5, SCREEN_HEIGHT - 21);
 
-  auto fpsEntity = EntityFactory::makeDrawable( fpsText, -10);
+  auto fpsEntity = BasicEntityFactory::makeDrawable( fpsText, -10);
   m_engine->addEntity(fpsEntity);
 
   sf::Clock deltaClock;
@@ -350,11 +356,11 @@ void Game::mainLoop()
 
             auto angle = atan2(dy, dx);
 
-            auto bullet = EntityFactory::makeBullet(
+            auto bullet = BulletEntityFactory::makeBasicBullet(
               m_resources,
               // Options
               {
-                Entity::Player,
+                EntityInfo::Player,
                 sf::Vector2f(
                   playerTransform->getPosition().x,
                   playerTransform->getPosition().y

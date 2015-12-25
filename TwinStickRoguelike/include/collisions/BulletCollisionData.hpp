@@ -5,7 +5,7 @@
 
 struct BulletCollisionData : public CollisionData
 {
-  Entity::Type owner = Entity::Player;
+  EntityInfo::Type owner = EntityInfo::Player;
 };
 
 #endif
