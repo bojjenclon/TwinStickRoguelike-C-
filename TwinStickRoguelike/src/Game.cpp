@@ -23,6 +23,8 @@
 #include <systems/BulletSystem.hpp>
 #include <BulletEntityFactory.hpp>
 #include <EnemyEntityFactory.hpp>
+#include <tiled/TiledMap.hpp>
+#include <tiled/TiledTileLayerDrawable.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -328,6 +330,10 @@ void Game::mainLoop()
   sf::Clock deltaClock;
   m_clickClock.restart();
 
+  auto map = TiledMap::loadFromJson("assets/levels/test.json");
+  TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));
+  TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
+
   while (m_window.isOpen())
   {
     sf::Event event;
@@ -395,6 +401,8 @@ void Game::mainLoop()
 
     m_window.clear(sf::Color::White);
 
+    m_window.draw(tiledLayer0);
+    m_window.draw(tiledLayer1);
     m_engine->update(dtMillis);
     
     m_window.display();
@@ -427,6 +435,12 @@ void Game::loadMedia()
 
   m_resources.loadTexture("deer", "deer.png");
   m_resources.loadTexture("pinkBullet", "pinkBullet.png");
+
+  m_resources.loadTexture("terrain_atlas", "F:\/Images\/Game Graphics\/Tilesets\/Atlas_0\/terrain_atlas.png");
+  
+  // create TiledTile to keep track of a tile's tileset and id
+  /*auto map = TiledMap::loadFromJson("assets/levels/test.json");
+  std::cout << map.getTileId(1, 15, 8);*/
 }
 
 void Game::handleBrowserEvents(sf::Event& p_event)

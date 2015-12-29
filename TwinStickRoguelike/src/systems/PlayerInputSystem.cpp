@@ -7,10 +7,12 @@
 
 PlayerInputSystem::PlayerInputSystem(sf::Window& p_window) : IteratingSystem(ECS::Family::all<PlayerComponent, AnimationComponent, DirectionComponent, PhysicsComponent>().get()), m_window(p_window)
 {
-  m_keyMaps["moveLeft"] = thor::Action(sf::Keyboard::Left, thor::Action::Hold) || thor::Action(sf::Keyboard::A, thor::Action::Hold);
-  m_keyMaps["moveRight"] = thor::Action(sf::Keyboard::Right, thor::Action::Hold) || thor::Action(sf::Keyboard::D, thor::Action::Hold);
-  m_keyMaps["moveUp"] = thor::Action(sf::Keyboard::Up, thor::Action::Hold) || thor::Action(sf::Keyboard::W, thor::Action::Hold);
-  m_keyMaps["moveDown"] = thor::Action(sf::Keyboard::Down, thor::Action::Hold) || thor::Action(sf::Keyboard::S, thor::Action::Hold);
+  static const auto AXIS_THRESHOLD = 75.0f;
+
+  m_keyMaps["moveLeft"] = thor::Action(sf::Keyboard::Left, thor::Action::Hold) || thor::Action(sf::Keyboard::A, thor::Action::Hold) || thor::Action(thor::JoystickAxis{ 0, sf::Joystick::Axis::X, -AXIS_THRESHOLD, false });
+  m_keyMaps["moveRight"] = thor::Action(sf::Keyboard::Right, thor::Action::Hold) || thor::Action(sf::Keyboard::D, thor::Action::Hold) || thor::Action(thor::JoystickAxis{ 0, sf::Joystick::Axis::X, AXIS_THRESHOLD, true });
+  m_keyMaps["moveUp"] = thor::Action(sf::Keyboard::Up, thor::Action::Hold) || thor::Action(sf::Keyboard::W, thor::Action::Hold) || thor::Action(thor::JoystickAxis{ 0, sf::Joystick::Axis::Y, -AXIS_THRESHOLD, false });
+  m_keyMaps["moveDown"] = thor::Action(sf::Keyboard::Down, thor::Action::Hold) || thor::Action(sf::Keyboard::S, thor::Action::Hold) || thor::Action(thor::JoystickAxis{ 0, sf::Joystick::Axis::Y, AXIS_THRESHOLD, true });
 }
 
 void PlayerInputSystem::processEntity(ECS::Entity* p_entity, float p_dt)
