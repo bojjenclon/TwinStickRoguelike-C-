@@ -324,15 +324,17 @@ void Game::mainLoop()
   fpsText.setColor(sf::Color::Red);
   fpsText.setPosition(5, SCREEN_HEIGHT - 21);
 
-  auto fpsEntity = BasicEntityFactory::makeDrawable( fpsText, -10);
+  auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
   m_engine->addEntity(fpsEntity);
 
   sf::Clock deltaClock;
   m_clickClock.restart();
 
-  auto map = TiledMap::loadFromJson("assets/levels/test.json");
+  auto map = TiledMap::loadFromJson("assets/levels/test.json", m_world, m_engine);
   TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));
   TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
+  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
+  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map.getTileLayer(1).getDepth()));
 
   while (m_window.isOpen())
   {
@@ -401,8 +403,6 @@ void Game::mainLoop()
 
     m_window.clear(sf::Color::White);
 
-    m_window.draw(tiledLayer0);
-    m_window.draw(tiledLayer1);
     m_engine->update(dtMillis);
     
     m_window.display();

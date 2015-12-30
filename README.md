@@ -10,3 +10,4 @@ Relies on:
 * https://github.com/Lusito/ECS-tasy
 * http://www.bromeon.ch/libraries/thor/
 * https://code.google.com/p/libbehavior/
+* https://github.com/delorenj/b2Separator-cpp

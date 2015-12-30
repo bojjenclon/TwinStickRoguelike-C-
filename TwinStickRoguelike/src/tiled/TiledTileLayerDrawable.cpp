@@ -1,6 +1,6 @@
 #include <tiled/TiledTileLayerDrawable.hpp>
 
-TiledTileLayerDrawable::TiledTileLayerDrawable(sf::Texture& p_texture, TiledTileLayer& p_layer, TiledTileset& p_tileset) : m_texture(p_texture)
+TiledTileLayerDrawable::TiledTileLayerDrawable(sf::Texture& p_texture, const TiledTileLayer& p_layer, const TiledTileset& p_tileset) : m_texture(p_texture)
 {
   auto width = p_layer.getWidth();
   auto height = p_layer.getHeight();

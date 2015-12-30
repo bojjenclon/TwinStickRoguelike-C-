@@ -5,18 +5,20 @@
 
 TiledTileLayer::TiledTileLayer()
 {
-  
+  m_depth = 1;
 }
 
 TiledTileLayer::TiledTileLayer(TileCollection p_tiles) : m_tiles(p_tiles)
 {
   m_width = m_tiles.size();
   m_height = m_tiles[0].size();
+
+  m_depth = 1;
 }
 
 TiledTileLayer::TiledTileLayer(int p_width, int p_height) : m_tiles(p_width, std::vector<TiledTile>(p_height)), m_width(p_width), m_height(p_height)
 {
-  
+  m_depth = 1;
 }
 
 TiledTile TiledTileLayer::getTile(int p_x, int p_y) const
@@ -42,6 +44,16 @@ int TiledTileLayer::getWidth() const
 int TiledTileLayer::getHeight() const
 {
   return m_height;
+}
+
+int TiledTileLayer::getDepth() const
+{
+  return m_depth;
+}
+
+void TiledTileLayer::setDepth(int p_depth)
+{
+  m_depth = p_depth;
 }
 
 TiledTileLayer TiledTileLayer::createFromData(const TiledMap& p_map, std::string p_data, int p_width, int p_height)

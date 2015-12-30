@@ -3,6 +3,8 @@
 
 #include <tiled/TiledTileLayer.hpp>
 #include <tiled/TiledTileset.hpp>
+#include <Box2D/Box2D.h>
+#include <ecstasy/core/Engine.h>
 
 class TiledMap
 {
@@ -18,7 +20,7 @@ public:
 
   int getTileId(int p_layer, int p_x, int p_y) const;
 
-  static TiledMap loadFromJson(std::string p_path);
+  static TiledMap loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
 
 private:
   std::vector<TiledTileLayer> m_tileLayers;

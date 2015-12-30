@@ -45,6 +45,11 @@ void ContactListener::BulletContactBegin(CollisionData* p_dataA, CollisionData* 
 {
   auto bulletCollisionData = p_dataA->type == EntityInfo::Bullet ? p_dataA : p_dataB;
 
+  if (!bulletCollisionData->entity->has<BulletComponent>())
+  {
+    return;
+  }
+
   auto cBullet = bulletCollisionData->entity->get<BulletComponent>();
 
   if (cBullet->collisionCallback != nullptr)

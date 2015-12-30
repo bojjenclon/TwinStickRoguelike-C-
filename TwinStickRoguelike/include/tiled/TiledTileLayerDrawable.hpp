@@ -7,7 +7,7 @@
 class TiledTileLayerDrawable : public sf::Drawable, public sf::Transformable
 {
 public:
-  TiledTileLayerDrawable(sf::Texture& p_texture, TiledTileLayer& p_layer, TiledTileset& p_tileset);
+  TiledTileLayerDrawable(sf::Texture& p_texture, const TiledTileLayer& p_layer, const TiledTileset& p_tileset);
 
 private:
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

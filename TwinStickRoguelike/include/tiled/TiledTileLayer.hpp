@@ -21,12 +21,16 @@ public:
   int getWidth() const;
   int getHeight() const;
 
+  int getDepth() const;
+  void setDepth(int p_depth);
+
   static TiledTileLayer createFromData(const TiledMap& p_map, std::string p_data, int p_width, int p_height);
 
 private:
   TileCollection m_tiles;
   int m_width;
   int m_height;
+  int m_depth;
 };
 
 #endif
