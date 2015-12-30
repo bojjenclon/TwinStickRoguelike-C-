@@ -62,90 +62,17 @@ void TiledMap::addCollisionShape(CollisionShape p_shape)
   m_collisionShapes.push_back(p_shape);
 }
 
-void TiledMap::initCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
+bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
 {
+  if (m_isCollisionAdded)
+  {
+    return false;
+  }
+
   for (auto it = m_collisionShapes.begin(); it != m_collisionShapes.end(); ++it)
   {
     auto shape = *it;
 
-    /*if (shape.type == "rectangle")
-    {
-      auto body = p_world->CreateBody(&shape.bodyDef);
-
-      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
-
-      auto entity = p_engine->createEntity();
-
-      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-      entity->add(cPhysics);
-      cPhysics->body = body;
-
-      p_engine->addEntity(entity);
-    }
-    else if (shape.type == "circle")
-    {
-      auto body = p_world->CreateBody(&shape.bodyDef);
-
-      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
-
-      auto entity = p_engine->createEntity();
-
-      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-      entity->add(cPhysics);
-      cPhysics->body = body;
-
-      p_engine->addEntity(entity);
-    }
-    // currently broken
-    else if (shape.type == "ellipse")
-    {
-      auto body = p_world->CreateBody(&shape.bodyDef);
-
-      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
-
-      auto entity = p_engine->createEntity();
-
-      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-      entity->add(cPhysics);
-      cPhysics->body = body;
-
-      p_engine->addEntity(entity);
-    }
-    else if (shape.type == "convex_polygon")
-    {
-      auto body = p_world->CreateBody(&shape.bodyDef);
-
-      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
-
-      auto entity = p_engine->createEntity();
-
-      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-      entity->add(cPhysics);
-      cPhysics->body = body;
-
-      p_engine->addEntity(entity);
-    }
-    else if (shape.type == "concave_polygon")
-    {
-      auto body = p_world->CreateBody(&shape.bodyDef);
-
-      auto fixtureDef = new b2FixtureDef();
-      fixtureDef->density = 1.0f;
-
-      auto sep = new b2Separator();
-
-      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Game::PIXELS_PER_METER);
-
-      auto entity = p_engine->createEntity();
-
-      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-      entity->add(cPhysics);
-      cPhysics->body = body;
-
-      p_engine->addEntity(entity);
-
-      delete sep;
-    }*/
     if (shape.type == "concave_polygon")
     {
       auto body = p_world->CreateBody(&shape.bodyDef);
@@ -188,6 +115,35 @@ void TiledMap::initCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<
       p_engine->addEntity(entity);
     }
   }
+
+  m_isCollisionAdded = true;
+
+  return true;
+}
+
+bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
+{
+  if (!m_isCollisionAdded)
+  {
+    return false;
+  }
+
+  auto entities = p_engine->getEntitiesFor(ECS::Family::all<TiledCollisionShapeComponent>().get());
+
+  while (!entities->empty())
+  {
+    auto entity = entities->front();
+
+    auto cPhysics = entity->get<PhysicsComponent>();
+    p_world->DestroyBody(cPhysics->body);
+
+    entity->removeAll();
+    p_engine->removeEntity(entity);
+  }
+
+  m_isCollisionAdded = false;
+
+  return true;
 }
 
 TiledMap TiledMap::loadFromJson(std::string p_path)

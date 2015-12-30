@@ -23,7 +23,8 @@ public:
 
   int getTileId(int p_layer, int p_x, int p_y) const;
 
-  void initCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
+  bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
+  bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
 
   static TiledMap loadFromJson(std::string p_path);
 
@@ -41,6 +42,8 @@ private:
   std::vector<CollisionShape> m_collisionShapes;
   std::vector<TiledTileLayer> m_tileLayers;
   std::vector<TiledTileset> m_tilesets;
+
+  bool m_isCollisionAdded = false;
 };
 
 #endif

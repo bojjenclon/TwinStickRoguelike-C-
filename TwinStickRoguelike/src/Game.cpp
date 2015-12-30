@@ -337,7 +337,7 @@ void Game::mainLoop()
   TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map.getTileLayer(1).getDepth()));
-  map.initCollision(m_world, m_engine);
+  map.addCollision(m_world, m_engine);
 
   while (m_window.isOpen())
   {
@@ -395,21 +395,11 @@ void Game::mainLoop()
         }
         else if (event.key.code == sf::Keyboard::Numpad4)
         {
-          auto entities = m_engine->getEntitiesFor(ECS::Family::all<TiledCollisionShapeComponent>().get());
-
-          for (auto it = entities->begin(); it != entities->end(); ++it)
-          {
-            auto entity = *it;
-
-            auto cPhysics = entity->get<PhysicsComponent>();
-            m_world->DestroyBody(cPhysics->body);
-
-            m_engine->removeEntity(entity);
-          }
+          map.removeCollision(m_world, m_engine);
         }
         else if (event.key.code == sf::Keyboard::Numpad6)
         {
-          map.initCollision(m_world, m_engine);
+          map.addCollision(m_world, m_engine);
         }
       }
     }
