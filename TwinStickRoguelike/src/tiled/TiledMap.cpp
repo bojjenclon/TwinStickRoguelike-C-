@@ -1,5 +1,4 @@
 #include <tiled/TiledMap.hpp>
-#include <json/json.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -8,8 +7,7 @@
 #include <components/PhysicsComponent.hpp>
 #include <physics/b2Separator.h>
 #include <Thor/Math.hpp>
-
-using namespace nlohmann;
+#include <components/TiledCollisionShapeComponent.hpp>
 
 TiledMap::TiledMap()
 {
@@ -59,7 +57,140 @@ int TiledMap::getTileId(int p_layer, int p_x, int p_y) const
   return m_tileLayers[p_layer].getTileId(p_x, p_y);
 }
 
-TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
+void TiledMap::addCollisionShape(CollisionShape p_shape)
+{
+  m_collisionShapes.push_back(p_shape);
+}
+
+void TiledMap::initCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
+{
+  for (auto it = m_collisionShapes.begin(); it != m_collisionShapes.end(); ++it)
+  {
+    auto shape = *it;
+
+    /*if (shape.type == "rectangle")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      p_engine->addEntity(entity);
+    }
+    else if (shape.type == "circle")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      p_engine->addEntity(entity);
+    }
+    // currently broken
+    else if (shape.type == "ellipse")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      p_engine->addEntity(entity);
+    }
+    else if (shape.type == "convex_polygon")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      p_engine->addEntity(entity);
+    }
+    else if (shape.type == "concave_polygon")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      auto fixtureDef = new b2FixtureDef();
+      fixtureDef->density = 1.0f;
+
+      auto sep = new b2Separator();
+
+      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Game::PIXELS_PER_METER);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      p_engine->addEntity(entity);
+
+      delete sep;
+    }*/
+    if (shape.type == "concave_polygon")
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      auto fixtureDef = new b2FixtureDef();
+      fixtureDef->density = 1.0f;
+
+      auto sep = new b2Separator();
+
+      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Game::PIXELS_PER_METER);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      auto cTiledCollisionShape = p_engine->createComponent<TiledCollisionShapeComponent>();
+      entity->add(cTiledCollisionShape);
+
+      p_engine->addEntity(entity);
+
+      delete sep;
+    }
+    else
+    {
+      auto body = p_world->CreateBody(&shape.bodyDef);
+
+      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+
+      auto entity = p_engine->createEntity();
+
+      auto cPhysics = p_engine->createComponent<PhysicsComponent>();
+      entity->add(cPhysics);
+      cPhysics->body = body;
+
+      auto cTiledCollisionShape = p_engine->createComponent<TiledCollisionShapeComponent>();
+      entity->add(cTiledCollisionShape);
+
+      p_engine->addEntity(entity);
+    }
+  }
+}
+
+TiledMap TiledMap::loadFromJson(std::string p_path)
 {
   TiledMap map;
 
@@ -69,8 +200,8 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
   auto mapJsonStr = strStream.str();
   file.close();
 
-  auto parsedJson = nlohmann::json::parse(mapJsonStr);
-
+  auto parsedJson = json::parse(mapJsonStr);
+  
   // tilesets MUST be loaded before layers
   for (unsigned int i = 0; i < parsedJson["tilesets"].size(); ++i)
   {
@@ -149,19 +280,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
 
-            auto body = p_world->CreateBody(&bodyDef);
-
-            body->CreateFixture(box, 1);
-
-            auto entity = p_engine->createEntity();
-
-            auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-            entity->add(cPhysics);
-            cPhysics->body = body;
-
-            p_engine->addEntity(entity);
-
-            delete box;
+            map.addCollisionShape(CollisionShape{ bodyDef, objectType, box });
           }
           else if (objectType == "circle")
           {
@@ -180,42 +299,31 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
 
-            auto body = p_world->CreateBody(&bodyDef);
-
-            body->CreateFixture(circle, 1);
-
-            auto entity = p_engine->createEntity();
-
-            auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-            entity->add(cPhysics);
-            cPhysics->body = body;
-
-            p_engine->addEntity(entity);
-
-            delete circle;
+            map.addCollisionShape(CollisionShape{ bodyDef, objectType, circle });
           }
           // currently broken
-          /*else if (objectType == "ellipse")
+          else if (objectType == "ellipse")
           {
-            auto width = curObject["width"].get<int>() / 2;
-            auto height = curObject["height"].get<int>() / 2;
+            auto width = curObject["width"].get<int>() / 2 / Game::PIXELS_PER_METER;
+            auto height = curObject["height"].get<int>() / 2 / Game::PIXELS_PER_METER;
 
-            auto numPoints = 32;
-            auto step = 360.0f / numPoints;
+            auto segments = 32;
+            auto segmentLength = 2 * thor::Pi / segments;
 
-            std::vector<b2Vec2> points;
-
-            for (auto k = 0.0f; k < 360.0f; k += step)
+            auto points = new b2Vec2[segments];
+            for (auto k = 0; k < segments; k++)
             {
-              auto px = width * cos(k * thor::Pi / 180.0f);
-              auto py = height * sin(k * thor::Pi / 180.0f);
+              auto px = width * cos(segmentLength * k);
+              auto py = height * sin(segmentLength * k);
 
-              points.push_back(b2Vec2(px / Game::PIXELS_PER_METER, py / Game::PIXELS_PER_METER));
+              points[k] = b2Vec2(px, py);
             }
 
             auto polygon = new b2PolygonShape();
-            polygon->Set(&points[0], points.size());
+            polygon->Set(points, segments);
 
+            delete[] points;
+            
             auto x = curObject["x"].get<int>();
             auto y = curObject["y"].get<int>();
 
@@ -224,18 +332,8 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
 
-            auto body = p_world->CreateBody(&bodyDef);
-
-            body->CreateFixture(polygon, 1);
-
-            auto entity = p_engine->createEntity();
-
-            auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-            entity->add(cPhysics);
-            cPhysics->body = body;
-
-            p_engine->addEntity(entity);
-          }*/
+            map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
+          }
           else if (objectType == "convex_polygon")
           {
             auto numPoints = curObject["polygon"].size();
@@ -261,17 +359,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
 
-            auto body = p_world->CreateBody(&bodyDef);
-
-            body->CreateFixture(polygon, 1);
-
-            auto entity = p_engine->createEntity();
-
-            auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-            entity->add(cPhysics);
-            cPhysics->body = body;
-
-            p_engine->addEntity(entity);
+            map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
           }
           else if (objectType == "concave_polygon")
           {
@@ -293,24 +381,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path, std::unique_ptr<b2World>& p_
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
 
-            auto body = p_world->CreateBody(&bodyDef);
-
-            auto fixtureDef = new b2FixtureDef();
-            fixtureDef->density = 1.0f;
-
-            auto sep = new b2Separator();
-
-            sep->Separate(body, fixtureDef, points, Game::PIXELS_PER_METER);
-
-            auto entity = p_engine->createEntity();
-
-            auto cPhysics = p_engine->createComponent<PhysicsComponent>();
-            entity->add(cPhysics);
-            cPhysics->body = body;
-
-            p_engine->addEntity(entity);
-
-            delete sep;
+            map.addCollisionShape(CollisionShape{ bodyDef, objectType, points });
           }
         }
       }

@@ -140,7 +140,10 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
   body->SetUserData(collisionData);
 
   b2CircleShape dynamicCircle;
-  dynamicCircle.m_radius = 0.25f;
+  float radius = sprite->getTextureRect().width > sprite->getTextureRect().height ? sprite->getTextureRect().width : sprite->getTextureRect().height;
+  radius /= 2;
+  radius /= Game::PIXELS_PER_METER;
+  dynamicCircle.m_radius = radius;
 
   b2FixtureDef fixtureDef;
   fixtureDef.shape = &dynamicCircle;

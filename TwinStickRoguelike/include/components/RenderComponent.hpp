@@ -2,7 +2,6 @@
 #define RENDER_COMPONENT_HPP
 
 #include <ecstasy/core/Component.h>
-
 #include <SFML/Graphics.hpp>
 
 struct RenderComponent : public ECS::Component<RenderComponent>

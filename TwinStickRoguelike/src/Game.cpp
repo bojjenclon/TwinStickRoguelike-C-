@@ -25,6 +25,8 @@
 #include <EnemyEntityFactory.hpp>
 #include <tiled/TiledMap.hpp>
 #include <tiled/TiledTileLayerDrawable.hpp>
+#include <components/TiledCollisionShapeComponent.hpp>
+#include <components/PhysicsComponent.hpp>
 
 WPARAM sfkeyToWparam(sf::Keyboard::Key key)
 {
@@ -306,9 +308,9 @@ bool Game::start()
   auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
 
-  /* Entity Setup End */
+/* Entity Setup End */
 
-  return true;
+return true;
 }
 
 void Game::mainLoop()
@@ -330,11 +332,12 @@ void Game::mainLoop()
   sf::Clock deltaClock;
   m_clickClock.restart();
 
-  auto map = TiledMap::loadFromJson("assets/levels/test.json", m_world, m_engine);
+  auto map = TiledMap::loadFromJson("assets/levels/test.json");
   TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));
   TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map.getTileLayer(1).getDepth()));
+  map.initCollision(m_world, m_engine);
 
   while (m_window.isOpen())
   {
@@ -389,6 +392,24 @@ void Game::mainLoop()
         {
           auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
           physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
+        }
+        else if (event.key.code == sf::Keyboard::Numpad4)
+        {
+          auto entities = m_engine->getEntitiesFor(ECS::Family::all<TiledCollisionShapeComponent>().get());
+
+          for (auto it = entities->begin(); it != entities->end(); ++it)
+          {
+            auto entity = *it;
+
+            auto cPhysics = entity->get<PhysicsComponent>();
+            m_world->DestroyBody(cPhysics->body);
+
+            m_engine->removeEntity(entity);
+          }
+        }
+        else if (event.key.code == sf::Keyboard::Numpad6)
+        {
+          map.initCollision(m_world, m_engine);
         }
       }
     }
