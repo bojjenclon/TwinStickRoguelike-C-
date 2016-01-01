@@ -7,6 +7,7 @@
 #include <Game.hpp>
 #include <components/RenderComponent.hpp>
 #include <components/PhysicsComponent.hpp>
+#include <Constants.hpp>
 
 ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, Bullet::Options p_options)
 {
@@ -42,7 +43,7 @@ ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, 
 
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
-  bodyDef.position.Set(p_options.position.x / Game::PIXELS_PER_METER, p_options.position.y / Game::PIXELS_PER_METER);
+  bodyDef.position.Set(p_options.position.x / Constants::PIXELS_PER_METER, p_options.position.y / Constants::PIXELS_PER_METER);
 
   auto body = world.CreateBody(&bodyDef);
 
@@ -55,7 +56,7 @@ ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, 
   b2CircleShape dynamicCircle;
   float radius = sprite->getTextureRect().width > sprite->getTextureRect().height ? sprite->getTextureRect().width : sprite->getTextureRect().height;
   radius /= 2;
-  radius /= Game::PIXELS_PER_METER;
+  radius /= Constants::PIXELS_PER_METER;
   dynamicCircle.m_radius = radius;
 
   b2FixtureDef fixtureDef;

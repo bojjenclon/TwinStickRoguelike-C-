@@ -1,7 +1,9 @@
 #include <systems/PhysicsDebugDrawSystem.hpp>
-
 #include <components/PhysicsComponent.hpp>
-#include <Game.hpp>
+#include <Constants.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/ConvexShape.hpp>
+#include <Box2D/Box2D.h>
 
 PhysicsDebugDrawSystem::PhysicsDebugDrawSystem(sf::RenderTarget& p_renderTarget) : IteratingSystem(ECS::Family::all<PhysicsComponent>().get()), m_renderTarget(p_renderTarget)
 {
@@ -22,14 +24,14 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
       auto boxCircle = dynamic_cast<b2CircleShape*>(shape);
 
       auto radius = boxCircle->m_radius;
-      radius *= Game::PIXELS_PER_METER;
+      radius *= Constants::PIXELS_PER_METER;
       
       sf::CircleShape circle;
       circle.setRadius(radius);
       circle.setOrigin(radius, radius);
       circle.setPosition(
-        body->GetPosition().x * Game::PIXELS_PER_METER + boxCircle->m_p.x * Game::PIXELS_PER_METER, 
-        body->GetPosition().y * Game::PIXELS_PER_METER + boxCircle->m_p.y * Game::PIXELS_PER_METER
+        body->GetPosition().x * Constants::PIXELS_PER_METER + boxCircle->m_p.x * Constants::PIXELS_PER_METER,
+        body->GetPosition().y * Constants::PIXELS_PER_METER + boxCircle->m_p.y * Constants::PIXELS_PER_METER
       );
       circle.setFillColor(sf::Color::Transparent);
       circle.setOutlineColor(sf::Color::Red);
@@ -41,7 +43,7 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
       auto boxPolygon = dynamic_cast<b2PolygonShape*>(shape);
 
       sf::ConvexShape sfPolygon;
-      sfPolygon.setPosition(body->GetPosition().x * Game::PIXELS_PER_METER, body->GetPosition().y * Game::PIXELS_PER_METER);
+      sfPolygon.setPosition(body->GetPosition().x * Constants::PIXELS_PER_METER, body->GetPosition().y * Constants::PIXELS_PER_METER);
       sfPolygon.setFillColor(sf::Color::Transparent);
       sfPolygon.setOutlineColor(sf::Color::Red);
       sfPolygon.setOutlineThickness(1);
@@ -51,7 +53,7 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
       {
         auto vertex = boxPolygon->GetVertex(i);
 
-        sfPolygon.setPoint(i, sf::Vector2f(vertex.x * Game::PIXELS_PER_METER, vertex.y * Game::PIXELS_PER_METER));
+        sfPolygon.setPoint(i, sf::Vector2f(vertex.x * Constants::PIXELS_PER_METER, vertex.y * Constants::PIXELS_PER_METER));
       }
 
       m_renderTarget.draw(sfPolygon);

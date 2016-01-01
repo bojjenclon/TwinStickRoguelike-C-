@@ -1,8 +1,8 @@
 #include <systems/TargetStatsSyncSystem.hpp>
 #include <components/HealthComponent.hpp>
-#include <components/TargetComponent.hpp>
+#include <components/TargetedComponent.hpp>
 
-TargetStatsSyncSystem::TargetStatsSyncSystem(UIValues& p_uiValues) : IteratingSystem(ECS::Family::all<TargetComponent, HealthComponent>().get()), m_uiValues(p_uiValues)
+TargetStatsSyncSystem::TargetStatsSyncSystem(UIValues& p_uiValues) : IteratingSystem(ECS::Family::all<TargetedComponent, HealthComponent>().get()), m_uiValues(p_uiValues)
 {
 
 }

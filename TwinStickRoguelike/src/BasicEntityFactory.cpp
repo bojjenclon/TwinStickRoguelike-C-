@@ -10,6 +10,7 @@
 #include <components/PhysicsComponent.hpp>
 #include <collisions/CollisionData.hpp>
 #include <EntityInfo.hpp>
+#include <Constants.hpp>
 
 ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
@@ -130,7 +131,7 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
   bodyDef.fixedRotation = true;
-  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+  bodyDef.position.Set(p_position.x / Constants::PIXELS_PER_METER, p_position.y / Constants::PIXELS_PER_METER);
 
   auto body = world.CreateBody(&bodyDef);
 
@@ -142,7 +143,7 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
   b2CircleShape dynamicCircle;
   auto radius = 1.0f * (sprite->getTextureRect().width > sprite->getTextureRect().height ? sprite->getTextureRect().width : sprite->getTextureRect().height);
   radius /= 2;
-  radius /= Game::PIXELS_PER_METER;
+  radius /= Constants::PIXELS_PER_METER;
   dynamicCircle.m_radius = radius;
 
   b2FixtureDef fixtureDef;

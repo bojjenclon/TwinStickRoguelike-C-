@@ -5,6 +5,7 @@
 #include <codecvt>
 #include <Awesomium/STLHelpers.h>
 #include <Awesomium/DataPak.h>
+#include <Constants.hpp>
 #include <BasicEntityFactory.hpp>
 #include <systems/RenderSystem.hpp>
 #include <systems/UIUpdateSystem.hpp>
@@ -17,7 +18,7 @@
 #include <collisions/ContactListener.hpp>
 #include <systems/PlayerStatsSyncSystem.hpp>
 #include <systems/DeathCheckSystem.hpp>
-#include <components/TargetComponent.hpp>
+#include <components/TargetedComponent.hpp>
 #include <systems/TargetStatsSyncSystem.hpp>
 #include <systems/BulletSystem.hpp>
 #include <BulletEntityFactory.hpp>
@@ -152,15 +153,13 @@ int getWebKeyFromSFMLKey(sf::Keyboard::Key key) {
   }
 }
 
-const float Game::PIXELS_PER_METER = 100.0f;
-
 Game::Game()
 {
 }
 
 bool Game::start()
 {
-  m_window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML + Awesomium");
+  m_window.create(sf::VideoMode(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT), "SFML + Awesomium");
   m_window.setFramerateLimit(60);
 
   loadMedia();
@@ -168,10 +167,10 @@ bool Game::start()
   m_webCore = WebCore::Initialize(WebConfig());
 
   m_webSession = m_webCore->CreateWebSession(WSLit(""), WebPreferences());
-  DataSource* data_source = new DataPakSource(WSLit((GetApplicationDir() + "/resources.pak").c_str()));
+  DataSource* data_source = new DataPakSource(WSLit((GetApplicationDir() + "/../assets/resources.pak").c_str()));
   m_webSession->AddDataSource(WSLit("app"), data_source);
 
-  m_webView = m_webCore->CreateWebView(SCREEN_WIDTH, SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
+  m_webView = m_webCore->CreateWebView(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
   m_webView->SetTransparent(true);
   
   WebURL url(WSLit("asset://app/InGameHud.html"));
@@ -191,13 +190,13 @@ bool Game::start()
   m_uiSurface = static_cast<BitmapSurface*>(m_webView->surface());
 
   m_uiTexture = new sf::Texture();
-  m_uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
+  m_uiTexture->create(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
   m_uiSprite.setTexture(*m_uiTexture);
 
-  m_uiRGBABuffer = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT * 4];
+  m_uiRGBABuffer = new unsigned char[Constants::SCREEN_WIDTH * Constants::SCREEN_HEIGHT * 4];
 
-  m_uiSurface->CopyTo(m_uiRGBABuffer, SCREEN_WIDTH * 4, 4, true, false);
-  m_uiTexture->update(m_uiRGBABuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
+  m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
+  m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
@@ -219,7 +218,7 @@ bool Game::start()
   /*auto movementSystem = new MovementSystem();
   m_engine->addSystem(movementSystem);*/
 
-  auto physicsSystem = new PhysicsSystem();
+  auto physicsSystem = new PhysicsSystem(m_world);
   m_engine->addSystem(physicsSystem);
 
   auto lifetimeSystem = new LifetimeSystem(m_engine);
@@ -272,23 +271,23 @@ bool Game::start()
 
 void Game::mainLoop()
 {
-  m_world->SetContinuousPhysics(true);
+#ifdef _DEBUG
+    sf::Font font;
+    font.loadFromFile("../assets/Adventure Subtitles.ttf");
 
-  sf::Font font;
-  font.loadFromFile("Adventure Subtitles.ttf");
+    sf::Text fpsText("FPS: 60", font);
+    fpsText.setCharacterSize(16);
+    fpsText.setStyle(sf::Text::Bold);
+    fpsText.setColor(sf::Color::Red);
+    fpsText.setPosition(5, Constants::SCREEN_HEIGHT - 21);
 
-  sf::Text fpsText("FPS: 60", font);
-  fpsText.setCharacterSize(16);
-  fpsText.setStyle(sf::Text::Bold);
-  fpsText.setColor(sf::Color::Red);
-  fpsText.setPosition(5, SCREEN_HEIGHT - 21);
-
-  auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
-  m_engine->addEntity(fpsEntity);
+    auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
+    m_engine->addEntity(fpsEntity);
+#endif
 
   sf::Clock deltaClock;
 
-  auto map = TiledMap::loadFromJson("assets/levels/test.json");
+  auto map = TiledMap::loadFromJson("../assets/levels/test.json");
   TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));
   TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
@@ -367,14 +366,16 @@ void Game::mainLoop()
 
     if (m_uiSurface->is_dirty())
     {
-      m_uiSurface->CopyTo(m_uiRGBABuffer, SCREEN_WIDTH * 4, 4, true, false);
-      m_uiTexture->update(m_uiRGBABuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
+      m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
+      m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
     }
 
     auto dt = deltaClock.restart();
     auto dtMillis = dt.asMilliseconds() / 1000.f;
 
-    fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
+#ifdef _DEBUG
+      fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
+#endif
 
     m_window.clear(sf::Color::White);
 
@@ -402,17 +403,13 @@ void Game::quit()
 
 void Game::loadMedia()
 {
-  m_resources.loadTexture("duck", "duck.png");
-  m_resources.loadTexture("iffrit", "iffrit.png");
+  m_resources.loadTexture("duck", "../assets/duck.png");
+  m_resources.loadTexture("iffrit", "../assets/iffrit.png");
 
-  m_resources.loadTexture("deer", "deer.png");
-  m_resources.loadTexture("pinkBullet", "pinkBullet.png");
+  m_resources.loadTexture("deer", "../assets/deer.png");
+  m_resources.loadTexture("pinkBullet", "../assets/pinkBullet.png");
 
-  m_resources.loadTexture("terrain_atlas", "F:\/Images\/Game Graphics\/Tilesets\/Atlas_0\/terrain_atlas.png");
-  
-  // create TiledTile to keep track of a tile's tileset and id
-  /*auto map = TiledMap::loadFromJson("assets/levels/test.json");
-  std::cout << map.getTileId(1, 15, 8);*/
+  m_resources.loadTexture("terrain_atlas", "F:/Images/Game Graphics/Tilesets/Atlas_0/terrain_atlas.png");
 }
 
 void Game::handleBrowserEvents(sf::Event& p_event) const
@@ -557,18 +554,18 @@ void Game::setTarget(ECS::Entity* p_target)
   }
   else
   {
-    m_target->remove<TargetComponent>();
+    m_target->remove<TargetedComponent>();
   }
 
   m_target = p_target;
 
-  auto cTarget = m_engine->createComponent<TargetComponent>();
+  auto cTarget = m_engine->createComponent<TargetedComponent>();
   m_target->add(cTarget);
 }
 
 void Game::clearTarget()
 {
-  m_target->remove<TargetComponent>();
+  m_target->remove<TargetedComponent>();
   m_target = nullptr;
 
   m_uiValues.enemy.display = false;

@@ -34,26 +34,18 @@ public:
   static Game& Get();
   static std::string GetApplicationDir();
 
-public:
-  static const int SCREEN_WIDTH = 1024;
-  static const int SCREEN_HEIGHT = 768;
-  static const int SCREEN_FPS = 60;
-  static const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
-
-  static const float PIXELS_PER_METER;
-
 private:
   Game();
 
   sf::RenderWindow m_window;
   sf::Sprite m_uiSprite;
 
-  WebCore* m_webCore;
-  WebSession* m_webSession;
-  WebView* m_webView;
-  BitmapSurface* m_uiSurface;
-  unsigned char* m_uiRGBABuffer;
-  sf::Texture* m_uiTexture;
+  WebCore* m_webCore = nullptr;
+  WebSession* m_webSession = nullptr;
+  WebView* m_webView = nullptr;
+  BitmapSurface* m_uiSurface = nullptr;
+  unsigned char* m_uiRGBABuffer = nullptr;
+  sf::Texture* m_uiTexture = nullptr;
 
   ResourceManager m_resources;
 
@@ -62,7 +54,7 @@ private:
   std::unique_ptr<ECS::Engine> m_engine = nullptr;
   ECS::Entity* m_player = nullptr;
 
-  std::unique_ptr<b2World> m_world;
+  std::unique_ptr<b2World> m_world = nullptr;
 
   ECS::Entity* m_target = nullptr;
 

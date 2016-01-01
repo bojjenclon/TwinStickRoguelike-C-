@@ -1,11 +1,11 @@
 #include <systems/PhysicsSystem.hpp>
 #include <components/PhysicsComponent.hpp>
 #include <components/RenderComponent.hpp>
-#include <Game.hpp>
+#include <Constants.hpp>
 
 // based on: http://saltares.com/blog/games/fixing-your-timestep-in-libgdx-and-box2d/
 
-PhysicsSystem::PhysicsSystem() : IteratingSystem(ECS::Family::all<PhysicsComponent, RenderComponent>().get())
+PhysicsSystem::PhysicsSystem(std::unique_ptr<b2World>& p_world) : IteratingSystem(ECS::Family::all<PhysicsComponent, RenderComponent>().get()), m_world(p_world)
 {
   m_fixedStepLimit = 1 / 60.0f;
   m_accumulator = 0;
@@ -13,8 +13,6 @@ PhysicsSystem::PhysicsSystem() : IteratingSystem(ECS::Family::all<PhysicsCompone
 
 void PhysicsSystem::update(float p_dt)
 {
-  auto& world = Game::Get().getWorld();
-
   if (p_dt > 0.25f)
   {
     p_dt = 0.25f;	  // note: max frame time to avoid spiral of death
@@ -25,13 +23,11 @@ void PhysicsSystem::update(float p_dt)
   while (m_accumulator >= m_fixedStepLimit) {
     copyCurrentPosition();
 
-    world.Step(m_fixedStepLimit, 10, 8);
+    m_world->Step(m_fixedStepLimit, 10, 8);
     m_accumulator -= m_fixedStepLimit;
 
     IteratingSystem::update(p_dt);
   }
-
-  
 }
 
 void PhysicsSystem::processEntity(ECS::Entity* p_entity, float p_dt)
@@ -53,7 +49,7 @@ void PhysicsSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   auto interpolatedY = body->GetPosition().y * alpha + cPhysics->previousPosition.y * (1.0f - alpha);
   auto interpolatedAngle = body->GetAngle() * alpha + cPhysics->previousAngle * (1.0f - alpha);
 
-  sprite->setPosition(interpolatedX * Game::PIXELS_PER_METER, interpolatedY * Game::PIXELS_PER_METER);
+  sprite->setPosition(interpolatedX * Constants::PIXELS_PER_METER, interpolatedY * Constants::PIXELS_PER_METER);
   sprite->setRotation(interpolatedAngle);
 
   if (cPhysics->hasMaxSpeed)
@@ -80,9 +76,8 @@ void PhysicsSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
 void PhysicsSystem::copyCurrentPosition() const
 {
-  auto& engine = Game::Get().getEngine();
-  auto entities = engine.getEntitiesFor(ECS::Family::all<PhysicsComponent, RenderComponent>().get());
-
+  auto entities = this->getEntities();
+  
   for (auto it = entities->begin(); it != entities->end(); ++it)
   {
     auto entity = *it;

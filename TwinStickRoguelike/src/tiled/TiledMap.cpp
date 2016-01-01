@@ -3,11 +3,11 @@
 #include <fstream>
 #include <sstream>
 #include <Box2D/Collision/Shapes/b2PolygonShape.h>
-#include <Game.hpp>
 #include <components/PhysicsComponent.hpp>
 #include <physics/b2Separator.h>
 #include <Thor/Math.hpp>
 #include <components/TiledCollisionShapeComponent.hpp>
+#include <Constants.hpp>
 
 TiledMap::TiledMap()
 {
@@ -87,7 +87,7 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
 
       auto sep = new b2Separator();
 
-      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Game::PIXELS_PER_METER);
+      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Constants::PIXELS_PER_METER);
 
       auto entity = p_engine->createEntity();
 
@@ -231,7 +231,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             auto height = curObject["height"].get<int>() / 2;
 
             auto box = new b2PolygonShape();
-            box->SetAsBox(width / Game::PIXELS_PER_METER, height / Game::PIXELS_PER_METER);
+            box->SetAsBox(width / Constants::PIXELS_PER_METER, height / Constants::PIXELS_PER_METER);
 
             auto x = curObject["x"].get<int>() + width;
             auto y = curObject["y"].get<int>() + height;
@@ -239,7 +239,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             b2BodyDef bodyDef;
             bodyDef.type = b2_staticBody;
             bodyDef.fixedRotation = true;
-            bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
+            bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
             map.addCollisionShape(CollisionShape{ bodyDef, objectType, box });
           }
@@ -250,7 +250,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             auto radius = width > height ? width : height;
 
             auto circle = new b2CircleShape();
-            circle->m_radius = radius / Game::PIXELS_PER_METER;
+            circle->m_radius = radius / Constants::PIXELS_PER_METER;
 
             auto x = curObject["x"].get<int>() + width;
             auto y = curObject["y"].get<int>() + height;
@@ -258,15 +258,15 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             b2BodyDef bodyDef;
             bodyDef.type = b2_staticBody;
             bodyDef.fixedRotation = true;
-            bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
+            bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
             map.addCollisionShape(CollisionShape{ bodyDef, objectType, circle });
           }
           // currently broken
           else if (objectType == "ellipse")
           {
-            auto width = curObject["width"].get<int>() / 2 / Game::PIXELS_PER_METER;
-            auto height = curObject["height"].get<int>() / 2 / Game::PIXELS_PER_METER;
+            auto width = curObject["width"].get<int>() / 2 / Constants::PIXELS_PER_METER;
+            auto height = curObject["height"].get<int>() / 2 / Constants::PIXELS_PER_METER;
 
             auto segments = 32;
             auto segmentLength = 2 * thor::Pi / segments;
@@ -291,7 +291,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             b2BodyDef bodyDef;
             bodyDef.type = b2_staticBody;
             bodyDef.fixedRotation = true;
-            bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
+            bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
             map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
           }
@@ -304,7 +304,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             {
               auto curPoint = curObject["polygon"][k];
 
-              points[k] = b2Vec2(curPoint["x"].get<int>() / Game::PIXELS_PER_METER, curPoint["y"].get<int>() / Game::PIXELS_PER_METER);
+              points[k] = b2Vec2(curPoint["x"].get<int>() / Constants::PIXELS_PER_METER, curPoint["y"].get<int>() / Constants::PIXELS_PER_METER);
             }
 
             auto polygon = new b2PolygonShape();
@@ -318,7 +318,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             b2BodyDef bodyDef;
             bodyDef.type = b2_staticBody;
             bodyDef.fixedRotation = true;
-            bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
+            bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
             map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
           }
@@ -331,7 +331,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             {
               auto curPoint = curObject["polygon"][k];
 
-              points->push_back(b2Vec2(curPoint["x"].get<int>() / Game::PIXELS_PER_METER, curPoint["y"].get<int>() / Game::PIXELS_PER_METER));
+              points->push_back(b2Vec2(curPoint["x"].get<int>() / Constants::PIXELS_PER_METER, curPoint["y"].get<int>() / Constants::PIXELS_PER_METER));
             }
 
             auto x = curObject["x"].get<int>();
@@ -340,7 +340,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             b2BodyDef bodyDef;
             bodyDef.type = b2_staticBody;
             bodyDef.fixedRotation = true;
-            bodyDef.position.Set(x / Game::PIXELS_PER_METER, y / Game::PIXELS_PER_METER);
+            bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
             map.addCollisionShape(CollisionShape{ bodyDef, objectType, points });
           }

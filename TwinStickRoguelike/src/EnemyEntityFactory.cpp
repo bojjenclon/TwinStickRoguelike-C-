@@ -8,6 +8,7 @@
 #include <collisions/CollisionData.hpp>
 #include <components/BehaviorTreeComponent.hpp>
 #include <ai/MoveTowardNode.hpp>
+#include <Constants.hpp>
 
 ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, sf::Vector2f p_position)
 {
@@ -44,7 +45,7 @@ ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, sf
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
   bodyDef.fixedRotation = true;
-  bodyDef.position.Set(p_position.x / Game::PIXELS_PER_METER, p_position.y / Game::PIXELS_PER_METER);
+  bodyDef.position.Set(p_position.x / Constants::PIXELS_PER_METER, p_position.y / Constants::PIXELS_PER_METER);
 
   auto body = world.CreateBody(&bodyDef);
 
