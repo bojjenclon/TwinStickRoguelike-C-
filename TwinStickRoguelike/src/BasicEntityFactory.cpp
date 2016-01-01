@@ -25,7 +25,7 @@ ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_de
   return entity;
 }
 
-ECS::Entity* BasicEntityFactory::makeUIContainer(sf::Sprite& p_sprite, CefRefPtr<CefBrowser> p_browser, UIValues& p_uiValues)
+ECS::Entity* BasicEntityFactory::makeUIContainer(sf::Sprite& p_sprite, WebView* p_webView, UIValues& p_uiValues)
 {
   auto& engine = Game::Get().getEngine();
 
@@ -38,7 +38,7 @@ ECS::Entity* BasicEntityFactory::makeUIContainer(sf::Sprite& p_sprite, CefRefPtr
 
   auto cUI = engine.createComponent<UIComponent>();
   entity->add(cUI);
-  cUI->uiBrowser = p_browser;
+  cUI->uiWebView = p_webView;
   cUI->uiValues = &p_uiValues;
 
   return entity;

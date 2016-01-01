@@ -16,7 +16,7 @@ gulp.task('babel', () => {
       presets: ['es2015']
     }))
     .pipe(remember('babel'))
-    .pipe(gulp.dest('dist/js'));
+    .pipe(gulp.dest('compiled/js'));
 });
 
 const sass = require('gulp-sass');
@@ -25,14 +25,14 @@ gulp.task('sass', function () {
     .pipe(cache('sass'))
     .pipe(sass().on('error', sass.logError))
     .pipe(remember('sass'))
-    .pipe(gulp.dest('dist/css'));
+    .pipe(gulp.dest('compiled/css'));
 });
 
 /* Tasks to minify js and css */
 
 const uglify = require('gulp-uglify'); 
 gulp.task('minify-js', function() {
-  return gulp.src(['js/**/*.js', 'dist/js/**/*.js', '!js/jscrollpane.min.js'])
+  return gulp.src(['js/**/*.js', 'compiled/js/**/*.js', '!js/jscrollpane.min.js'])
     .pipe(cache('minify-js'))
     .pipe(uglify())
     .pipe(remember('minify-js'))
@@ -41,7 +41,7 @@ gulp.task('minify-js', function() {
 
 const minifyCss = require('gulp-minify-css');
 gulp.task('minify-css', function() {
-  return gulp.src(['dist/css/*.css'])
+  return gulp.src(['compiled/css/*.css'])
     .pipe(cache('minify-css'))
     .pipe(minifyCss())
     .pipe(remember('minify-css'))

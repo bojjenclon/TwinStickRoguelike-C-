@@ -2,14 +2,14 @@
 #define GAME_HPP
 
 #include <SFML/Graphics.hpp>
-#include <include/cef_app.h>
+#include <Awesomium/WebCore.h>
+#include <Awesomium/BitmapSurface.h>
 #include <ecstasy/core/Engine.h>
 #include <Box2D/Box2d.h>
-
 #include <ResourceManager.hpp>
 #include <UIValues.hpp>
-#include <cef/BrowserClient.hpp>
-#include <cef/RenderHandler.hpp>
+
+using namespace Awesomium;
 
 class Game
 {
@@ -20,7 +20,7 @@ public:
 
   void loadMedia();
 
-  void handleBrowserEvents(sf::Event& p_event);
+  void handleBrowserEvents(sf::Event& p_event) const;
 
   const sf::RenderWindow& getWindow() const;
   ECS::Entity* getPlayer() const;
@@ -48,9 +48,12 @@ private:
   sf::RenderWindow m_window;
   sf::Sprite m_uiSprite;
 
-  CefRefPtr<RenderHandler> m_uiRenderHandler;
-  CefRefPtr<CefBrowser> m_uiBrowser;
-  CefRefPtr<BrowserClient> m_uiBrowserClient;
+  WebCore* m_webCore;
+  WebSession* m_webSession;
+  WebView* m_webView;
+  BitmapSurface* m_uiSurface;
+  unsigned char* m_uiRGBABuffer;
+  sf::Texture* m_uiTexture;
 
   ResourceManager m_resources;
 

@@ -2,13 +2,12 @@
 
 #include <iostream>
 #include <algorithm>
-
-#include <Thor/Math.hpp>
-
+#include <codecvt>
+#include <Awesomium/STLHelpers.h>
+#include <Awesomium/DataPak.h>
 #include <BasicEntityFactory.hpp>
 #include <systems/RenderSystem.hpp>
 #include <systems/UIUpdateSystem.hpp>
-#include <cef/BrowserApp.hpp>
 #include <systems/PlayerInputSystem.hpp>
 #include <systems/AnimationSystem.hpp>
 #include <systems/LifetimeSystem.hpp>
@@ -25,148 +24,132 @@
 #include <EnemyEntityFactory.hpp>
 #include <tiled/TiledMap.hpp>
 #include <tiled/TiledTileLayerDrawable.hpp>
-#include <components/TiledCollisionShapeComponent.hpp>
-#include <components/PhysicsComponent.hpp>
-
-WPARAM sfkeyToWparam(sf::Keyboard::Key key)
-{
-  switch (key)
-  {
-  case sf::Keyboard::LControl: return VK_LCONTROL;
-  case sf::Keyboard::RControl: return VK_RCONTROL;
-  case sf::Keyboard::LShift: return VK_LSHIFT;
-  case sf::Keyboard::RShift: return VK_RSHIFT;
-  case sf::Keyboard::LAlt: return VK_LMENU;
-  case sf::Keyboard::RAlt: return VK_RMENU;
-  case sf::Keyboard::LSystem: return VK_LWIN;
-  case sf::Keyboard::RSystem: return VK_RWIN;
-  case sf::Keyboard::Menu: return VK_APPS;
-  case sf::Keyboard::SemiColon: return VK_OEM_1;
-  case sf::Keyboard::Slash: return VK_OEM_2;
-  case sf::Keyboard::Equal: return VK_OEM_PLUS;
-  case sf::Keyboard::Dash: return VK_OEM_MINUS;
-  case sf::Keyboard::LBracket: return VK_OEM_4;
-  case sf::Keyboard::RBracket: return VK_OEM_6;
-  case sf::Keyboard::Comma: return VK_OEM_COMMA;
-  case sf::Keyboard::Period: return VK_OEM_PERIOD;
-  case sf::Keyboard::Quote: return VK_OEM_7;
-  case sf::Keyboard::BackSlash: return VK_OEM_5;
-  case sf::Keyboard::Tilde: return VK_OEM_3;
-  case sf::Keyboard::Escape: return VK_ESCAPE;
-  case sf::Keyboard::Space: return VK_SPACE;
-  case sf::Keyboard::Return: return VK_RETURN;
-  case sf::Keyboard::BackSpace: return VK_BACK;
-  case sf::Keyboard::Tab: return VK_TAB;
-  case sf::Keyboard::PageUp: return VK_PRIOR;
-  case sf::Keyboard::PageDown: return VK_NEXT;
-  case sf::Keyboard::End: return VK_END;
-  case sf::Keyboard::Home: return VK_HOME;
-  case sf::Keyboard::Insert: return VK_INSERT;
-  case sf::Keyboard::Delete: return VK_DELETE;
-  case sf::Keyboard::Add: return VK_ADD;
-  case sf::Keyboard::Subtract: return VK_SUBTRACT;
-  case sf::Keyboard::Multiply: return VK_MULTIPLY;
-  case sf::Keyboard::Divide: return VK_DIVIDE;
-  case sf::Keyboard::Pause: return VK_PAUSE;
-  case sf::Keyboard::F1: return VK_F1;
-  case sf::Keyboard::F2: return VK_F2;
-  case sf::Keyboard::F3: return VK_F3;
-  case sf::Keyboard::F4: return VK_F4;
-  case sf::Keyboard::F5: return VK_F5;
-  case sf::Keyboard::F6: return VK_F6;
-  case sf::Keyboard::F7: return VK_F7;
-  case sf::Keyboard::F8: return VK_F8;
-  case sf::Keyboard::F9: return VK_F9;
-  case sf::Keyboard::F10: return VK_F10;
-  case sf::Keyboard::F11: return VK_F11;
-  case sf::Keyboard::F12: return VK_F12;
-  case sf::Keyboard::F13: return VK_F13;
-  case sf::Keyboard::F14: return VK_F14;
-  case sf::Keyboard::F15: return VK_F15;
-  case sf::Keyboard::Left: return VK_LEFT;
-  case sf::Keyboard::Right: return VK_RIGHT;
-  case sf::Keyboard::Up: return VK_UP;
-  case sf::Keyboard::Down: return VK_DOWN;
-  case sf::Keyboard::Numpad0: return VK_NUMPAD0;
-  case sf::Keyboard::Numpad1: return VK_NUMPAD1;
-  case sf::Keyboard::Numpad2: return VK_NUMPAD2;
-  case sf::Keyboard::Numpad3: return VK_NUMPAD3;
-  case sf::Keyboard::Numpad4: return VK_NUMPAD4;
-  case sf::Keyboard::Numpad5: return VK_NUMPAD5;
-  case sf::Keyboard::Numpad6: return VK_NUMPAD6;
-  case sf::Keyboard::Numpad7: return VK_NUMPAD7;
-  case sf::Keyboard::Numpad8: return VK_NUMPAD8;
-  case sf::Keyboard::Numpad9: return VK_NUMPAD9;
-  case sf::Keyboard::A: return 'A';
-  case sf::Keyboard::B: return 'B';
-  case sf::Keyboard::C: return 'C';
-  case sf::Keyboard::D: return 'D';
-  case sf::Keyboard::E: return 'E';
-  case sf::Keyboard::F: return 'F';
-  case sf::Keyboard::G: return 'G';
-  case sf::Keyboard::H: return 'H';
-  case sf::Keyboard::I: return 'I';
-  case sf::Keyboard::J: return 'J';
-  case sf::Keyboard::K: return 'K';
-  case sf::Keyboard::L: return 'L';
-  case sf::Keyboard::M: return 'M';
-  case sf::Keyboard::N: return 'N';
-  case sf::Keyboard::O: return 'O';
-  case sf::Keyboard::P: return 'P';
-  case sf::Keyboard::Q: return 'Q';
-  case sf::Keyboard::R: return 'R';
-  case sf::Keyboard::S: return 'S';
-  case sf::Keyboard::T: return 'T';
-  case sf::Keyboard::U: return 'U';
-  case sf::Keyboard::V: return 'V';
-  case sf::Keyboard::W: return 'W';
-  case sf::Keyboard::X: return 'X';
-  case sf::Keyboard::Y: return 'Y';
-  case sf::Keyboard::Z: return 'Z';
-  case sf::Keyboard::Num0: return '0';
-  case sf::Keyboard::Num1: return '1';
-  case sf::Keyboard::Num2: return '2';
-  case sf::Keyboard::Num3: return '3';
-  case sf::Keyboard::Num4: return '4';
-  case sf::Keyboard::Num5: return '5';
-  case sf::Keyboard::Num6: return '6';
-  case sf::Keyboard::Num7: return '7';
-  case sf::Keyboard::Num8: return '8';
-  case sf::Keyboard::Num9: return '9';
-  }
-
-  return VK_NONAME;
-}
 
 int GetKeyboardModifiers()
 {
   int mod = 0;
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
   {
-    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_LEFT;
+    mod |= WebKeyboardEvent::kModControlKey;
   }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
   {
-    mod |= EVENTFLAG_CONTROL_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+    mod |= WebKeyboardEvent::kModShiftKey;
   }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
   {
-    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
-  {
-    mod |= EVENTFLAG_SHIFT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))
-  {
-    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_LEFT;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt))
-  {
-    mod |= EVENTFLAG_ALT_DOWN;// mod |= EVENTFLAG_IS_RIGHT;
+    mod |= WebKeyboardEvent::kModAltKey;
   }
 
   return mod;
+}
+
+int getWebKeyFromSFMLKey(sf::Keyboard::Key key) {
+  switch (key)
+  {
+  case sf::Keyboard::LControl: return KeyCodes::AK_CONTROL;
+  case sf::Keyboard::RControl: return KeyCodes::AK_CONTROL;
+  case sf::Keyboard::LShift: return KeyCodes::AK_SHIFT;
+  case sf::Keyboard::RShift: return KeyCodes::AK_SHIFT;
+  case sf::Keyboard::LAlt: return KeyCodes::AK_LMENU;
+  case sf::Keyboard::RAlt: return KeyCodes::AK_RMENU;
+  case sf::Keyboard::LSystem: return KeyCodes::AK_LWIN;
+  case sf::Keyboard::RSystem: return KeyCodes::AK_RWIN;
+  case sf::Keyboard::Menu: return KeyCodes::AK_MENU;
+  case sf::Keyboard::SemiColon: return KeyCodes::AK_OEM_1;
+  case sf::Keyboard::Slash: return KeyCodes::AK_OEM_1;
+  case sf::Keyboard::Equal: return KeyCodes::AK_OEM_PLUS;
+  case sf::Keyboard::Dash: return KeyCodes::AK_OEM_MINUS;
+  case sf::Keyboard::LBracket: return KeyCodes::AK_OEM_4;
+  case sf::Keyboard::RBracket: return KeyCodes::AK_OEM_6;
+  case sf::Keyboard::Comma: return KeyCodes::AK_OEM_COMMA;
+  case sf::Keyboard::Period: return KeyCodes::AK_OEM_PERIOD;
+  case sf::Keyboard::Quote: return KeyCodes::AK_OEM_7;
+  case sf::Keyboard::BackSlash: return KeyCodes::AK_OEM_5;
+  case sf::Keyboard::Tilde: return KeyCodes::AK_OEM_3;
+  case sf::Keyboard::Escape: return KeyCodes::AK_ESCAPE;
+  case sf::Keyboard::Space: return KeyCodes::AK_SPACE;
+  case sf::Keyboard::Return: return KeyCodes::AK_RETURN;
+  case sf::Keyboard::BackSpace: return KeyCodes::AK_BACK;
+  case sf::Keyboard::Tab: return KeyCodes::AK_TAB;
+  case sf::Keyboard::PageUp: return KeyCodes::AK_PRIOR;
+  case sf::Keyboard::PageDown: return KeyCodes::AK_NEXT;
+  case sf::Keyboard::End: return KeyCodes::AK_END;
+  case sf::Keyboard::Home: return KeyCodes::AK_HOME;
+  case sf::Keyboard::Insert: return KeyCodes::AK_INSERT;
+  case sf::Keyboard::Delete: return KeyCodes::AK_DELETE;
+  case sf::Keyboard::Add: return KeyCodes::AK_ADD;
+  case sf::Keyboard::Subtract: return KeyCodes::AK_SUBTRACT;
+  case sf::Keyboard::Multiply: return KeyCodes::AK_MULTIPLY;
+  case sf::Keyboard::Divide: return KeyCodes::AK_DIVIDE;
+  case sf::Keyboard::Pause: return KeyCodes::AK_PAUSE;
+  case sf::Keyboard::F1: return KeyCodes::AK_F1;
+  case sf::Keyboard::F2: return KeyCodes::AK_F2;
+  case sf::Keyboard::F3: return KeyCodes::AK_F3;
+  case sf::Keyboard::F4: return KeyCodes::AK_F4;
+  case sf::Keyboard::F5: return KeyCodes::AK_F5;
+  case sf::Keyboard::F6: return KeyCodes::AK_F6;
+  case sf::Keyboard::F7: return KeyCodes::AK_F7;
+  case sf::Keyboard::F8: return KeyCodes::AK_F8;
+  case sf::Keyboard::F9: return KeyCodes::AK_F9;
+  case sf::Keyboard::F10: return KeyCodes::AK_F10;
+  case sf::Keyboard::F11: return KeyCodes::AK_F11;
+  case sf::Keyboard::F12: return KeyCodes::AK_F12;
+  case sf::Keyboard::F13: return KeyCodes::AK_F13;
+  case sf::Keyboard::F14: return KeyCodes::AK_F14;
+  case sf::Keyboard::F15: return KeyCodes::AK_F15;
+  case sf::Keyboard::Left: return KeyCodes::AK_LEFT;
+  case sf::Keyboard::Right: return KeyCodes::AK_RIGHT;
+  case sf::Keyboard::Up: return KeyCodes::AK_UP;
+  case sf::Keyboard::Down: return KeyCodes::AK_DOWN;
+  case sf::Keyboard::Numpad0: return KeyCodes::AK_NUMPAD0;
+  case sf::Keyboard::Numpad1: return KeyCodes::AK_NUMPAD1;
+  case sf::Keyboard::Numpad2: return KeyCodes::AK_NUMPAD2;
+  case sf::Keyboard::Numpad3: return KeyCodes::AK_NUMPAD3;
+  case sf::Keyboard::Numpad4: return KeyCodes::AK_NUMPAD4;
+  case sf::Keyboard::Numpad5: return KeyCodes::AK_NUMPAD5;
+  case sf::Keyboard::Numpad6: return KeyCodes::AK_NUMPAD6;
+  case sf::Keyboard::Numpad7: return KeyCodes::AK_NUMPAD7;
+  case sf::Keyboard::Numpad8: return KeyCodes::AK_NUMPAD8;
+  case sf::Keyboard::Numpad9: return KeyCodes::AK_NUMPAD9;
+  case sf::Keyboard::A: return KeyCodes::AK_A;
+  case sf::Keyboard::B: return KeyCodes::AK_B;
+  case sf::Keyboard::C: return KeyCodes::AK_C;
+  case sf::Keyboard::D: return KeyCodes::AK_D;
+  case sf::Keyboard::E: return KeyCodes::AK_E;
+  case sf::Keyboard::F: return KeyCodes::AK_F;
+  case sf::Keyboard::G: return KeyCodes::AK_G;
+  case sf::Keyboard::H: return KeyCodes::AK_H;
+  case sf::Keyboard::I: return KeyCodes::AK_I;
+  case sf::Keyboard::J: return KeyCodes::AK_J;
+  case sf::Keyboard::K: return KeyCodes::AK_K;
+  case sf::Keyboard::L: return KeyCodes::AK_L;
+  case sf::Keyboard::M: return KeyCodes::AK_M;
+  case sf::Keyboard::N: return KeyCodes::AK_N;
+  case sf::Keyboard::O: return KeyCodes::AK_O;
+  case sf::Keyboard::P: return KeyCodes::AK_P;
+  case sf::Keyboard::Q: return KeyCodes::AK_Q;
+  case sf::Keyboard::R: return KeyCodes::AK_R;
+  case sf::Keyboard::S: return KeyCodes::AK_S;
+  case sf::Keyboard::T: return KeyCodes::AK_T;
+  case sf::Keyboard::U: return KeyCodes::AK_U;
+  case sf::Keyboard::V: return KeyCodes::AK_V;
+  case sf::Keyboard::W: return KeyCodes::AK_W;
+  case sf::Keyboard::X: return KeyCodes::AK_X;
+  case sf::Keyboard::Y: return KeyCodes::AK_Y;
+  case sf::Keyboard::Z: return KeyCodes::AK_Z;
+  case sf::Keyboard::Num0: return KeyCodes::AK_0;
+  case sf::Keyboard::Num1: return KeyCodes::AK_1;
+  case sf::Keyboard::Num2: return KeyCodes::AK_2;
+  case sf::Keyboard::Num3: return KeyCodes::AK_3;
+  case sf::Keyboard::Num4: return KeyCodes::AK_4;
+  case sf::Keyboard::Num5: return KeyCodes::AK_5;
+  case sf::Keyboard::Num6: return KeyCodes::AK_6;
+  case sf::Keyboard::Num7: return KeyCodes::AK_7;
+  case sf::Keyboard::Num8: return KeyCodes::AK_8;
+  case sf::Keyboard::Num9: return KeyCodes::AK_9;
+  default: return KeyCodes::AK_UNKNOWN;
+  }
 }
 
 const float Game::PIXELS_PER_METER = 100.0f;
@@ -182,67 +165,49 @@ Game::Game()
 
 bool Game::start()
 {
-  CefMainArgs args(GetModuleHandle(nullptr));
-
-  CefRefPtr<BrowserApp> app(new BrowserApp());
-
-  auto exit_code = CefExecuteProcess(args, app.get(), nullptr);
-  if (exit_code >= 0)
-  {
-    return false;
-  }
-
-  m_window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML + CEF3");
+  m_window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML + Awesomium");
   m_window.setFramerateLimit(60);
 
-  CefSettings settings;
-  settings.multi_threaded_message_loop = false;
-  settings.single_process = false;
-
-  auto result = CefInitialize(args, settings, app.get(), nullptr);
-
-  if (!result)
-  {
-    // handle error
-    return false;
-  }
+  loadMedia();
 
   auto path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
   //std::string               path = "http://deanm.github.io/pre3d/monster.html";
   //std::string               path = "http://www.google.com";
   //std::string               path = "http://www.bojjenclon.com";
 
-  auto command_line = CefCommandLine::GetGlobalCommandLine();
-#ifndef _DEBUG
-  command_line->AppendSwitch("off-screen-rendering-enabled");
-  //command_line->AppendSwitchWithValue("off-screen-frame-rate", "60");
-  command_line->AppendSwitch("disable-gpu");
-  //command_line->AppendSwitch("enable-media-stream");
-  command_line->AppendSwitch("disable-gpu-compositing");
-  command_line->AppendSwitch("enable-begin-frame-scheduling");
-#endif
+  m_webCore = WebCore::Initialize(WebConfig());
 
-  if (command_line->HasSwitch("url"))
+  m_webSession = m_webCore->CreateWebSession(WSLit(""), WebPreferences());
+  DataSource* data_source = new DataPakSource(WSLit((GetApplicationDir() + "/resources.pak").c_str()));
+  m_webSession->AddDataSource(WSLit("app"), data_source);
+
+  m_webView = m_webCore->CreateWebView(SCREEN_WIDTH, SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
+  m_webView->SetTransparent(true);
+  
+  WebURL url(WSLit("asset://app/InGameHud.html"));
+  m_webView->LoadURL(url);
+
+  while (m_webView->IsLoading())
   {
-    path = command_line->GetSwitchValue("url");
+    m_webCore->Update();
   }
 
-  auto uiTexture = new sf::Texture();
-  uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
-  m_uiSprite.setTexture(*uiTexture);
+  Sleep(300);
+  m_webCore->Update();
 
-  loadMedia();
+  // ensure nothing on the page can be selected
+  m_webView->ExecuteJavascript(WSLit("document.body.onselectstart = function() { return false; }"), WSLit(""));
+  
+  m_uiSurface = static_cast<BitmapSurface*>(m_webView->surface());
 
-  m_uiRenderHandler = new RenderHandler(uiTexture);
+  m_uiTexture = new sf::Texture();
+  m_uiTexture->create(SCREEN_WIDTH, SCREEN_HEIGHT);
+  m_uiSprite.setTexture(*m_uiTexture);
 
-  CefWindowInfo window_info;
-  CefBrowserSettings browserSettings;
+  m_uiRGBABuffer = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT * 4];
 
-  window_info.windowless_rendering_enabled = true;
-  window_info.transparent_painting_enabled = true;
-
-  m_uiBrowserClient = new BrowserClient(m_uiRenderHandler, m_uiValues);
-  m_uiBrowser = CefBrowserHost::CreateBrowserSync(window_info, m_uiBrowserClient.get(), path, browserSettings, nullptr);
+  m_uiSurface->CopyTo(m_uiRGBABuffer, SCREEN_WIDTH * 4, 4, true, false);
+  m_uiTexture->update(m_uiRGBABuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
@@ -299,7 +264,7 @@ bool Game::start()
 
   /* Entity Setup Begin */
 
-  auto uiContainer = BasicEntityFactory::makeUIContainer(m_uiSprite, m_uiBrowser, m_uiValues);
+  auto uiContainer = BasicEntityFactory::makeUIContainer(m_uiSprite, m_webView, m_uiValues);
   m_engine->addEntity(uiContainer);
   
   m_player = BasicEntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
@@ -308,9 +273,9 @@ bool Game::start()
   auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
 
-/* Entity Setup End */
+  /* Entity Setup End */
 
-return true;
+  return true;
 }
 
 void Game::mainLoop()
@@ -393,19 +358,27 @@ void Game::mainLoop()
           auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
           physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
         }
-        else if (event.key.code == sf::Keyboard::Numpad4)
+        else if (event.key.code == sf::Keyboard::Numpad5)
         {
-          map.removeCollision(m_world, m_engine);
-        }
-        else if (event.key.code == sf::Keyboard::Numpad6)
-        {
-          map.addCollision(m_world, m_engine);
+          if (map.isCollisionAdded())
+          {
+            map.removeCollision(m_world, m_engine);
+          }
+          else
+          {
+            map.addCollision(m_world, m_engine);
+          }
         }
       }
     }
 
-    m_uiRenderHandler->update();
-    m_uiRenderHandler->updateTexture();
+    m_webCore->Update();
+
+    if (m_uiSurface->is_dirty())
+    {
+      m_uiSurface->CopyTo(m_uiRGBABuffer, SCREEN_WIDTH * 4, 4, true, false);
+      m_uiTexture->update(m_uiRGBABuffer, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
+    }
 
     auto dt = deltaClock.restart();
     auto dtMillis = dt.asMilliseconds() / 1000.f;
@@ -422,19 +395,16 @@ void Game::mainLoop()
 
 void Game::quit()
 {
-  /*auto uiEntities = m_engine->getEntitiesFor(ECS::Family::all<UIComponent>().get());
-  for (auto i = 0; i < uiEntities->size(); i++)
-  {
-    uiEntities->at(i)->get<UIComponent>()->uiBrowser = nullptr;
-  }*/
+  m_webView->Destroy();
+  m_webSession->Release();
+  m_webCore->Shutdown();
 
-  m_uiBrowser->GetHost()->CloseBrowser(true);
-
-  m_uiRenderHandler = nullptr;
-  m_uiBrowser = nullptr;
-  m_uiBrowserClient = nullptr;
-
-  CefShutdown();
+  m_webCore = nullptr;
+  m_webSession = nullptr;
+  m_webView = nullptr;
+  m_uiSurface = nullptr;
+  m_uiRGBABuffer = nullptr;
+  m_uiTexture = nullptr;
 
   m_player = nullptr;
 }
@@ -454,125 +424,106 @@ void Game::loadMedia()
   std::cout << map.getTileId(1, 15, 8);*/
 }
 
-void Game::handleBrowserEvents(sf::Event& p_event)
+void Game::handleBrowserEvents(sf::Event& p_event) const
 {
-
-  m_uiBrowser->GetHost()->SendFocusEvent(true);
+  m_webView->Focus();
 
   if (p_event.type == sf::Event::MouseButtonPressed)
   {
-    if (m_clickClock.getElapsedTime().asSeconds() < m_clickTime && p_event.mouseButton.button == m_lastClickType)
-    {
-      m_clickCount++;
-    }
-    else
-    {
-      m_clickCount = 1;
-    }
-
-    m_lastClickType = p_event.mouseButton.button;
-
-    auto mousePosition = sf::Mouse::getPosition(m_window);
-    uint32 modifiers = GetKeyboardModifiers();
-
-    auto point = m_window.mapPixelToCoords(mousePosition);
-
-    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-    auto type = p_event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : p_event.mouseButton.button == sf::Mouse::Right ? MBT_RIGHT : MBT_MIDDLE;
-
-    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-    m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, false, m_clickCount);
-
-    m_clickClock.restart();
+    m_webView->InjectMouseDown(kMouseButton_Left);
   }
   else if (p_event.type == sf::Event::MouseButtonReleased)
   {
-    auto mousePosition = sf::Mouse::getPosition(m_window);
-    uint32 modifiers = GetKeyboardModifiers();
-
-    auto point = m_window.mapPixelToCoords(mousePosition);
-
-    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-    auto type = p_event.mouseButton.button == sf::Mouse::Left ? MBT_LEFT : MBT_RIGHT;
-
-    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-    m_uiBrowser->GetHost()->SendMouseClickEvent(cefEvent, type, true, m_clickCount);
+    m_webView->InjectMouseUp(kMouseButton_Left);
   }
   else if (p_event.type == sf::Event::MouseMoved)
   {
     auto mousePosition = sf::Mouse::getPosition(m_window);
-    uint32 modifiers = GetKeyboardModifiers();
-
     auto point = m_window.mapPixelToCoords(mousePosition);
 
-    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-
-    m_uiBrowser->GetHost()->SendMouseMoveEvent(cefEvent, false);
-  }
-  else if (p_event.type == sf::Event::MouseWheelScrolled)
-  {
-    auto mousePosition = sf::Mouse::getPosition(m_window);
-    uint32 modifiers = GetKeyboardModifiers();
-
-    auto point = m_window.mapPixelToCoords(mousePosition);
-
-    CefMouseEvent cefEvent({ static_cast<int>(point.x), static_cast<int>(point.y), modifiers });
-
-    m_uiBrowser->GetHost()->SendMouseWheelEvent(cefEvent, 0, p_event.mouseWheelScroll.delta * 10);
+    m_webView->InjectMouseMove(static_cast<int>(point.x), static_cast<int>(point.y));
   }
   else if (p_event.type == sf::Event::KeyPressed)
   {
-    auto key = sfkeyToWparam(p_event.key.code);
+    WebKeyboardEvent keyEvent;
 
-    if (key != VK_NONAME)
+    keyEvent.type = Awesomium::WebKeyboardEvent::kTypeKeyDown;
+
+    char* buf = new char[20];
+    keyEvent.virtual_key_code = getWebKeyFromSFMLKey(p_event.key.code);
+    Awesomium::GetKeyIdentifierFromVirtualKeyCode(keyEvent.virtual_key_code, &buf);
+    strcpy_s(keyEvent.key_identifier, buf);
+    delete[] buf;
+
+    keyEvent.modifiers = GetKeyboardModifiers();
+    keyEvent.native_key_code = p_event.key.system;
+
+    unsigned int chr;
+    if ((p_event.text.unicode & 0xFF80) == 0)
     {
-      uint32 modifiers = GetKeyboardModifiers();
-
-      CefKeyEvent e;
-      e.windows_key_code = key;
-      e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-      e.type = KEYEVENT_KEYDOWN;
-      e.is_system_key = false;
-      e.character = key;
-      e.unmodified_character = key;
-      //e.native_key_code = 0;
-
-      m_uiBrowser->GetHost()->SendKeyEvent(e);
+      chr = p_event.text.unicode & 0x7F;
     }
+    else
+    {
+      chr = p_event.text.unicode;
+    }
+
+    keyEvent.text[0] = chr;
+    keyEvent.unmodified_text[0] = chr;
+
+    m_webView->InjectKeyboardEvent(keyEvent);
   }
   else if (p_event.type == sf::Event::KeyReleased)
   {
-    auto key = sfkeyToWparam(p_event.key.code);
+    WebKeyboardEvent keyEvent;
 
-    if (key != VK_NONAME)
-    {
-      uint32 modifiers = GetKeyboardModifiers();
+    keyEvent.type = Awesomium::WebKeyboardEvent::kTypeKeyUp;
 
-      CefKeyEvent e;
-      e.windows_key_code = key;
-      e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-      e.type = KEYEVENT_KEYUP;
-      e.is_system_key = false;
-      e.character = key;
-      e.unmodified_character = key;
-      //e.native_key_code = 0;
+    char* buf = new char[20];
+    keyEvent.virtual_key_code = getWebKeyFromSFMLKey(p_event.key.code);
+    GetKeyIdentifierFromVirtualKeyCode(keyEvent.virtual_key_code, &buf);
+    strcpy_s(keyEvent.key_identifier, buf);
+    delete[] buf;
 
-      m_uiBrowser->GetHost()->SendKeyEvent(e);
-    }
+    keyEvent.modifiers = GetKeyboardModifiers();
+    keyEvent.native_key_code = p_event.key.system;
+
+    m_webView->InjectKeyboardEvent(keyEvent);
   }
   else if (p_event.type == sf::Event::TextEntered)
   {
-    auto key = static_cast<WPARAM>(static_cast<char>(p_event.text.unicode));
-    uint32 modifiers = GetKeyboardModifiers();
+    WebKeyboardEvent keyEvent;
 
-    CefKeyEvent e;
-    e.windows_key_code = key;
-    e.modifiers = modifiers == -1 ? GetKeyboardModifiers() : modifiers;
-    e.type = KEYEVENT_CHAR;
-    e.character = key;
-    e.unmodified_character = key;
+    keyEvent.type = Awesomium::WebKeyboardEvent::kTypeKeyUp;
 
-    m_uiBrowser->GetHost()->SendKeyEvent(e);
+    char* buf = new char[20];
+    keyEvent.virtual_key_code = getWebKeyFromSFMLKey(p_event.key.code);
+    GetKeyIdentifierFromVirtualKeyCode(keyEvent.virtual_key_code, &buf);
+    strcpy_s(keyEvent.key_identifier, buf);
+    delete[] buf;
+
+    keyEvent.modifiers = GetKeyboardModifiers();
+    keyEvent.native_key_code = p_event.key.system;
+
+    unsigned int chr;
+    if ((p_event.text.unicode & 0xFF80) == 0)
+    {
+      chr = p_event.text.unicode & 0x7F;
+    }
+    else
+    {
+      chr = p_event.text.unicode;
+    }
+
+    keyEvent.text[0] = chr;
+    keyEvent.unmodified_text[0] = chr;
+
+    if (chr) {
+      keyEvent.type = WebKeyboardEvent::kTypeChar;
+      keyEvent.virtual_key_code = chr;
+      keyEvent.native_key_code = chr;
+      m_webView->InjectKeyboardEvent(keyEvent);
+    }
   }
 }
 
@@ -647,8 +598,11 @@ std::string Game::GetApplicationDir()
 
   GetModuleFileNameW(hModule, wpath, MAX_PATH);
   std::wstring wide(wpath);
+  
+  typedef std::codecvt_utf8<wchar_t> convert_type;
+  std::wstring_convert<convert_type, wchar_t> converter;
 
-  std::string path = CefString(wide);
+  std::string path = converter.to_bytes(wide);
   std::replace(path.begin(), path.end(), '\\', '/');
   path = path.substr(0, path.find_last_of("\\/"));
 

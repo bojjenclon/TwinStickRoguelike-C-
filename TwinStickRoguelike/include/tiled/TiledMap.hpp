@@ -23,6 +23,7 @@ public:
 
   int getTileId(int p_layer, int p_x, int p_y) const;
 
+  bool isCollisionAdded() const;
   bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
   bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
 
@@ -43,7 +44,7 @@ private:
   std::vector<TiledTileLayer> m_tileLayers;
   std::vector<TiledTileset> m_tilesets;
 
-  bool m_isCollisionAdded = false;
+  bool m_collisionAdded = false;
 };
 
 #endif

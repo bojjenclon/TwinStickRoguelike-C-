@@ -2,19 +2,19 @@
 #define UI_COMPONENT_HPP
 
 #include <ecstasy/core/Component.h>
-
-#include <include/cef_browser.h>
-
+#include <Awesomium/WebCore.h>
 #include <UIValues.hpp>
+
+using namespace Awesomium;
 
 struct UIComponent : public ECS::Component<UIComponent>
 {
-  CefRefPtr<CefBrowser> uiBrowser = nullptr;
+  WebView* uiWebView = nullptr;
   UIValues* uiValues = nullptr;
 
   void reset() override
   {
-    uiBrowser = nullptr;
+    uiWebView = nullptr;
     uiValues = nullptr;
   }
 };

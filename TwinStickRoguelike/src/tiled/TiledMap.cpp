@@ -62,9 +62,14 @@ void TiledMap::addCollisionShape(CollisionShape p_shape)
   m_collisionShapes.push_back(p_shape);
 }
 
+bool TiledMap::isCollisionAdded() const
+{
+  return m_collisionAdded;
+}
+
 bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
 {
-  if (m_isCollisionAdded)
+  if (m_collisionAdded)
   {
     return false;
   }
@@ -116,14 +121,14 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
     }
   }
 
-  m_isCollisionAdded = true;
+  m_collisionAdded = true;
 
   return true;
 }
 
 bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
 {
-  if (!m_isCollisionAdded)
+  if (!m_collisionAdded)
   {
     return false;
   }
@@ -141,7 +146,7 @@ bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_pt
     p_engine->removeEntity(entity);
   }
 
-  m_isCollisionAdded = false;
+  m_collisionAdded = false;
 
   return true;
 }
