@@ -157,10 +157,6 @@ const float Game::PIXELS_PER_METER = 100.0f;
 Game::Game()
 {
   m_world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));
-
-  m_clickTime = 0.25f;
-  m_lastClickType = sf::Mouse::Left;
-  m_clickCount = 1;
 }
 
 bool Game::start()
@@ -169,11 +165,6 @@ bool Game::start()
   m_window.setFramerateLimit(60);
 
   loadMedia();
-
-  auto path = "file://" + GetApplicationDir() + "/../html/InGameHud.html";
-  //std::string               path = "http://deanm.github.io/pre3d/monster.html";
-  //std::string               path = "http://www.google.com";
-  //std::string               path = "http://www.bojjenclon.com";
 
   m_webCore = WebCore::Initialize(WebConfig());
 
@@ -295,7 +286,6 @@ void Game::mainLoop()
   m_engine->addEntity(fpsEntity);
 
   sf::Clock deltaClock;
-  m_clickClock.restart();
 
   auto map = TiledMap::loadFromJson("assets/levels/test.json");
   TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));

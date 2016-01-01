@@ -62,11 +62,6 @@ private:
   std::unique_ptr<ECS::Engine> m_engine = nullptr;
   ECS::Entity* m_player = nullptr;
 
-  sf::Clock m_clickClock;
-  float m_clickTime;
-  sf::Mouse::Button m_lastClickType;
-  int m_clickCount;
-  
   std::unique_ptr<b2World> m_world;
 
   ECS::Entity* m_target = nullptr;

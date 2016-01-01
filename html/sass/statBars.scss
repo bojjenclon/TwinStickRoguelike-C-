@@ -23,7 +23,7 @@
   border-bottom-left-radius: 20px;
   
   background-color: rgb(43,194,83);
-  background-image: linear-gradient(
+  background-image: -webkit-linear-gradient(
     center bottom,
     rgb(43,194,83) 37%,
     rgb(84,240,84) 69%
@@ -39,10 +39,10 @@
 
 .orange > span {
   background-color: #f1a165;
-  background-image: linear-gradient(to bottom, #f1a165, #f36d0a);
+  background-image: -webkit-linear-gradient(to bottom, #f1a165, #f36d0a);
 }
 
 .red > span {
   background-color: #f0a3a3;
-  background-image: linear-gradient(to bottom, #f0a3a3, #f42323);
+  background-image: -webkit-linear-gradient(to bottom, #f0a3a3, #f42323);
 }
