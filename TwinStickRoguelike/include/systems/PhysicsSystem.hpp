@@ -11,6 +11,12 @@ public:
 
   void update(float p_dt) override;
   void processEntity(ECS::Entity* p_entity, float p_dt) override;
+
+private:
+  float m_accumulator;
+  float m_fixedStepLimit;
+
+  void copyCurrentPosition() const;
 };
 
 #endif

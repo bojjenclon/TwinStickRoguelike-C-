@@ -11,12 +11,18 @@ struct PhysicsComponent : public ECS::Component<PhysicsComponent>
   bool hasMaxSpeed = true;
   b2Vec2 maxSpeed = b2Vec2(2, 2);
 
+  b2Vec2 previousPosition = b2Vec2(0, 0);
+  float previousAngle = 0.0f;
+
   void reset() override
   {
     body = nullptr;
 
     hasMaxSpeed = true;
-    maxSpeed = b2Vec2(50, 50);
+    maxSpeed = b2Vec2(2, 2);
+
+    previousPosition = b2Vec2(0, 0);
+    previousAngle = 0.0f;
   }
 };
 

@@ -156,7 +156,6 @@ const float Game::PIXELS_PER_METER = 100.0f;
 
 Game::Game()
 {
-  m_world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));
 }
 
 bool Game::start()
@@ -248,6 +247,8 @@ bool Game::start()
   /* Systems Setup End */
 
   /* Box2D Setup Begin */
+
+  m_world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));
 
   m_world->SetContactListener(new ContactListener());
 

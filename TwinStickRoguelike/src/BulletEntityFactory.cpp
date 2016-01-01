@@ -81,6 +81,8 @@ ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, 
   body->ApplyLinearImpulse(b2Vec2(p_options.velocity.x, p_options.velocity.y), body->GetWorldCenter(), true);
 
   cPhysics->body = body;
+  cPhysics->previousPosition.x = body->GetPosition().x;
+  cPhysics->previousPosition.y = body->GetPosition().y;
 
   /* Physics End */
 

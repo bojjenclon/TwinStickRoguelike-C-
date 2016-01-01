@@ -81,6 +81,8 @@ ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, sf
   body->CreateFixture(&fixtureDef);
 
   cPhysics->body = body;
+  cPhysics->previousPosition.x = body->GetPosition().x;
+  cPhysics->previousPosition.y = body->GetPosition().y;
 
   /* Physics End */
 
