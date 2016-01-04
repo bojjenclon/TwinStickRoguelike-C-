@@ -25,6 +25,11 @@
 #include <EnemyEntityFactory.hpp>
 #include <tiled/TiledMap.hpp>
 #include <tiled/TiledTileLayerDrawable.hpp>
+#include <pathfinding/MicropatherNode.hpp>
+#include <components/PhysicsComponent.hpp>
+#include <chrono>
+
+#define DRAW_PATH
 
 int GetKeyboardModifiers()
 {
@@ -45,111 +50,112 @@ int GetKeyboardModifiers()
   return mod;
 }
 
-int getWebKeyFromSFMLKey(sf::Keyboard::Key key) {
+int getWebKeyFromSFMLKey(sf::Keyboard::Key key)
+{
   switch (key)
   {
-  case sf::Keyboard::LControl: return KeyCodes::AK_CONTROL;
-  case sf::Keyboard::RControl: return KeyCodes::AK_CONTROL;
-  case sf::Keyboard::LShift: return KeyCodes::AK_SHIFT;
-  case sf::Keyboard::RShift: return KeyCodes::AK_SHIFT;
-  case sf::Keyboard::LAlt: return KeyCodes::AK_LMENU;
-  case sf::Keyboard::RAlt: return KeyCodes::AK_RMENU;
-  case sf::Keyboard::LSystem: return KeyCodes::AK_LWIN;
-  case sf::Keyboard::RSystem: return KeyCodes::AK_RWIN;
-  case sf::Keyboard::Menu: return KeyCodes::AK_MENU;
-  case sf::Keyboard::SemiColon: return KeyCodes::AK_OEM_1;
-  case sf::Keyboard::Slash: return KeyCodes::AK_OEM_1;
-  case sf::Keyboard::Equal: return KeyCodes::AK_OEM_PLUS;
-  case sf::Keyboard::Dash: return KeyCodes::AK_OEM_MINUS;
-  case sf::Keyboard::LBracket: return KeyCodes::AK_OEM_4;
-  case sf::Keyboard::RBracket: return KeyCodes::AK_OEM_6;
-  case sf::Keyboard::Comma: return KeyCodes::AK_OEM_COMMA;
-  case sf::Keyboard::Period: return KeyCodes::AK_OEM_PERIOD;
-  case sf::Keyboard::Quote: return KeyCodes::AK_OEM_7;
-  case sf::Keyboard::BackSlash: return KeyCodes::AK_OEM_5;
-  case sf::Keyboard::Tilde: return KeyCodes::AK_OEM_3;
-  case sf::Keyboard::Escape: return KeyCodes::AK_ESCAPE;
-  case sf::Keyboard::Space: return KeyCodes::AK_SPACE;
-  case sf::Keyboard::Return: return KeyCodes::AK_RETURN;
-  case sf::Keyboard::BackSpace: return KeyCodes::AK_BACK;
-  case sf::Keyboard::Tab: return KeyCodes::AK_TAB;
-  case sf::Keyboard::PageUp: return KeyCodes::AK_PRIOR;
-  case sf::Keyboard::PageDown: return KeyCodes::AK_NEXT;
-  case sf::Keyboard::End: return KeyCodes::AK_END;
-  case sf::Keyboard::Home: return KeyCodes::AK_HOME;
-  case sf::Keyboard::Insert: return KeyCodes::AK_INSERT;
-  case sf::Keyboard::Delete: return KeyCodes::AK_DELETE;
-  case sf::Keyboard::Add: return KeyCodes::AK_ADD;
-  case sf::Keyboard::Subtract: return KeyCodes::AK_SUBTRACT;
-  case sf::Keyboard::Multiply: return KeyCodes::AK_MULTIPLY;
-  case sf::Keyboard::Divide: return KeyCodes::AK_DIVIDE;
-  case sf::Keyboard::Pause: return KeyCodes::AK_PAUSE;
-  case sf::Keyboard::F1: return KeyCodes::AK_F1;
-  case sf::Keyboard::F2: return KeyCodes::AK_F2;
-  case sf::Keyboard::F3: return KeyCodes::AK_F3;
-  case sf::Keyboard::F4: return KeyCodes::AK_F4;
-  case sf::Keyboard::F5: return KeyCodes::AK_F5;
-  case sf::Keyboard::F6: return KeyCodes::AK_F6;
-  case sf::Keyboard::F7: return KeyCodes::AK_F7;
-  case sf::Keyboard::F8: return KeyCodes::AK_F8;
-  case sf::Keyboard::F9: return KeyCodes::AK_F9;
-  case sf::Keyboard::F10: return KeyCodes::AK_F10;
-  case sf::Keyboard::F11: return KeyCodes::AK_F11;
-  case sf::Keyboard::F12: return KeyCodes::AK_F12;
-  case sf::Keyboard::F13: return KeyCodes::AK_F13;
-  case sf::Keyboard::F14: return KeyCodes::AK_F14;
-  case sf::Keyboard::F15: return KeyCodes::AK_F15;
-  case sf::Keyboard::Left: return KeyCodes::AK_LEFT;
-  case sf::Keyboard::Right: return KeyCodes::AK_RIGHT;
-  case sf::Keyboard::Up: return KeyCodes::AK_UP;
-  case sf::Keyboard::Down: return KeyCodes::AK_DOWN;
-  case sf::Keyboard::Numpad0: return KeyCodes::AK_NUMPAD0;
-  case sf::Keyboard::Numpad1: return KeyCodes::AK_NUMPAD1;
-  case sf::Keyboard::Numpad2: return KeyCodes::AK_NUMPAD2;
-  case sf::Keyboard::Numpad3: return KeyCodes::AK_NUMPAD3;
-  case sf::Keyboard::Numpad4: return KeyCodes::AK_NUMPAD4;
-  case sf::Keyboard::Numpad5: return KeyCodes::AK_NUMPAD5;
-  case sf::Keyboard::Numpad6: return KeyCodes::AK_NUMPAD6;
-  case sf::Keyboard::Numpad7: return KeyCodes::AK_NUMPAD7;
-  case sf::Keyboard::Numpad8: return KeyCodes::AK_NUMPAD8;
-  case sf::Keyboard::Numpad9: return KeyCodes::AK_NUMPAD9;
-  case sf::Keyboard::A: return KeyCodes::AK_A;
-  case sf::Keyboard::B: return KeyCodes::AK_B;
-  case sf::Keyboard::C: return KeyCodes::AK_C;
-  case sf::Keyboard::D: return KeyCodes::AK_D;
-  case sf::Keyboard::E: return KeyCodes::AK_E;
-  case sf::Keyboard::F: return KeyCodes::AK_F;
-  case sf::Keyboard::G: return KeyCodes::AK_G;
-  case sf::Keyboard::H: return KeyCodes::AK_H;
-  case sf::Keyboard::I: return KeyCodes::AK_I;
-  case sf::Keyboard::J: return KeyCodes::AK_J;
-  case sf::Keyboard::K: return KeyCodes::AK_K;
-  case sf::Keyboard::L: return KeyCodes::AK_L;
-  case sf::Keyboard::M: return KeyCodes::AK_M;
-  case sf::Keyboard::N: return KeyCodes::AK_N;
-  case sf::Keyboard::O: return KeyCodes::AK_O;
-  case sf::Keyboard::P: return KeyCodes::AK_P;
-  case sf::Keyboard::Q: return KeyCodes::AK_Q;
-  case sf::Keyboard::R: return KeyCodes::AK_R;
-  case sf::Keyboard::S: return KeyCodes::AK_S;
-  case sf::Keyboard::T: return KeyCodes::AK_T;
-  case sf::Keyboard::U: return KeyCodes::AK_U;
-  case sf::Keyboard::V: return KeyCodes::AK_V;
-  case sf::Keyboard::W: return KeyCodes::AK_W;
-  case sf::Keyboard::X: return KeyCodes::AK_X;
-  case sf::Keyboard::Y: return KeyCodes::AK_Y;
-  case sf::Keyboard::Z: return KeyCodes::AK_Z;
-  case sf::Keyboard::Num0: return KeyCodes::AK_0;
-  case sf::Keyboard::Num1: return KeyCodes::AK_1;
-  case sf::Keyboard::Num2: return KeyCodes::AK_2;
-  case sf::Keyboard::Num3: return KeyCodes::AK_3;
-  case sf::Keyboard::Num4: return KeyCodes::AK_4;
-  case sf::Keyboard::Num5: return KeyCodes::AK_5;
-  case sf::Keyboard::Num6: return KeyCodes::AK_6;
-  case sf::Keyboard::Num7: return KeyCodes::AK_7;
-  case sf::Keyboard::Num8: return KeyCodes::AK_8;
-  case sf::Keyboard::Num9: return KeyCodes::AK_9;
-  default: return KeyCodes::AK_UNKNOWN;
+    case sf::Keyboard::LControl: return KeyCodes::AK_CONTROL;
+    case sf::Keyboard::RControl: return KeyCodes::AK_CONTROL;
+    case sf::Keyboard::LShift: return KeyCodes::AK_SHIFT;
+    case sf::Keyboard::RShift: return KeyCodes::AK_SHIFT;
+    case sf::Keyboard::LAlt: return KeyCodes::AK_LMENU;
+    case sf::Keyboard::RAlt: return KeyCodes::AK_RMENU;
+    case sf::Keyboard::LSystem: return KeyCodes::AK_LWIN;
+    case sf::Keyboard::RSystem: return KeyCodes::AK_RWIN;
+    case sf::Keyboard::Menu: return KeyCodes::AK_MENU;
+    case sf::Keyboard::SemiColon: return KeyCodes::AK_OEM_1;
+    case sf::Keyboard::Slash: return KeyCodes::AK_OEM_1;
+    case sf::Keyboard::Equal: return KeyCodes::AK_OEM_PLUS;
+    case sf::Keyboard::Dash: return KeyCodes::AK_OEM_MINUS;
+    case sf::Keyboard::LBracket: return KeyCodes::AK_OEM_4;
+    case sf::Keyboard::RBracket: return KeyCodes::AK_OEM_6;
+    case sf::Keyboard::Comma: return KeyCodes::AK_OEM_COMMA;
+    case sf::Keyboard::Period: return KeyCodes::AK_OEM_PERIOD;
+    case sf::Keyboard::Quote: return KeyCodes::AK_OEM_7;
+    case sf::Keyboard::BackSlash: return KeyCodes::AK_OEM_5;
+    case sf::Keyboard::Tilde: return KeyCodes::AK_OEM_3;
+    case sf::Keyboard::Escape: return KeyCodes::AK_ESCAPE;
+    case sf::Keyboard::Space: return KeyCodes::AK_SPACE;
+    case sf::Keyboard::Return: return KeyCodes::AK_RETURN;
+    case sf::Keyboard::BackSpace: return KeyCodes::AK_BACK;
+    case sf::Keyboard::Tab: return KeyCodes::AK_TAB;
+    case sf::Keyboard::PageUp: return KeyCodes::AK_PRIOR;
+    case sf::Keyboard::PageDown: return KeyCodes::AK_NEXT;
+    case sf::Keyboard::End: return KeyCodes::AK_END;
+    case sf::Keyboard::Home: return KeyCodes::AK_HOME;
+    case sf::Keyboard::Insert: return KeyCodes::AK_INSERT;
+    case sf::Keyboard::Delete: return KeyCodes::AK_DELETE;
+    case sf::Keyboard::Add: return KeyCodes::AK_ADD;
+    case sf::Keyboard::Subtract: return KeyCodes::AK_SUBTRACT;
+    case sf::Keyboard::Multiply: return KeyCodes::AK_MULTIPLY;
+    case sf::Keyboard::Divide: return KeyCodes::AK_DIVIDE;
+    case sf::Keyboard::Pause: return KeyCodes::AK_PAUSE;
+    case sf::Keyboard::F1: return KeyCodes::AK_F1;
+    case sf::Keyboard::F2: return KeyCodes::AK_F2;
+    case sf::Keyboard::F3: return KeyCodes::AK_F3;
+    case sf::Keyboard::F4: return KeyCodes::AK_F4;
+    case sf::Keyboard::F5: return KeyCodes::AK_F5;
+    case sf::Keyboard::F6: return KeyCodes::AK_F6;
+    case sf::Keyboard::F7: return KeyCodes::AK_F7;
+    case sf::Keyboard::F8: return KeyCodes::AK_F8;
+    case sf::Keyboard::F9: return KeyCodes::AK_F9;
+    case sf::Keyboard::F10: return KeyCodes::AK_F10;
+    case sf::Keyboard::F11: return KeyCodes::AK_F11;
+    case sf::Keyboard::F12: return KeyCodes::AK_F12;
+    case sf::Keyboard::F13: return KeyCodes::AK_F13;
+    case sf::Keyboard::F14: return KeyCodes::AK_F14;
+    case sf::Keyboard::F15: return KeyCodes::AK_F15;
+    case sf::Keyboard::Left: return KeyCodes::AK_LEFT;
+    case sf::Keyboard::Right: return KeyCodes::AK_RIGHT;
+    case sf::Keyboard::Up: return KeyCodes::AK_UP;
+    case sf::Keyboard::Down: return KeyCodes::AK_DOWN;
+    case sf::Keyboard::Numpad0: return KeyCodes::AK_NUMPAD0;
+    case sf::Keyboard::Numpad1: return KeyCodes::AK_NUMPAD1;
+    case sf::Keyboard::Numpad2: return KeyCodes::AK_NUMPAD2;
+    case sf::Keyboard::Numpad3: return KeyCodes::AK_NUMPAD3;
+    case sf::Keyboard::Numpad4: return KeyCodes::AK_NUMPAD4;
+    case sf::Keyboard::Numpad5: return KeyCodes::AK_NUMPAD5;
+    case sf::Keyboard::Numpad6: return KeyCodes::AK_NUMPAD6;
+    case sf::Keyboard::Numpad7: return KeyCodes::AK_NUMPAD7;
+    case sf::Keyboard::Numpad8: return KeyCodes::AK_NUMPAD8;
+    case sf::Keyboard::Numpad9: return KeyCodes::AK_NUMPAD9;
+    case sf::Keyboard::A: return KeyCodes::AK_A;
+    case sf::Keyboard::B: return KeyCodes::AK_B;
+    case sf::Keyboard::C: return KeyCodes::AK_C;
+    case sf::Keyboard::D: return KeyCodes::AK_D;
+    case sf::Keyboard::E: return KeyCodes::AK_E;
+    case sf::Keyboard::F: return KeyCodes::AK_F;
+    case sf::Keyboard::G: return KeyCodes::AK_G;
+    case sf::Keyboard::H: return KeyCodes::AK_H;
+    case sf::Keyboard::I: return KeyCodes::AK_I;
+    case sf::Keyboard::J: return KeyCodes::AK_J;
+    case sf::Keyboard::K: return KeyCodes::AK_K;
+    case sf::Keyboard::L: return KeyCodes::AK_L;
+    case sf::Keyboard::M: return KeyCodes::AK_M;
+    case sf::Keyboard::N: return KeyCodes::AK_N;
+    case sf::Keyboard::O: return KeyCodes::AK_O;
+    case sf::Keyboard::P: return KeyCodes::AK_P;
+    case sf::Keyboard::Q: return KeyCodes::AK_Q;
+    case sf::Keyboard::R: return KeyCodes::AK_R;
+    case sf::Keyboard::S: return KeyCodes::AK_S;
+    case sf::Keyboard::T: return KeyCodes::AK_T;
+    case sf::Keyboard::U: return KeyCodes::AK_U;
+    case sf::Keyboard::V: return KeyCodes::AK_V;
+    case sf::Keyboard::W: return KeyCodes::AK_W;
+    case sf::Keyboard::X: return KeyCodes::AK_X;
+    case sf::Keyboard::Y: return KeyCodes::AK_Y;
+    case sf::Keyboard::Z: return KeyCodes::AK_Z;
+    case sf::Keyboard::Num0: return KeyCodes::AK_0;
+    case sf::Keyboard::Num1: return KeyCodes::AK_1;
+    case sf::Keyboard::Num2: return KeyCodes::AK_2;
+    case sf::Keyboard::Num3: return KeyCodes::AK_3;
+    case sf::Keyboard::Num4: return KeyCodes::AK_4;
+    case sf::Keyboard::Num5: return KeyCodes::AK_5;
+    case sf::Keyboard::Num6: return KeyCodes::AK_6;
+    case sf::Keyboard::Num7: return KeyCodes::AK_7;
+    case sf::Keyboard::Num8: return KeyCodes::AK_8;
+    case sf::Keyboard::Num9: return KeyCodes::AK_9;
+    default: return KeyCodes::AK_UNKNOWN;
   }
 }
 
@@ -172,7 +178,7 @@ bool Game::start()
 
   m_webView = m_webCore->CreateWebView(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
   m_webView->SetTransparent(true);
-  
+
   WebURL url(WSLit("asset://app/InGameHud.html"));
   m_webView->LoadURL(url);
 
@@ -186,7 +192,7 @@ bool Game::start()
 
   // ensure nothing on the page can be selected
   m_webView->ExecuteJavascript(WSLit("document.body.onselectstart = function() { return false; }"), WSLit(""));
-  
+
   m_uiSurface = static_cast<BitmapSurface*>(m_webView->surface());
 
   m_uiTexture = new sf::Texture();
@@ -200,7 +206,7 @@ bool Game::start()
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
-  
+
   /* Systems Setup Begin */
 
   auto behaviorTreeSystem = new BehaviorTreeSystem();
@@ -214,9 +220,6 @@ bool Game::start()
 
   auto animationSystem = new AnimationSystem();
   m_engine->addSystem(animationSystem);
-
-  /*auto movementSystem = new MovementSystem();
-  m_engine->addSystem(movementSystem);*/
 
   auto physicsSystem = new PhysicsSystem(m_world);
   m_engine->addSystem(physicsSystem);
@@ -257,7 +260,7 @@ bool Game::start()
 
   auto uiContainer = BasicEntityFactory::makeUIContainer(m_uiSprite, m_webView, m_uiValues);
   m_engine->addEntity(uiContainer);
-  
+
   m_player = BasicEntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
 
@@ -272,17 +275,17 @@ bool Game::start()
 void Game::mainLoop()
 {
 #ifdef _DEBUG
-    sf::Font font;
-    font.loadFromFile("../assets/Adventure Subtitles.ttf");
+  sf::Font font;
+  font.loadFromFile("../assets/Adventure Subtitles.ttf");
 
-    sf::Text fpsText("FPS: 60", font);
-    fpsText.setCharacterSize(16);
-    fpsText.setStyle(sf::Text::Bold);
-    fpsText.setColor(sf::Color::Red);
-    fpsText.setPosition(5, Constants::SCREEN_HEIGHT - 21);
+  sf::Text fpsText("FPS: 60", font);
+  fpsText.setCharacterSize(16);
+  fpsText.setStyle(sf::Text::Bold);
+  fpsText.setColor(sf::Color::Red);
+  fpsText.setPosition(5, Constants::SCREEN_HEIGHT - 21);
 
-    auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
-    m_engine->addEntity(fpsEntity);
+  auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
+  m_engine->addEntity(fpsEntity);
 #endif
 
   sf::Clock deltaClock;
@@ -292,7 +295,16 @@ void Game::mainLoop()
   TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map.getTileLayer(1).getDepth()));
-  map.addCollision(m_world, m_engine);
+  map.addCollision(m_world, m_engine, true);
+
+  auto pather = new MicroPather(&map, 40 * 40, 8, true);
+  MPVector<void*> path;
+#ifdef DRAW_PATH
+  sf::VertexArray pathLine(sf::LinesStrip);
+#endif
+
+  auto previousEndX = -1;
+  auto previousEndY = -1;
 
   while (m_window.isOpen())
   {
@@ -366,7 +378,7 @@ void Game::mainLoop()
 
     if (m_uiSurface->is_dirty())
     {
-      m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
+      m_uiSurface->CopyTo(m_uiRGBABuffer, m_uiSurface->row_span(), 4, true, false);
       m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
     }
 
@@ -374,15 +386,91 @@ void Game::mainLoop()
     auto dtMillis = dt.asMilliseconds() / 1000.f;
 
 #ifdef _DEBUG
-      fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
+    fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 #endif
 
     m_window.clear(sf::Color::White);
 
     m_engine->update(dtMillis);
+
+#ifdef _DEBUG
+    auto cPhysics = m_player->get<PhysicsComponent>();
+    auto body = cPhysics->body;
+
+    auto endX = static_cast<int>(body->GetPosition().x * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_WIDTH) - static_cast<int>(ceil(32 / Constants::COLLISION_TILE_WIDTH / 2));
+    auto endY = static_cast<int>(body->GetPosition().y * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_HEIGHT) - static_cast<int>(ceil(34 / Constants::COLLISION_TILE_WIDTH / 2));
     
+    if (endX != previousEndX || endY != previousEndY)
+    {
+      if (endX >= 0 && endX < map.getWidth() * 2 && endY >= 0 && endY < map.getHeight() * 2)
+      {
+        auto entityWidth = static_cast<int>(34 / Constants::COLLISION_TILE_WIDTH + 0.5f);
+        auto entityHeight = static_cast<int>(72 / Constants::COLLISION_TILE_HEIGHT + 0.5f);
+
+        auto start = map.getPatherNode(1, 1, entityWidth, entityHeight);
+
+        //auto end = map.getPatherNode(46, 62, size, size);
+        auto end = map.getPatherNode(endX, endY, entityWidth, entityHeight);;
+
+        float totalCost = 0;
+        auto result = pather->Solve(start, end, &path, &totalCost);
+
+        printf("%f, %d\n", totalCost, result);
+
+#ifdef DRAW_PATH
+        pathLine.clear();
+        if (result == MicroPather::SOLVED)
+        {
+          pathLine.resize(path.size());
+
+          auto halfTileWidth = Constants::COLLISION_TILE_WIDTH / 2.0f;
+          auto halfTileHeight = Constants::COLLISION_TILE_HEIGHT / 2.0f;
+
+          auto widthAdjust = entityWidth / 2.0f * Constants::COLLISION_TILE_WIDTH;
+          auto heightAdjust = entityHeight / 2.0f * Constants::COLLISION_TILE_HEIGHT;
+          
+          for (unsigned int i = 0; i < path.size(); ++i)
+          {
+            if (path[i] == nullptr)
+            {
+              continue;
+            }
+
+            auto node = reinterpret_cast<MicroPatherNode*>(path[i]);
+            pathLine[i].position = sf::Vector2f(
+              node->x * Constants::COLLISION_TILE_WIDTH + halfTileWidth + widthAdjust,
+              node->y * Constants::COLLISION_TILE_HEIGHT + halfTileHeight + heightAdjust
+              );
+            pathLine[i].color = sf::Color::Red;
+          }
+        }
+#endif
+      }
+#ifdef DRAW_PATH
+      else
+      {
+        pathLine.clear();
+      }
+#endif
+
+      previousEndX = endX;
+      previousEndY = endY;
+    }
+
+    //map.drawCollisionMap(m_window);
+
+#ifdef DRAW_PATH
+    if (path.size() > 0)
+    {
+      m_window.draw(pathLine);
+    }
+#endif
+#endif
+
     m_window.display();
   }
+
+  delete pather;
 }
 
 void Game::quit()
@@ -506,7 +594,8 @@ void Game::handleBrowserEvents(sf::Event& p_event) const
     keyEvent.text[0] = chr;
     keyEvent.unmodified_text[0] = chr;
 
-    if (chr) {
+    if (chr)
+    {
       keyEvent.type = WebKeyboardEvent::kTypeChar;
       keyEvent.virtual_key_code = chr;
       keyEvent.native_key_code = chr;
@@ -586,7 +675,7 @@ std::string Game::GetApplicationDir()
 
   GetModuleFileNameW(hModule, wpath, MAX_PATH);
   std::wstring wide(wpath);
-  
+
   typedef std::codecvt_utf8<wchar_t> convert_type;
   std::wstring_convert<convert_type, wchar_t> converter;
 

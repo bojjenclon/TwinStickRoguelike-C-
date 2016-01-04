@@ -41,7 +41,7 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
     else if (shape->GetType() == b2Shape::Type::e_polygon)
     {
       auto boxPolygon = dynamic_cast<b2PolygonShape*>(shape);
-
+      
       sf::ConvexShape sfPolygon;
       sfPolygon.setPosition(body->GetPosition().x * Constants::PIXELS_PER_METER, body->GetPosition().y * Constants::PIXELS_PER_METER);
       sfPolygon.setFillColor(sf::Color::Transparent);

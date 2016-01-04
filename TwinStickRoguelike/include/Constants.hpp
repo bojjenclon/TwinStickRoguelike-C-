@@ -9,6 +9,11 @@ namespace Constants
   static const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
   static const float PIXELS_PER_METER = 100.0f;
+
+  static const auto COLLISION_TILE_WIDTH = 16;
+  static const auto COLLISION_TILE_HEIGHT = 16;
+  static const auto COLLISION_TILE_SIZE = COLLISION_TILE_WIDTH * COLLISION_TILE_HEIGHT;
+  static const auto COLLISION_MAJORITY_FILLED = COLLISION_TILE_SIZE / 2.0f;
 }
 
 #endif

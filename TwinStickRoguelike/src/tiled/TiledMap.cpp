@@ -8,10 +8,20 @@
 #include <Thor/Math.hpp>
 #include <components/TiledCollisionShapeComponent.hpp>
 #include <Constants.hpp>
+#include <pathfinding/MicropatherNode.hpp>
 
 TiledMap::TiledMap()
 {
-  
+}
+
+int TiledMap::getWidth() const
+{
+  return m_width;
+}
+
+int TiledMap::getHeight() const
+{
+  return m_height;
 }
 
 void TiledMap::addTileLayer(TiledTileLayer p_layer)
@@ -37,7 +47,7 @@ TiledTileset TiledMap::getTileset(int p_index) const
 TiledTileset TiledMap::findTilesetFromGid(int p_gid) const
 {
   auto id = 0;
-  
+
   for (auto i = m_tilesets.size() - 1; i > 0; --i)
   {
     auto tileset = m_tilesets[i];
@@ -67,7 +77,7 @@ bool TiledMap::isCollisionAdded() const
   return m_collisionAdded;
 }
 
-bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine)
+bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap)
 {
   if (m_collisionAdded)
   {
@@ -81,13 +91,14 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
     if (shape.type == "concave_polygon")
     {
       auto body = p_world->CreateBody(&shape.bodyDef);
+      it->body = body;
 
       auto fixtureDef = new b2FixtureDef();
       fixtureDef->density = 1.0f;
 
       auto sep = new b2Separator();
 
-      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), Constants::PIXELS_PER_METER);
+      sep->Separate(body, fixtureDef, static_cast<std::vector<b2Vec2>*>(shape.data), static_cast<int>(Constants::PIXELS_PER_METER));
 
       auto entity = p_engine->createEntity();
 
@@ -105,6 +116,7 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
     else
     {
       auto body = p_world->CreateBody(&shape.bodyDef);
+      it->body = body;
 
       body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
 
@@ -119,6 +131,11 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
 
       p_engine->addEntity(entity);
     }
+  }
+
+  if (p_generateCollisionMap)
+  {
+    calculateCollisionMap();
   }
 
   m_collisionAdded = true;
@@ -151,6 +168,291 @@ bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_pt
   return true;
 }
 
+void TiledMap::calculateCollisionMap()
+{
+  // calculate a collision map whose tiles are 8x8
+
+  auto wDivisions = m_tileWidth / Constants::COLLISION_TILE_WIDTH;
+  auto hDivisions = m_tileHeight / Constants::COLLISION_TILE_HEIGHT;
+
+  m_collisionMapWidth = m_width * wDivisions;
+  m_collisionMapHeight = m_height * hDivisions;
+
+  m_collisionMap = std::vector<std::vector<CollisionNode>>(m_collisionMapWidth, std::vector<CollisionNode>(m_collisionMapHeight));
+  m_pathfindingMap = std::vector<std::vector<MicroPatherNode*>>(m_collisionMapWidth, std::vector<MicroPatherNode*>(m_collisionMapHeight));
+
+#ifdef _DEBUG
+  // REMOVE LATER, DEBUGGING ONLY
+  m_debugCollisionMap.setPrimitiveType(sf::Quads);
+  m_debugCollisionMap.resize(m_collisionMapWidth * m_collisionMapHeight * 4);
+#endif
+
+  for (auto x = 0; x < m_collisionMapWidth; ++x)
+  {
+    for (auto y = 0; y < m_collisionMapHeight; ++y)
+    {
+      m_pathfindingMap[x][y] = new MicroPatherNode(x, y);
+
+      for (auto it = m_collisionShapes.begin(); it != m_collisionShapes.end(); ++it)
+      {
+        if (m_collisionMap[x][y].type > 0)
+        {
+          continue;
+        }
+
+        auto collisionShape = *it;
+
+        auto body = collisionShape.body;
+        auto transform = body->GetTransform();
+
+        for (auto fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext())
+        {
+          auto shape = fixture->GetShape();
+
+          auto mx = x * Constants::COLLISION_TILE_WIDTH;
+          auto my = y * Constants::COLLISION_TILE_HEIGHT;
+          auto spaceOccupied = 0;
+
+          for (auto i = 0; i < Constants::COLLISION_TILE_WIDTH; ++i)
+          {
+            for (auto j = 0; j < Constants::COLLISION_TILE_HEIGHT; ++j)
+            {
+              if (shape->TestPoint(transform, b2Vec2((mx + i) / Constants::PIXELS_PER_METER, (my + j) / Constants::PIXELS_PER_METER)))
+              {
+                spaceOccupied++;
+              }
+            }
+          }
+
+#ifdef _DEBUG
+          // FOR DEBUGGING ONLY, REMOVE ALL INSTANCES OF m_debugCollisionMap DURING PROD
+          auto quad = &m_debugCollisionMap[(x + y * m_collisionMapWidth) * 4];
+
+          quad[0].position = sf::Vector2f(1.0f * x * Constants::COLLISION_TILE_WIDTH, 1.0f * y * Constants::COLLISION_TILE_HEIGHT);
+          quad[1].position = sf::Vector2f((x + 1.0f) * Constants::COLLISION_TILE_WIDTH, 1.0f * y * Constants::COLLISION_TILE_HEIGHT);
+          quad[2].position = sf::Vector2f((x + 1.0f) * Constants::COLLISION_TILE_WIDTH, (y + 1.0f) * Constants::COLLISION_TILE_HEIGHT);
+          quad[3].position = sf::Vector2f(1.0f * x * Constants::COLLISION_TILE_WIDTH, (y + 1.0f) * Constants::COLLISION_TILE_HEIGHT);
+
+          auto color = (x % 2 || y % 2) ? 255 : 195;
+          auto alpha = 85;
+          if (spaceOccupied >= Constants::COLLISION_MAJORITY_FILLED)
+          {
+            m_collisionMap[x][y].type = 1;
+
+            quad[0].color = sf::Color(color, 0, 0, alpha);
+            quad[1].color = sf::Color(color, 0, 0, alpha);
+            quad[2].color = sf::Color(color, 0, 0, alpha);
+            quad[3].color = sf::Color(color, 0, 0, alpha);
+          }
+          else if (m_collisionMap[x][y].type != 1)
+          {
+            quad[0].color = sf::Color(0, 0, color, alpha);
+            quad[1].color = sf::Color(0, 0, color, alpha);;
+            quad[2].color = sf::Color(0, 0, color, alpha);;
+            quad[3].color = sf::Color(0, 0, color, alpha);;
+          }
+#else
+          if (spaceOccupied >= Constants::COLLISION_MAJORITY_FILLED)
+          {
+            m_collisionMap[x][y].type = 1;
+          }
+#endif
+        }
+      }
+    }
+  }
+
+  // calculate node clearance
+  // note: clearance assumes entities have origin at the top-left corner (rather than the center)
+  for (auto x = 0; x < m_collisionMapWidth; ++x)
+  {
+    for (auto y = 0; y < m_collisionMapHeight; ++y)
+    {
+
+      if (m_collisionMap[x][y].type == 1)
+      {
+        m_collisionMap[x][y].clearance = 0;
+
+        continue;
+      }
+
+      auto keepSearching = true;
+      auto searchSize = 1;
+
+      while (keepSearching)
+      {
+        for (auto i = 0; i < searchSize; ++i)
+        {
+          auto xInBounds = x + searchSize < m_collisionMapWidth;
+          auto yInBounds = y + searchSize < m_collisionMapHeight;
+
+          if (!xInBounds && !yInBounds)
+          {
+            keepSearching = false;
+
+            break;
+          }
+
+          if (xInBounds && y + i < m_collisionMapHeight)
+          {
+            auto node = m_collisionMap[x + searchSize][y + i];
+            if (node.type == 1)
+            {
+              keepSearching = false;
+
+              break;
+            }
+          }
+
+          if (yInBounds && x + i < m_collisionMapWidth)
+          {
+            auto node = m_collisionMap[x + i][y + searchSize];
+            if (node.type == 1)
+            {
+              keepSearching = false;
+
+              break;
+            }
+          }
+        }
+
+        if (keepSearching)
+        {
+          searchSize++;
+        }
+      }
+
+      m_collisionMap[x][y].clearance = searchSize;
+
+    }
+  }
+
+}
+
+MicroPatherNode* TiledMap::getPatherNode(unsigned int p_x, unsigned int p_y, int p_width, int p_height)
+{
+  if (p_x < 0 || p_x >= m_pathfindingMap.size() || p_y < 0 || p_y >= m_pathfindingMap[p_x].size())
+  {
+    return nullptr;
+  }
+
+  auto node = m_pathfindingMap[p_x][p_y];
+
+  node->width = p_width;
+  node->height = p_height;
+
+  return node;
+}
+
+int TiledMap::Passable(int nx, int ny, int clearance) const
+{
+  if (nx >= 0 && nx < m_collisionMapWidth
+    && ny >= 0 && ny < m_collisionMapHeight)
+  {
+    auto node = m_collisionMap[nx][ny];
+
+    if (clearance <= node.clearance)
+    {
+      return m_collisionMap[nx][ny].type;
+    }
+  }
+
+  return 1;
+}
+
+float TiledMap::LeastCostEstimate(void* nodeStart, void* nodeEnd)
+{
+  if (nodeStart == nullptr || nodeEnd == nullptr)
+  {
+    return 0;
+  }
+
+  auto pathStart = reinterpret_cast<MicroPatherNode*>(nodeStart);
+  auto pathEnd = reinterpret_cast<MicroPatherNode*>(nodeEnd);
+
+  auto dx = pathStart->x - pathEnd->x;
+  auto dy = pathStart->y - pathEnd->y;
+  return static_cast<float>(sqrt(static_cast<double>(dx * dx) + static_cast<double>(dy * dy)));
+}
+
+void TiledMap::AdjacentCost(void* node, MPVector<StateCost>* neighbors)
+{
+  if (node == nullptr)
+  {
+    return;
+  }
+
+  auto pathNode = reinterpret_cast<MicroPatherNode*>(node);
+
+  const int dx[8] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+  const int dy[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+
+  const float cost[8] = { 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f };
+
+  auto clearance = pathNode->width > pathNode->height ? pathNode->width : pathNode->height;
+  
+  for (auto i = 0; i < 8; ++i)
+  {
+    auto nx = pathNode->x + dx[i];
+    auto ny = pathNode->y + dy[i];
+
+    auto pass = Passable(nx, ny, clearance);
+    if (pass == 0)
+    {
+      // diagonals
+      /*if (i % 2 != 0)
+      {
+        if (Passable(nx, pathNode->y, clearance) && Passable(pathNode->x, ny, clearance))
+        {
+          StateCost nodeCost = { getPatherNode(nx, ny, pathNode->width, pathNode->height), cost[i] };
+          neighbors->push_back(nodeCost);
+        }
+      }
+      else
+      {
+        StateCost nodeCost = { getPatherNode(nx, ny, pathNode->width, pathNode->height), cost[i] };
+        neighbors->push_back(nodeCost);
+      }*/
+      StateCost nodeCost = { getPatherNode(nx, ny, pathNode->width, pathNode->height), cost[i] };
+      neighbors->push_back(nodeCost);
+    }
+  }
+}
+
+void TiledMap::PrintStateInfo(void* node)
+{
+  auto pathNode = reinterpret_cast<MicroPatherNode*>(node);
+  printf("(%d,%d)", pathNode->x, pathNode->y);
+}
+
+#ifdef _DEBUG
+TiledMap::CollisionNode TiledMap::getCollisionTile(int p_x, int p_y) const
+{
+  return m_collisionMap[p_x][p_y];
+}
+
+void TiledMap::drawCollisionMap(sf::RenderTarget& p_renderTarget) const
+{
+  p_renderTarget.draw(m_debugCollisionMap);
+
+  /*static sf::Font font;
+  font.loadFromFile("../assets/Adventure Subtitles.ttf");
+
+  sf::Text text;
+  text.setFont(font);
+  text.setCharacterSize(6);
+  for (auto x = 0; x < m_collisionMapWidth; ++x)
+  {
+    for (auto y = 0; y < m_collisionMapHeight; ++y)
+    {
+      text.setString(m_collisionMap[x][y].clearance < 10 ? std::to_string(m_collisionMap[x][y].clearance) : "*");
+      text.setPosition(x * Constants::COLLISION_TILE_WIDTH, y * Constants::COLLISION_TILE_HEIGHT);
+      p_renderTarget.draw(text);
+    }
+  }*/
+}
+#endif
+
 TiledMap TiledMap::loadFromJson(std::string p_path)
 {
   TiledMap map;
@@ -162,7 +464,19 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
   file.close();
 
   auto parsedJson = json::parse(mapJsonStr);
-  
+
+  auto mapWidth = parsedJson["width"].get<int>();
+  auto mapHeight = parsedJson["height"].get<int>();
+
+  map.m_width = mapWidth;
+  map.m_height = mapHeight;
+
+  auto mapTileWidth = parsedJson["tilewidth"].get<int>();
+  auto mapTileHeight = parsedJson["tileheight"].get<int>();
+
+  map.m_tileWidth = mapTileWidth;
+  map.m_tileHeight = mapTileHeight;
+
   // tilesets MUST be loaded before layers
   for (unsigned int i = 0; i < parsedJson["tilesets"].size(); ++i)
   {
@@ -201,7 +515,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
       auto layerData = curLayer["data"].get<std::string>();
 
       auto layer = TiledTileLayer::createFromData(map, layerData, layerWidth, layerHeight);
-      
+
       if (!curLayer["properties"]["depth"].is_null())
       {
         auto layerDepth = atoi(curLayer["properties"]["depth"].get<std::string>().c_str());
@@ -241,7 +555,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape{ bodyDef, objectType, box });
+            map.addCollisionShape(CollisionShape { bodyDef, objectType, box });
           }
           else if (objectType == "circle")
           {
@@ -260,7 +574,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape{ bodyDef, objectType, circle });
+            map.addCollisionShape(CollisionShape { bodyDef, objectType, circle });
           }
           // currently broken
           else if (objectType == "ellipse")
@@ -284,7 +598,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             polygon->Set(points, segments);
 
             delete[] points;
-            
+
             auto x = curObject["x"].get<int>();
             auto y = curObject["y"].get<int>();
 
@@ -293,7 +607,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
+            map.addCollisionShape(CollisionShape { bodyDef, objectType, polygon });
           }
           else if (objectType == "convex_polygon")
           {
@@ -320,7 +634,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
+            map.addCollisionShape(CollisionShape { bodyDef, objectType, polygon });
           }
           else if (objectType == "concave_polygon")
           {
@@ -342,12 +656,13 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape{ bodyDef, objectType, points });
+            map.addCollisionShape(CollisionShape { bodyDef, objectType, points });
           }
         }
       }
     }
   }
-  
+
   return map;
 }
+
