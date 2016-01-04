@@ -11,6 +11,7 @@
 #include <collisions/CollisionData.hpp>
 #include <EntityInfo.hpp>
 #include <Constants.hpp>
+#include <components/NodeWatchComponent.hpp>
 
 ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
 {
@@ -165,6 +166,11 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
 
   auto cPlayer = engine.createComponent<PlayerComponent>();
   entity->add(cPlayer);
+
+  auto cNodeWatch = engine.createComponent<NodeWatchComponent>();
+  entity->add(cNodeWatch);
+  cNodeWatch->previousX = p_position.x / Constants::COLLISION_TILE_WIDTH;
+  cNodeWatch->previousY = p_position.y / Constants::COLLISION_TILE_HEIGHT;
 
   return entity;
 }

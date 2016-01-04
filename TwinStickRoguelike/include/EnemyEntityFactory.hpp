@@ -3,10 +3,13 @@
 
 #include <ecstasy/core/Engine.h>
 #include <ResourceManager.hpp>
+#include <tiled/TiledMap.hpp>
+
+using namespace micropather;
 
 namespace EnemyEntityFactory
 {
-  ECS::Entity* makeBasicEnemy(ResourceManager& p_resources, sf::Vector2f p_position = sf::Vector2f());
+  ECS::Entity* makeBasicEnemy(ResourceManager& p_resources, TiledMap* p_map, sf::Vector2f p_position = sf::Vector2f());
 };
 
 #endif

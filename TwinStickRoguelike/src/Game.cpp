@@ -28,8 +28,8 @@
 #include <pathfinding/MicropatherNode.hpp>
 #include <components/PhysicsComponent.hpp>
 #include <chrono>
-
-#define DRAW_PATH
+#include <systems/NodeWatchSystem.hpp>
+#include <systems/PathfindingDebugDrawSystem.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -224,6 +224,9 @@ bool Game::start()
   auto physicsSystem = new PhysicsSystem(m_world);
   m_engine->addSystem(physicsSystem);
 
+  auto nodeWatchSystem = new NodeWatchSystem();
+  m_engine->addSystem(nodeWatchSystem);
+
   auto lifetimeSystem = new LifetimeSystem(m_engine);
   m_engine->addSystem(lifetimeSystem);
 
@@ -246,6 +249,12 @@ bool Game::start()
   physicsDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(physicsDebugDrawSystem);
 
+#ifdef _DEBUG
+  auto pathfindingDebugDrawSystem = new PathfindingDebugDrawSystem(m_window);
+  pathfindingDebugDrawSystem->setProcessing(false);
+  m_engine->addSystem(pathfindingDebugDrawSystem);
+#endif
+
   /* Systems Setup End */
 
   /* Box2D Setup Begin */
@@ -263,9 +272,6 @@ bool Game::start()
 
   m_player = BasicEntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
   m_engine->addEntity(m_player);
-
-  auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, sf::Vector2f(600, 200));
-  m_engine->addEntity(enemy);
 
   /* Entity Setup End */
 
@@ -291,20 +297,14 @@ void Game::mainLoop()
   sf::Clock deltaClock;
 
   auto map = TiledMap::loadFromJson("../assets/levels/test.json");
-  TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map.getTileLayer(0), map.getTileset(0));
-  TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map.getTileLayer(1), map.getTileset(0));
-  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map.getTileLayer(0).getDepth()));
-  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map.getTileLayer(1).getDepth()));
-  map.addCollision(m_world, m_engine, true);
+  TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map->getTileLayer(0), map->getTileset(0));
+  TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map->getTileLayer(1), map->getTileset(0));
+  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map->getTileLayer(0).getDepth()));
+  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map->getTileLayer(1).getDepth()));
+  map->addCollision(m_world, m_engine, true);
 
-  auto pather = new MicroPather(&map, 40 * 40, 8, true);
-  MPVector<void*> path;
-#ifdef DRAW_PATH
-  sf::VertexArray pathLine(sf::LinesStrip);
-#endif
-
-  auto previousEndX = -1;
-  auto previousEndY = -1;
+  auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
+  m_engine->addEntity(enemy);
 
   while (m_window.isOpen())
   {
@@ -359,16 +359,19 @@ void Game::mainLoop()
         {
           auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
           physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
+
+          auto pathfindingDebugDrawSystem = m_engine->getSystem<PathfindingDebugDrawSystem>();
+          pathfindingDebugDrawSystem->setProcessing(!pathfindingDebugDrawSystem->checkProcessing());
         }
         else if (event.key.code == sf::Keyboard::Numpad5)
         {
-          if (map.isCollisionAdded())
+          if (map->isCollisionAdded())
           {
-            map.removeCollision(m_world, m_engine);
+            map->removeCollision(m_world, m_engine);
           }
           else
           {
-            map.addCollision(m_world, m_engine);
+            map->addCollision(m_world, m_engine);
           }
         }
       }
@@ -394,83 +397,11 @@ void Game::mainLoop()
     m_engine->update(dtMillis);
 
 #ifdef _DEBUG
-    auto cPhysics = m_player->get<PhysicsComponent>();
-    auto body = cPhysics->body;
-
-    auto endX = static_cast<int>(body->GetPosition().x * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_WIDTH) - static_cast<int>(ceil(32 / Constants::COLLISION_TILE_WIDTH / 2));
-    auto endY = static_cast<int>(body->GetPosition().y * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_HEIGHT) - static_cast<int>(ceil(34 / Constants::COLLISION_TILE_WIDTH / 2));
-    
-    if (endX != previousEndX || endY != previousEndY)
-    {
-      if (endX >= 0 && endX < map.getWidth() * 2 && endY >= 0 && endY < map.getHeight() * 2)
-      {
-        auto entityWidth = static_cast<int>(34 / Constants::COLLISION_TILE_WIDTH + 0.5f);
-        auto entityHeight = static_cast<int>(72 / Constants::COLLISION_TILE_HEIGHT + 0.5f);
-
-        auto start = map.getPatherNode(1, 1, entityWidth, entityHeight);
-
-        //auto end = map.getPatherNode(46, 62, size, size);
-        auto end = map.getPatherNode(endX, endY, entityWidth, entityHeight);;
-
-        float totalCost = 0;
-        auto result = pather->Solve(start, end, &path, &totalCost);
-
-        printf("%f, %d\n", totalCost, result);
-
-#ifdef DRAW_PATH
-        pathLine.clear();
-        if (result == MicroPather::SOLVED)
-        {
-          pathLine.resize(path.size());
-
-          auto halfTileWidth = Constants::COLLISION_TILE_WIDTH / 2.0f;
-          auto halfTileHeight = Constants::COLLISION_TILE_HEIGHT / 2.0f;
-
-          auto widthAdjust = entityWidth / 2.0f * Constants::COLLISION_TILE_WIDTH;
-          auto heightAdjust = entityHeight / 2.0f * Constants::COLLISION_TILE_HEIGHT;
-          
-          for (unsigned int i = 0; i < path.size(); ++i)
-          {
-            if (path[i] == nullptr)
-            {
-              continue;
-            }
-
-            auto node = reinterpret_cast<MicroPatherNode*>(path[i]);
-            pathLine[i].position = sf::Vector2f(
-              node->x * Constants::COLLISION_TILE_WIDTH + halfTileWidth + widthAdjust,
-              node->y * Constants::COLLISION_TILE_HEIGHT + halfTileHeight + heightAdjust
-              );
-            pathLine[i].color = sf::Color::Red;
-          }
-        }
-#endif
-      }
-#ifdef DRAW_PATH
-      else
-      {
-        pathLine.clear();
-      }
-#endif
-
-      previousEndX = endX;
-      previousEndY = endY;
-    }
-
-    //map.drawCollisionMap(m_window);
-
-#ifdef DRAW_PATH
-    if (path.size() > 0)
-    {
-      m_window.draw(pathLine);
-    }
-#endif
+    //map->drawCollisionMap(m_window);
 #endif
 
     m_window.display();
   }
-
-  delete pather;
 }
 
 void Game::quit()

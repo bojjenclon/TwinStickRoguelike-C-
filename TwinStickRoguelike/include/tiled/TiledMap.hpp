@@ -41,6 +41,7 @@ public:
   bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap = true);
   bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
 
+  MicroPather* getPather() const;
   MicroPatherNode* getPatherNode(unsigned int p_x, unsigned int p_y, int p_width = 1, int p_height = 1);
 
 #ifdef _DEBUG
@@ -49,7 +50,7 @@ public:
   void drawCollisionMap(sf::RenderTarget& p_renderTarget) const;
 #endif
 
-  static TiledMap loadFromJson(std::string p_path);
+  static TiledMap* loadFromJson(std::string p_path);
 
   // Micropather Functions
 public:
@@ -91,6 +92,8 @@ private:
 
   std::vector<std::vector<CollisionNode>> m_collisionMap;
   std::vector<std::vector<MicroPatherNode*>> m_pathfindingMap;
+
+  MicroPather* m_pather = nullptr;
 
   bool m_collisionAdded = false;
 

@@ -344,6 +344,11 @@ MicroPatherNode* TiledMap::getPatherNode(unsigned int p_x, unsigned int p_y, int
   return node;
 }
 
+MicroPather* TiledMap::getPather() const
+{
+  return m_pather;
+}
+
 int TiledMap::Passable(int nx, int ny, int clearance) const
 {
   if (nx >= 0 && nx < m_collisionMapWidth
@@ -453,9 +458,9 @@ void TiledMap::drawCollisionMap(sf::RenderTarget& p_renderTarget) const
 }
 #endif
 
-TiledMap TiledMap::loadFromJson(std::string p_path)
+TiledMap* TiledMap::loadFromJson(std::string p_path)
 {
-  TiledMap map;
+  auto map = new TiledMap();
 
   std::ifstream file(p_path);
   std::stringstream strStream;
@@ -468,14 +473,19 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
   auto mapWidth = parsedJson["width"].get<int>();
   auto mapHeight = parsedJson["height"].get<int>();
 
-  map.m_width = mapWidth;
-  map.m_height = mapHeight;
+  map->m_width = mapWidth;
+  map->m_height = mapHeight;
 
   auto mapTileWidth = parsedJson["tilewidth"].get<int>();
   auto mapTileHeight = parsedJson["tileheight"].get<int>();
 
-  map.m_tileWidth = mapTileWidth;
-  map.m_tileHeight = mapTileHeight;
+  map->m_tileWidth = mapTileWidth;
+  map->m_tileHeight = mapTileHeight;
+
+  auto tileDifX = mapTileWidth / Constants::COLLISION_TILE_WIDTH;
+  auto tileDifY = mapTileHeight / Constants::COLLISION_TILE_HEIGHT;
+
+  map->m_pather = new MicroPather(map, mapWidth * tileDifX * mapHeight * tileDifY, 8, true);
 
   // tilesets MUST be loaded before layers
   for (unsigned int i = 0; i < parsedJson["tilesets"].size(); ++i)
@@ -491,9 +501,9 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
     auto spacing = parsedJson["tilesets"][i]["spacing"].get<int>();
     auto margin = parsedJson["tilesets"][i]["margin"].get<int>();
 
-    TiledTileset tileset(TiledTileset::TilesetOptions { firstGid, imagePath, name, tileWidth, tileHeight, tileCount, imageWidth, imageHeight, spacing, margin });
+    TiledTileset tileset(TiledTileset::TilesetOptions{ firstGid, imagePath, name, tileWidth, tileHeight, tileCount, imageWidth, imageHeight, spacing, margin });
 
-    map.addTileset(tileset);
+    map->addTileset(tileset);
   }
 
   for (unsigned int i = 0; i < parsedJson["layers"].size(); ++i)
@@ -522,7 +532,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
         layer.setDepth(layerDepth);
       }
 
-      map.addTileLayer(layer);
+      map->addTileLayer(layer);
     }
     else if (layerType == "objectgroup")
     {
@@ -555,7 +565,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape { bodyDef, objectType, box });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, box });
           }
           else if (objectType == "circle")
           {
@@ -574,7 +584,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape { bodyDef, objectType, circle });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, circle });
           }
           // currently broken
           else if (objectType == "ellipse")
@@ -607,7 +617,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape { bodyDef, objectType, polygon });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
           }
           else if (objectType == "convex_polygon")
           {
@@ -634,7 +644,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape { bodyDef, objectType, polygon });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
           }
           else if (objectType == "concave_polygon")
           {
@@ -656,7 +666,7 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map.addCollisionShape(CollisionShape { bodyDef, objectType, points });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, points });
           }
         }
       }
@@ -665,4 +675,3 @@ TiledMap TiledMap::loadFromJson(std::string p_path)
 
   return map;
 }
-

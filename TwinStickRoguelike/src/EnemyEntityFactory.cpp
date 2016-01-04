@@ -9,8 +9,10 @@
 #include <components/BehaviorTreeComponent.hpp>
 #include <ai/MoveTowardNode.hpp>
 #include <Constants.hpp>
+#include <ai/PathfindingNode.hpp>
+#include <components/MicroPatherComponent.hpp>
 
-ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, sf::Vector2f p_position)
+ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, TiledMap* p_map, sf::Vector2f p_position)
 {
   auto& game = Game::Get();
   auto& engine = game.getEngine();
@@ -87,15 +89,20 @@ ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, sf
 
   /* Physics End */
 
+  auto cMicroPather = engine.createComponent<MicroPatherComponent>();
+  entity->add(cMicroPather);
+
   /* AI Begin */
 
   auto cBehaviorTree = engine.createComponent<BehaviorTreeComponent>();
   entity->add(cBehaviorTree);
 
   auto rootNode = new BehaviorTree::ParallelNode();
-
+  
+  /*rootNode
+    ->addChild(new MoveTowardNode(game.getPlayer(), 0.005f, 150.0f));*/
   rootNode
-    ->addChild(new MoveTowardNode(game.getPlayer(), 0.005f, 150.0f));
+    ->addChild(new PathfindingNode(game.getPlayer(), p_map));
 
   cBehaviorTree->rootNode = rootNode;
 

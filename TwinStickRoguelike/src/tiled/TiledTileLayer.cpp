@@ -56,7 +56,7 @@ void TiledTileLayer::setDepth(int p_depth)
   m_depth = p_depth;
 }
 
-TiledTileLayer TiledTileLayer::createFromData(const TiledMap& p_map, std::string p_data, int p_width, int p_height)
+TiledTileLayer TiledTileLayer::createFromData(const TiledMap* p_map, std::string p_data, int p_width, int p_height)
 {
   auto decoded = base64_decode(p_data);
   std::vector<char> compressed(decoded.begin(), decoded.end());
@@ -85,7 +85,7 @@ TiledTileLayer TiledTileLayer::createFromData(const TiledMap& p_map, std::string
 
       gid &= ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
 
-      tiles[x][y] = TiledTile(p_map.findTilesetFromGid(gid), gid);
+      tiles[x][y] = TiledTile(p_map->findTilesetFromGid(gid), gid);
     }
   }
 
