@@ -7,10 +7,6 @@
 #include <Constants.hpp>
 #include <components/RenderComponent.hpp>
 
-template <typename T> int sgn(T val) {
-  return (T(0) < val) - (val < T(0));
-}
-
 PathfindingNode::PathfindingNode(ECS::Entity* p_target, TiledMap* p_map, float p_speed) : m_target(p_target), m_map(p_map), m_speed(p_speed)
 {
 }
@@ -81,7 +77,7 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
         parentSprite->getTextureRect().width / 2.0f,
         parentSprite->getTextureRect().height / 2.0f);
 
-      auto lineLength = 0;
+      auto slope = 0.0f;
       sf::Vector2f startPoint;
       sf::Vector2f lastPoint;
 
@@ -91,22 +87,55 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
 
         if (i == 0)
         {
-          startPoint.x = currentNode->x * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
-          startPoint.y = currentNode->y * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+          startPoint.x = static_cast<float>(currentNode->x);
+          startPoint.y = static_cast<float>(currentNode->y);
         }
 
-        if (lastPoint.x != currentNode->x && lastPoint.y != currentNode->y)
+        if (currentNode->x == lastPoint.x)
         {
-          lineLength++;
+          if (currentNode->x != startPoint.x)
+          {
+            sf::Vector2f pathPoint;
+            pathPoint.x = startPoint.x * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+            pathPoint.y = startPoint.y * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+
+            smoothedPath.push_back(pathPoint);
+
+            startPoint.x = static_cast<float>(currentNode->x);
+            startPoint.y = static_cast<float>(currentNode->y);
+          }
+        }
+        else if (currentNode->y == lastPoint.y)
+        {
+          if (currentNode->y != startPoint.y)
+          {
+            sf::Vector2f pathPoint;
+            pathPoint.x = startPoint.x * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+            pathPoint.y = startPoint.y * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+
+            smoothedPath.push_back(pathPoint);
+
+            startPoint.x = static_cast<float>(currentNode->x);
+            startPoint.y = static_cast<float>(currentNode->y);
+          }
         }
         else
         {
-          smoothedPath.push_back(startPoint);
+          auto currentSlope = (lastPoint.y - currentNode->y) / (lastPoint.x - currentNode->x);
+          
+          if (currentSlope != slope)
+          {
+            sf::Vector2f pathPoint;
+            pathPoint.x = startPoint.x * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+            pathPoint.y = startPoint.y * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
 
-          startPoint.x = currentNode->x * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
-          startPoint.y = currentNode->y * Constants::COLLISION_TILE_WIDTH + halfSpriteSize.x;
+            smoothedPath.push_back(pathPoint);
 
-          lineLength = 0;
+            startPoint.x = static_cast<float>(currentNode->x);
+            startPoint.y = static_cast<float>(currentNode->y);
+
+            slope = currentSlope;
+          }
         }
 
         lastPoint.x = static_cast<float>(currentNode->x);
@@ -165,7 +194,61 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
     }
     else
     {
+      auto signX = abs(dx) < 0.05f ? 0 : dx < 0 ? -1 : 1;
+      auto signY = abs(dy) < 0.05f ? 0 : dy < 0 ? -1 : 1;
+
+      //parentBody->ApplyLinearImpulse(b2Vec2(m_speed * signX, m_speed * signY), parentBody->GetWorldCenter(), true);
+
       if (abs(dx) >= thresholdX)
+      {
+        parentBody->ApplyLinearImpulse(b2Vec2(m_speed * signX, 0), parentBody->GetWorldCenter(), true);
+      }
+      else
+      {
+        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
+      }
+
+      if (abs(dy) >= thresholdY)
+      {
+        parentBody->ApplyLinearImpulse(b2Vec2(0, m_speed * signY), parentBody->GetWorldCenter(), true);
+      }
+      else
+      {
+        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
+      }
+
+      if (signX == 0)
+      {
+        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
+      }
+      if (signY == 0)
+      {
+        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
+      }
+
+      /*if (parentCMicroPather->positionInPath + 1 < parentCMicroPather->smoothedPath.size())
+      {
+        auto nextNode = parentCMicroPather->smoothedPath[parentCMicroPather->positionInPath + 1];
+
+        auto dxNext = nextNode.x - node.x;
+        auto dyNext = nextNode.y - node.y;
+
+        if (abs(dxNext) < thresholdX)
+        {
+          parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
+        }
+        if (abs(dyNext) < thresholdY)
+        {
+          parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
+        }
+      }*/
+
+      /*if (abs(dx) >= thresholdX / 2 || abs(dy) >= thresholdY / 2)
+      {
+        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y * 0.9f));
+      }*/
+
+      /*if (abs(dx) >= thresholdX)
       {
         parentBody->ApplyLinearImpulse(b2Vec2(m_speed * sgn(dx), 0), parentBody->GetWorldCenter(), true);
       }
@@ -181,10 +264,14 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
       else
       {
         parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
-      }
+      }*/
     }
 
     moved = true;
+  }
+  else if (parentCMicroPather->positionInPath >= parentCMicroPather->smoothedPath.size())
+  {
+    parentBody->SetLinearVelocity(b2Vec2(0, 0));
   }
 
   return moved ? BehaviorTree::BT_RUNNING : BehaviorTree::BT_SUCCESS;

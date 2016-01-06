@@ -427,8 +427,6 @@ void TiledMap::AdjacentCost(void* node, MPVector<StateCost>* neighbors)
 
   const float cost[8] = { 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f };
 
-  //auto clearance = pathNode->width > pathNode->height ? pathNode->width : pathNode->height;
-  
   for (auto i = 0; i < 8; ++i)
   {
     auto nx = pathNode->x + dx[i];
