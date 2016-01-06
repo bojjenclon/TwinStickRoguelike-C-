@@ -271,58 +271,87 @@ void TiledMap::calculateCollisionMap()
 
       if (m_collisionMap[x][y].type == 1)
       {
-        m_collisionMap[x][y].clearance = 0;
+        m_collisionMap[x][y].horizontalClearance = sf::Vector2i(0, 0);
+        m_collisionMap[x][y].verticalClearance = sf::Vector2i(0, 0);
 
         continue;
       }
 
-      auto keepSearching = true;
-      auto searchSize = 1;
+      // calculate horizontal priority clearance
 
-      while (keepSearching)
+      auto mainClearance = 1;
+      auto minorClearance = 1;
+
+      for (auto xi = x; xi < m_collisionMapWidth; ++xi)
       {
-        for (auto i = 0; i < searchSize; ++i)
+        if (m_collisionMap[xi][y].type > 0)
         {
-          auto xInBounds = x + searchSize < m_collisionMapWidth;
-          auto yInBounds = y + searchSize < m_collisionMapHeight;
-
-          if (!xInBounds && !yInBounds)
-          {
-            keepSearching = false;
-
-            break;
-          }
-
-          if (xInBounds && y + i < m_collisionMapHeight)
-          {
-            auto node = m_collisionMap[x + searchSize][y + i];
-            if (node.type == 1)
-            {
-              keepSearching = false;
-
-              break;
-            }
-          }
-
-          if (yInBounds && x + i < m_collisionMapWidth)
-          {
-            auto node = m_collisionMap[x + i][y + searchSize];
-            if (node.type == 1)
-            {
-              keepSearching = false;
-
-              break;
-            }
-          }
+          break;
         }
 
-        if (keepSearching)
-        {
-          searchSize++;
-        }
+        mainClearance++;
       }
 
-      m_collisionMap[x][y].clearance = searchSize;
+      if (mainClearance >= m_collisionMapWidth)
+      {
+        mainClearance = m_collisionMapWidth;
+      }
+
+      for (auto yi = y; yi < m_collisionMapHeight; ++yi)
+      {
+        if (m_collisionMap[mainClearance - 1][yi].type > 0)
+        {
+          break;
+        }
+
+        minorClearance++;
+      }
+
+      if (minorClearance >= m_collisionMapHeight)
+      {
+        minorClearance = m_collisionMapHeight;
+      }
+
+      m_collisionMap[x][y].horizontalClearance.x = mainClearance;
+      m_collisionMap[x][y].horizontalClearance.y = minorClearance;
+
+      // calculate vertical priority clearance
+
+      mainClearance = 1;
+      minorClearance = 1;
+
+      for (auto yi = y; yi < m_collisionMapHeight; ++yi)
+      {
+        if (m_collisionMap[x][yi].type > 0)
+        {
+          break;
+        }
+
+        mainClearance++;
+      }
+
+      if (mainClearance >= m_collisionMapHeight)
+      {
+        mainClearance = m_collisionMapHeight;
+      }
+
+      for (auto xi = x; xi < m_collisionMapWidth; ++xi)
+      {
+        if (m_collisionMap[xi][mainClearance - 1].type > 0)
+        {
+          break;
+        }
+
+        minorClearance++;
+      }
+
+      if (minorClearance >= m_collisionMapWidth)
+      {
+        minorClearance = m_collisionMapWidth;
+      }
+
+      m_collisionMap[x][y].verticalClearance.x = mainClearance;
+      m_collisionMap[x][y].verticalClearance.y = minorClearance;
 
     }
   }
@@ -349,14 +378,18 @@ MicroPather* TiledMap::getPather() const
   return m_pather;
 }
 
-int TiledMap::Passable(int nx, int ny, int clearance) const
+int TiledMap::Passable(int nx, int ny, int width, int height) const
 {
   if (nx >= 0 && nx < m_collisionMapWidth
     && ny >= 0 && ny < m_collisionMapHeight)
   {
     auto node = m_collisionMap[nx][ny];
 
-    if (clearance <= node.clearance)
+    auto canPass = height >= width ?
+      width <= node.verticalClearance.x && height <= node.verticalClearance.y :
+      width <= node.horizontalClearance.x && height <= node.horizontalClearance.y;
+
+    if (canPass)
     {
       return m_collisionMap[nx][ny].type;
     }
@@ -394,14 +427,15 @@ void TiledMap::AdjacentCost(void* node, MPVector<StateCost>* neighbors)
 
   const float cost[8] = { 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f };
 
-  auto clearance = pathNode->width > pathNode->height ? pathNode->width : pathNode->height;
+  //auto clearance = pathNode->width > pathNode->height ? pathNode->width : pathNode->height;
   
   for (auto i = 0; i < 8; ++i)
   {
     auto nx = pathNode->x + dx[i];
     auto ny = pathNode->y + dy[i];
 
-    auto pass = Passable(nx, ny, clearance);
+    //auto pass = Passable(nx, ny, clearance);
+    auto pass = Passable(nx, ny, pathNode->width, pathNode->height);
     if (pass == 0)
     {
       // diagonals

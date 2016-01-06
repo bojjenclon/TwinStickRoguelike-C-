@@ -131,7 +131,7 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
 
     auto dx = nodeX - parentBody->GetPosition().x * Constants::PIXELS_PER_METER;
     auto dy = nodeY - parentBody->GetPosition().y * Constants::PIXELS_PER_METER;
-
+    
     if (abs(dx) < 5.0f && abs(dy) < 5.0f)
     {
       parentCMicroPather->positionInPath++;
@@ -140,7 +140,7 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
     {
       if (abs(dx) >= 5.0f)
       {
-        parentBody->ApplyLinearImpulse(b2Vec2(0.005f * sgn(dx), 0), parentBody->GetWorldCenter(), true);
+        parentBody->ApplyLinearImpulse(b2Vec2(m_speed * sgn(dx), 0), parentBody->GetWorldCenter(), true);
       }
       else
       {
@@ -149,7 +149,7 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
 
       if (abs(dy) >= 5.0f)
       {
-        parentBody->ApplyLinearImpulse(b2Vec2(0, 0.005f * sgn(dy)), parentBody->GetWorldCenter(), true);
+        parentBody->ApplyLinearImpulse(b2Vec2(0, m_speed * sgn(dy)), parentBody->GetWorldCenter(), true);
       }
       else
       {

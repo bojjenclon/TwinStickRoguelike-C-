@@ -19,7 +19,8 @@ private:
   struct CollisionNode
   {
     int type = 0;
-    int clearance = 1;
+    sf::Vector2i horizontalClearance = sf::Vector2i(1, 1);
+    sf::Vector2i verticalClearance = sf::Vector2i(1, 1);
   };
 
 public:
@@ -54,7 +55,7 @@ public:
 
   // Micropather Functions
 public:
-  int Passable(int nx, int ny, int clearance = 1) const;
+  int Passable(int nx, int ny, int width = 1, int height = 1) const;
 
   virtual float LeastCostEstimate(void* nodeStart, void* nodeEnd) override;
   virtual void AdjacentCost(void* node, MPVector< StateCost > *neighbors) override;
