@@ -14,7 +14,8 @@ struct MicroPatherComponent : public ECS::Component<MicroPatherComponent>
 {
   ECS::Entity* following = nullptr;
   MPVector<void*> path;
-  int positionInPath = 0;
+  std::vector<sf::Vector2f> smoothedPath;
+  unsigned int positionInPath = 0;
 
 #ifdef _DEBUG
   sf::VertexArray debugDraw;
@@ -24,6 +25,7 @@ struct MicroPatherComponent : public ECS::Component<MicroPatherComponent>
   {
     following = nullptr;
     path.clear();
+    smoothedPath.clear();
     positionInPath = 0;
 
 #ifdef _DEBUG
