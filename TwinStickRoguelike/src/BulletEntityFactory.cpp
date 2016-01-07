@@ -54,7 +54,7 @@ ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, 
   body->SetUserData(collisionData);
 
   b2CircleShape dynamicCircle;
-  float radius = sprite->getTextureRect().width > sprite->getTextureRect().height ? sprite->getTextureRect().width : sprite->getTextureRect().height;
+  auto radius = static_cast<float>(sprite->getTextureRect().width > sprite->getTextureRect().height ? sprite->getTextureRect().width : sprite->getTextureRect().height);
   radius /= 2;
   radius /= Constants::PIXELS_PER_METER;
   dynamicCircle.m_radius = radius;

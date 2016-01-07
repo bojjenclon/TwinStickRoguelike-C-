@@ -169,8 +169,8 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
 
   auto cNodeWatch = engine.createComponent<NodeWatchComponent>();
   entity->add(cNodeWatch);
-  cNodeWatch->previousX = p_position.x / Constants::COLLISION_TILE_WIDTH;
-  cNodeWatch->previousY = p_position.y / Constants::COLLISION_TILE_HEIGHT;
+  cNodeWatch->previousX = static_cast<int>(p_position.x / Constants::COLLISION_TILE_WIDTH);
+  cNodeWatch->previousY = static_cast<int>(p_position.y / Constants::COLLISION_TILE_HEIGHT);
 
   return entity;
 }

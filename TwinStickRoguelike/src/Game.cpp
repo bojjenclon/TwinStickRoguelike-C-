@@ -245,11 +245,11 @@ bool Game::start()
   auto renderSystem = new RenderSystem(m_window);
   m_engine->addSystem(renderSystem);
 
+#ifdef _DEBUG
   auto physicsDebugDrawSystem = new PhysicsDebugDrawSystem(m_window);
   physicsDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(physicsDebugDrawSystem);
 
-#ifdef _DEBUG
   auto pathfindingDebugDrawSystem = new PathfindingDebugDrawSystem(m_window);
   pathfindingDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(pathfindingDebugDrawSystem);
@@ -352,6 +352,7 @@ void Game::mainLoop()
             m_engine->addEntity(bullet);
           }
         }
+#ifdef _DEBUG
         else if (event.mouseButton.button == sf::Mouse::Right)
         {
           auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
@@ -365,9 +366,11 @@ void Game::mainLoop()
           printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
           printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
         }
+#endif
       }
       else if (event.type == sf::Event::KeyPressed)
       {
+#ifdef _DEBUG
         if (event.key.code == sf::Keyboard::Numpad0)
         {
           auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
@@ -387,6 +390,7 @@ void Game::mainLoop()
             map->addCollision(m_world, m_engine);
           }
         }
+#endif
       }
     }
 
