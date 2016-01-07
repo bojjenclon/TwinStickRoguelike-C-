@@ -5,7 +5,9 @@
 body, html {
   height: 100%;
   overflow: hidden;
-  background-color: transparent; }
+  background-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; }
 
 div.wrap {
   height: 100%;
@@ -48,6 +50,9 @@ input[type="text"] {
   padding-right: 5px; }
 
 input[type="text"]:active, input[type="text"]:focus {
+  outline: none; }
+
+*:focus {
   outline: none; }
 
 .selectable-item {

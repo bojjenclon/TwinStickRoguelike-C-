@@ -58,7 +58,12 @@ gulp.task('concat-js', function() {
       .pipe(concat('InGameHud.min.js', {newLine: ' '}))
       .pipe(gulp.dest('dist/js/min'));
 
-  return merge(InGameHud);
+  let Shop = 
+    gulp.src(['dist/js/min/jquery-2.1.4.js', 'dist/js/min/InGameHud.js', 'dist/js/min/selectable.js', 'dist/js/min/jscrollpane/jquery.jscrollpane.js'])
+      .pipe(concat('Shop.min.js', {newLine: ' '}))
+      .pipe(gulp.dest('dist/js/min'));
+
+  return merge(InGameHud, Shop);
 });
 
 gulp.task('concat-css', function() {
@@ -67,7 +72,16 @@ gulp.task('concat-css', function() {
       .pipe(concat('InGameHud.min.css', {newLine: ' '}))
       .pipe(gulp.dest('dist/css/min'));
 
-  return merge(InGameHud);
+  let Shop = 
+    gulp.src([
+      'dist/css/min/Shop.css',
+      'css/responsivegridsystem/html5reset.css', 'css/responsivegridsystem/col.css', 'css/responsivegridsystem/2cols.css', 
+      'dist/css/min/shared.css', 'dist/css/min/statBars.css', 'dist/css/min/itemList.css', 'dist/css/min/itemIcons.css',
+      'css/jscrollpane/jquery.jscrollpane.css'])
+      .pipe(concat('Shop.min.css', {newLine: ' '}))
+      .pipe(gulp.dest('dist/css/min'));
+
+  return merge(InGameHud, Shop);
 });
 
 /* Convenience tasks to run multiple related tasks together */
@@ -87,13 +101,13 @@ gulp.task('watch-js', function () {
   let babelWatcher = gulp.watch('es6/**/*.js', ['prepare-js']);  // watch the same files in our babel task
   babelWatcher.on('change', function (event) {
     if (event.type === 'deleted') {                         // if a file is deleted, forget about it
-      delete cached.caches.scripts[event.path];             // gulp-cached remove api
+      delete cache.caches.scripts[event.path];             // gulp-cached remove api
       remember.forget('babel', event.path);                 // gulp-remember remove api
 
-      delete cached.caches['minify-js'][event.path]; 
+      delete cache.caches['minify-js'][event.path]; 
       remember.forget('minify-js', event.path);
 
-      delete cached.caches['concat-js'][event.path]; 
+      delete cache.caches['concat-js'][event.path]; 
       remember.forget('concat-js', event.path);
     }
   });
@@ -103,13 +117,13 @@ gulp.task('watch-css', function () {
   let babelWatcher = gulp.watch('sass/**/*.scss', ['prepare-css']);
   babelWatcher.on('change', function (event) {
     if (event.type === 'deleted') { 
-      delete cached.caches['sass'][event.path]; 
+      delete cache.caches['sass'][event.path]; 
       remember.forget('sass', event.path);
 
-      delete cached.caches['minify-css'][event.path]; 
+      delete cache.caches['minify-css'][event.path]; 
       remember.forget('minify-css', event.path);
 
-      delete cached.caches['concat-css'][event.path]; 
+      delete cache.caches['concat-css'][event.path]; 
       remember.forget('concat-css', event.path);
     }
   });

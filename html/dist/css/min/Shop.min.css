@@ -1,0 +1,271 @@
+#itemList-scroll-pane{background:rgba(0,177,177,.8)} /* html5reset.css - 01/11/2011 */
+
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+body {
+    line-height: 1;
+}
+
+article,aside,details,figcaption,figure,
+footer,header,hgroup,menu,nav,section { 
+	display: block;
+}
+
+nav ul {
+    list-style: none;
+}
+
+blockquote, q {
+    quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+a {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+/* change colours to suit your needs */
+ins {
+    background-color: #ff9;
+    color: #000;
+    text-decoration: none;
+}
+
+/* change colours to suit your needs */
+mark {
+    background-color: #ff9;
+    color: #000; 
+    font-style: italic;
+    font-weight: bold;
+}
+
+del {
+    text-decoration:  line-through;
+}
+
+abbr[title], dfn[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* change border colour to suit your needs */
+hr {
+    display: block;
+    height: 1px;
+    border: 0;   
+    border-top: 1px solid #cccccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+input, select {
+    vertical-align: middle;
+} 
+/*  SECTIONS  ============================================================================= */
+
+.section {
+	clear: both;
+	padding: 0px;
+	margin: 0px;
+}
+
+/*  GROUPING  ============================================================================= */
+
+
+.group:before,
+.group:after {
+    content:"";
+    display:table;
+}
+.group:after {
+    clear:both;
+}
+.group {
+    zoom:1; /* For IE 6/7 (trigger hasLayout) */
+}
+
+/*  GRID COLUMN SETUP   ==================================================================== */
+
+.col {
+	display: block;
+	float:left;
+	margin: 1% 0 1% 1.6%;
+}
+
+.col:first-child { margin-left: 0; } /* all browsers except IE6 and lower */
+
+
+/*  REMOVE MARGINS AS ALL GO FULL WIDTH AT 480 PIXELS */
+
+@media only screen and (max-width: 480px) {
+	.col { 
+		margin: 1% 0 1% 0%;
+	}
+} /*  GRID OF TWO   ============================================================================= */
+
+
+.span_2_of_2 {
+	width: 100%;
+}
+
+.span_1_of_2 {
+	width: 49.2%;
+}
+
+/*  GO FULL WIDTH AT LESS THAN 480 PIXELS */
+
+@media only screen and (max-width: 480px) {
+	.span_2_of_2 {
+		width: 100%; 
+	}
+	.span_1_of_2 {
+		width: 100%; 
+	}
+} body,div.wrap,html{height:100%;overflow:hidden}.button,.selectable-item,body,html{-webkit-touch-callout:none;-webkit-user-select:none}body,html{background-color:transparent}.scroll-pane{width:100%;height:90%;overflow:auto}.button{display:inline-block;padding:6px;font-family:"Arial Black",Gadget,sans-serif;font-weight:700;font-size:18px;border-radius:10px;background:-webkit-linear-gradient(#7f7f7f,#fff);border:2px ridge #aaa;color:#ff00ff;-webkit-text-fill-color:#fff;-webkit-text-stroke-width:1px;-webkit-text-stroke-color:#000}.button:hover{background:-webkit-linear-gradient(#4c4c4c,#ccc);-webkit-text-fill-color:#ccc;cursor:pointer}.button:active,.button:focus{background:-webkit-linear-gradient(#ccc,#4c4c4c);-webkit-text-fill-color:#999;outline:0}input[type=text]{border-radius:10px;padding-left:5px;padding-right:5px}:focus,input[type=text]:active,input[type=text]:focus{outline:0}.selectable-item{border-radius:10px;background:-webkit-linear-gradient(rgba(254,202,64,.8),rgba(217,173,56,.8));box-shadow:0 0 3px #ddd}.selectable-item.selected{background:-webkit-linear-gradient(rgba(204,132,29,.8),rgba(243,152,20,.8))}.selectable-item:hover{background:-webkit-linear-gradient(rgba(222,199,138,.8),rgba(186,167,115,.8));cursor:pointer}#selection-marquee{z-index:1000;position:absolute;outline:#121212 dotted 1px} .meter{height:10px;position:relative;background:#555;-moz-border-radius:25px;-webkit-border-radius:25px;border-radius:25px;padding:4px;box-shadow:inset 0 -1px 1px rgba(255,255,255,.3)}.meter>span{display:block;height:100%;background-color:#2bc253;background-image:-webkit-linear-gradient(center bottom,#2bc253 37%,#54f054 69%);box-shadow:inset 0 2px 9px rgba(255,255,255,.3),inset 0 -2px 6px rgba(0,0,0,.4);position:relative;overflow:hidden;border-radius:20px}.orange>span{background-color:#f1a165;background-image:-webkit-linear-gradient(to bottom,#f1a165,#f36d0a)}.red>span{background-color:#f0a3a3;background-image:-webkit-linear-gradient(to bottom,#f0a3a3,#f42323)} #feedback,#itemList li{font-size:1.4em}#itemList{list-style-type:none;margin:0;padding:0;width:100%;height:100%}#itemList li{margin:3px;padding:8px 10px;width:90px;height:34px} #grapes,#greenApple,#redApple,#tomato{width:34px;height:34px}#grapes{background:url(../../gfx/itemIcons.png)}#tomato{background:url(../../gfx/itemIcons.png) -34px 0}#greenApple{background:url(../../gfx/itemIcons.png) -68px 0}#redApple{background:url(../../gfx/itemIcons.png) -102px 0} /*
+ * CSS Styles that are needed by jScrollPane for it to operate correctly.
+ *
+ * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
+ * may not operate correctly without them.
+ */
+
+.jspContainer
+{
+	overflow: hidden;
+	position: relative;
+}
+
+.jspPane
+{
+	position: absolute;
+}
+
+.jspVerticalBar
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 16px;
+	height: 100%;
+	background: red;
+}
+
+.jspHorizontalBar
+{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 16px;
+	background: red;
+}
+
+.jspCap
+{
+	display: none;
+}
+
+.jspHorizontalBar .jspCap
+{
+	float: left;
+}
+
+.jspTrack
+{
+	background: #dde;
+	position: relative;
+}
+
+.jspDrag
+{
+	background: #bbd;
+	position: relative;
+	top: 0;
+	left: 0;
+	cursor: pointer;
+}
+
+.jspHorizontalBar .jspTrack,
+.jspHorizontalBar .jspDrag
+{
+	float: left;
+	height: 100%;
+}
+
+.jspArrow
+{
+	background: #50506d;
+	text-indent: -20000px;
+	display: block;
+	cursor: pointer;
+	padding: 0;
+	margin: 0;
+}
+
+.jspArrow.jspDisabled
+{
+	cursor: default;
+	background: #80808d;
+}
+
+.jspVerticalBar .jspArrow
+{
+	height: 16px;
+}
+
+.jspHorizontalBar .jspArrow
+{
+	width: 16px;
+	float: left;
+	height: 100%;
+}
+
+.jspVerticalBar .jspArrow:focus
+{
+	outline: none;
+}
+
+.jspCorner
+{
+	background: #eeeef4;
+	float: left;
+	height: 100%;
+}
+
+/* Yuk! CSS Hack for IE6 3 pixel bug :( */
+* html .jspCorner
+{
+	margin: 0 -3px 0 0;
+}

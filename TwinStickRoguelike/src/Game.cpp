@@ -25,11 +25,10 @@
 #include <EnemyEntityFactory.hpp>
 #include <tiled/TiledMap.hpp>
 #include <tiled/TiledTileLayerDrawable.hpp>
-#include <pathfinding/MicropatherNode.hpp>
-#include <components/PhysicsComponent.hpp>
 #include <chrono>
 #include <systems/NodeWatchSystem.hpp>
 #include <systems/PathfindingDebugDrawSystem.hpp>
+#include <js/ShopJSHandler.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -170,6 +169,8 @@ bool Game::start()
 
   loadMedia();
 
+  /* Awesomium Setup Begin */
+
   m_webCore = WebCore::Initialize(WebConfig());
 
   m_webSession = m_webCore->CreateWebSession(WSLit(""), WebPreferences());
@@ -179,7 +180,7 @@ bool Game::start()
   m_webView = m_webCore->CreateWebView(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
   m_webView->SetTransparent(true);
 
-  WebURL url(WSLit("asset://app/InGameHud.html"));
+  WebURL url(WSLit("asset://app/Shop.html"));
   m_webView->LoadURL(url);
 
   while (m_webView->IsLoading())
@@ -192,6 +193,7 @@ bool Game::start()
 
   // ensure nothing on the page can be selected
   m_webView->ExecuteJavascript(WSLit("document.body.onselectstart = function() { return false; }"), WSLit(""));
+  m_jsApp = m_webView->CreateGlobalJavascriptObject(WSLit("app"));
 
   m_uiSurface = static_cast<BitmapSurface*>(m_webView->surface());
 
@@ -203,6 +205,11 @@ bool Game::start()
 
   m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
   m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
+
+  m_jsHandler = new ShopJSHandler(m_jsApp);
+  m_webView->set_js_method_handler(m_jsHandler);
+
+  /* Awesoimium Setup End */
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
   m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
@@ -303,8 +310,8 @@ void Game::mainLoop()
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map->getTileLayer(1).getDepth()));
   map->addCollision(m_world, m_engine, true);
 
-  auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
-  m_engine->addEntity(enemy);
+  /*auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
+  m_engine->addEntity(enemy);*/
 
   while (m_window.isOpen())
   {
@@ -318,79 +325,82 @@ void Game::mainLoop()
 
       handleBrowserEvents(event);
 
-      if (event.type == sf::Event::MouseButtonPressed)
+      if (m_jsHandler == nullptr || !m_jsHandler->doesBlockInput())
       {
-        if (event.mouseButton.button == sf::Mouse::Button::Left)
+        if (event.type == sf::Event::MouseButtonPressed)
         {
-          if (m_player->getId() != 0)
+          if (event.mouseButton.button == sf::Mouse::Button::Left)
           {
-            static const auto BULLET_SPEED = 0.07f;
+            if (m_player->getId() != 0)
+            {
+              static const auto BULLET_SPEED = 0.07f;
 
+              auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+              auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
+
+              auto dx = mousePos.x - playerTransform->getPosition().x;
+              auto dy = mousePos.y - playerTransform->getPosition().y;
+
+              auto angle = atan2(dy, dx);
+
+              auto bullet = BulletEntityFactory::makeBasicBullet(
+                m_resources,
+                // Options
+                {
+                  EntityInfo::Player,
+                  sf::Vector2f(
+                    playerTransform->getPosition().x,
+                    playerTransform->getPosition().y
+                  ),
+                  sf::Vector2f(
+                    BULLET_SPEED * cos(angle),
+                    BULLET_SPEED * sin(angle)
+                  )
+                }
+              );
+              m_engine->addEntity(bullet);
+            }
+          }
+#ifdef _DEBUG
+          else if (event.mouseButton.button == sf::Mouse::Right)
+          {
             auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
-            auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
 
-            auto dx = mousePos.x - playerTransform->getPosition().x;
-            auto dy = mousePos.y - playerTransform->getPosition().y;
+            auto mx = static_cast<int>(mousePos.x / Constants::COLLISION_TILE_WIDTH);
+            auto my = static_cast<int>(mousePos.y / Constants::COLLISION_TILE_HEIGHT);
 
-            auto angle = atan2(dy, dx);
+            auto tile = map->getCollisionTile(mx, my);
 
-            auto bullet = BulletEntityFactory::makeBasicBullet(
-              m_resources,
-              // Options
-              {
-                EntityInfo::Player,
-                sf::Vector2f(
-                  playerTransform->getPosition().x,
-                  playerTransform->getPosition().y
-                ),
-                sf::Vector2f(
-                  BULLET_SPEED * cos(angle),
-                  BULLET_SPEED * sin(angle)
-                )
-              }
-            );
-            m_engine->addEntity(bullet);
+            printf("x, y: (%d, %d)\n", mx, my);
+            printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
+            printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
           }
-        }
-#ifdef _DEBUG
-        else if (event.mouseButton.button == sf::Mouse::Right)
-        {
-          auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
-
-          auto mx = static_cast<int>(mousePos.x / Constants::COLLISION_TILE_WIDTH);
-          auto my = static_cast<int>(mousePos.y / Constants::COLLISION_TILE_HEIGHT);
-
-          auto tile = map->getCollisionTile(mx, my);
-
-          printf("x, y: (%d, %d)\n", mx, my);
-          printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
-          printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
-        }
 #endif
-      }
-      else if (event.type == sf::Event::KeyPressed)
-      {
+        }
+        else if (event.type == sf::Event::KeyPressed)
+        {
 #ifdef _DEBUG
-        if (event.key.code == sf::Keyboard::Numpad0)
-        {
-          auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
-          physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
+          if (event.key.code == sf::Keyboard::Numpad0)
+          {
+            auto physicsDebugDrawSystem = m_engine->getSystem<PhysicsDebugDrawSystem>();
+            physicsDebugDrawSystem->setProcessing(!physicsDebugDrawSystem->checkProcessing());
 
-          auto pathfindingDebugDrawSystem = m_engine->getSystem<PathfindingDebugDrawSystem>();
-          pathfindingDebugDrawSystem->setProcessing(!pathfindingDebugDrawSystem->checkProcessing());
-        }
-        else if (event.key.code == sf::Keyboard::Numpad5)
-        {
-          if (map->isCollisionAdded())
-          {
-            map->removeCollision(m_world, m_engine);
+            auto pathfindingDebugDrawSystem = m_engine->getSystem<PathfindingDebugDrawSystem>();
+            pathfindingDebugDrawSystem->setProcessing(!pathfindingDebugDrawSystem->checkProcessing());
           }
-          else
+          else if (event.key.code == sf::Keyboard::Numpad5)
           {
-            map->addCollision(m_world, m_engine);
+            if (map->isCollisionAdded())
+            {
+              map->removeCollision(m_world, m_engine);
+            }
+            else
+            {
+              map->addCollision(m_world, m_engine);
+            }
           }
-        }
 #endif
+        }
       }
     }
 
@@ -450,15 +460,15 @@ void Game::loadMedia()
 
 void Game::handleBrowserEvents(sf::Event& p_event) const
 {
-  m_webView->Focus();
-
   if (p_event.type == sf::Event::MouseButtonPressed)
   {
-    m_webView->InjectMouseDown(kMouseButton_Left);
+    auto button = p_event.mouseButton.button;
+    m_webView->InjectMouseDown(button == sf::Mouse::Left ? kMouseButton_Left : button == sf::Mouse::Right ? kMouseButton_Right : kMouseButton_Middle);
   }
   else if (p_event.type == sf::Event::MouseButtonReleased)
   {
-    m_webView->InjectMouseUp(kMouseButton_Left);
+    auto button = p_event.mouseButton.button;
+    m_webView->InjectMouseUp(button == sf::Mouse::Left ? kMouseButton_Left : button == sf::Mouse::Right ? kMouseButton_Right : kMouseButton_Middle);
   }
   else if (p_event.type == sf::Event::MouseMoved)
   {
@@ -505,7 +515,7 @@ void Game::handleBrowserEvents(sf::Event& p_event) const
 
     char* buf = new char[20];
     keyEvent.virtual_key_code = getWebKeyFromSFMLKey(p_event.key.code);
-    GetKeyIdentifierFromVirtualKeyCode(keyEvent.virtual_key_code, &buf);
+    Awesomium::GetKeyIdentifierFromVirtualKeyCode(keyEvent.virtual_key_code, &buf);
     strcpy_s(keyEvent.key_identifier, buf);
     delete[] buf;
 

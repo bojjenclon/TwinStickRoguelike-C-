@@ -1,0 +1,181 @@
+<html>
+  <head>
+    <title>SHOP</title>
+
+    <link rel="stylesheet" href="css/min/Shop.min.css">
+
+    <style>
+      body {
+        color: #121212;
+      }
+
+      #hpBar {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: 200px;
+      }
+
+      .col {
+        padding: 1em 0;
+        text-align:center;
+    }
+    </style>
+    
+  <head>
+
+  <body>
+
+    <div id="wrap">
+
+    
+
+      <div class="section group">
+
+        <div class="col span_1_of_2">
+
+          <div class="section group">
+
+            <div class="col span_1_of_2">
+
+              <h2>Input Test:</h2>
+              <input class="textInput" type="text">
+
+            </div>
+
+            <div class="col span_1_of_2">
+
+              <div class="button" onclick='addItem();'>Add Item</div>
+              <div class="button" onclick='removeSelectedItems();'>Remove Selected Items</div>
+
+            </div>
+            
+          </div>
+
+        </div>
+          
+        <div id="selectable">
+
+          <div class="col span_1_of_2">
+
+            <div id="itemList-scroll-pane" class="scroll-pane">
+
+              <ol id="itemList"></ol>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <script src="js/min/Shop.min.js"></script>
+    <script>
+      var items = [
+        'grapes',
+        'tomato',
+        'redApple',
+        'greenApple'
+      ];
+
+      var selectable = $("#selectable");
+      var itemList = $('#itemList');
+
+      var lastHoveredElement = null;
+
+      $(function() {
+        $('.scroll-pane').jScrollPane({
+          showArrows: true,
+          maintainPosition: true
+        });
+
+        $('.scroll-pane').each(function() {
+          var api = $(this).data('jsp');
+
+          $(window).bind('resize', function() {
+              api.reinitialise();
+            }
+          );
+        });
+
+        Selectable.init({
+          mode: "touch"
+        });
+        
+        $("input[type=submit], a, button").click(function(event) {
+          event.preventDefault();
+          
+          return false;
+        });
+
+        $("button, input[type='button'], input[type='submit']").bind('mouseup', function() {
+          $(this).blur(); // prevent jquery ui button from remaining in the active state
+
+          return false;
+        });
+
+        $('.textInput').keyup(function(e) {
+          if (e.which === 27) {
+            $(e.currentTarget).blur();
+          }
+
+          return false;
+        });
+
+        $(window).bind('mousemove', function(e) {
+          var x = e.clientX;
+          var y = e.clientY;
+          var elementMouseIsOver = document.elementFromPoint(x, y);
+
+          var jElement = $(elementMouseIsOver);
+
+          if (!jElement.hasClass('section') && !jElement.hasClass('col')) {
+            lastHoveredElement = elementMouseIsOver;
+          }
+          else
+          {
+            lastHoveredElement = null;
+          }
+        });
+      });
+
+      function getLastHoveredElement() {
+        return lastHoveredElement;
+      }
+
+      function addItem(index) {
+        /*index = index || (Math.random() * 500);
+
+        $('#selectable').append('<li class="ui-widget-content">Item ' + Math.floor((Math.random() * 500)) + '</li>');*/
+
+        index = index || Math.floor((Math.random() * items.length));
+
+        var newItem = $('<li onclick="app.itemClicked(' + index + ')"></li>');
+        newItem.addClass('ui-widget-content');
+        newItem.html('<img id="' + items[index] + '" src="gfx/placeholder.png">');
+
+        itemList.append(newItem);
+
+        Selectable.addItem(newItem);
+
+        var api = $('#itemList-scroll-pane').data('jsp');
+        api.reinitialise();
+      }
+
+      function removeSelectedItems() {
+        Selectable.removeSelected(function() {
+          var api = $('#itemList-scroll-pane').data('jsp');
+          api.reinitialise();
+        });
+      }
+
+      function displayImage(base64) {
+        document.getElementById("magicImg").src = "data:image/png;base64," + base64;
+      }
+    </script>
+
+  </body>
+</html>

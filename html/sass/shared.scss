@@ -7,6 +7,9 @@ body, html {
   height: 100%;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0);
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 div.wrap {
@@ -68,6 +71,10 @@ input[type="text"] {
 }
 
 input[type="text"]:active, input[type="text"]:focus {
+  outline: none;
+}
+
+*:focus {
   outline: none;
 }
 

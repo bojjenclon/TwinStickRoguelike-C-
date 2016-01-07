@@ -28,7 +28,7 @@ std::string GetApplicationDir()
 int main(int argc, char** argv)
 {
   unsigned short filesWritten;
-  auto success = WriteDataPak(WSLit((GetApplicationDir() + "/resources.pak").c_str()), WSLit("C:/Users/Cornell/Documents/_Programming_/C++/SFML/TwinStickRoguelike/html/dist"), WSLit(""), filesWritten);
+  auto success = WriteDataPak(WSLit((GetApplicationDir() + "/../assets/resources.pak").c_str()), WSLit((GetApplicationDir() + "/../html/dist").c_str()), WSLit(""), filesWritten);
 
   std::cout << (success ? "true" : "false") << ", " << filesWritten << std::endl;
 }

@@ -8,6 +8,7 @@
 #include <Box2D/Box2d.h>
 #include <ResourceManager.hpp>
 #include <UIValues.hpp>
+#include <js/JSHandler.hpp>
 
 using namespace Awesomium;
 
@@ -46,6 +47,9 @@ private:
   BitmapSurface* m_uiSurface = nullptr;
   unsigned char* m_uiRGBABuffer = nullptr;
   sf::Texture* m_uiTexture = nullptr;
+
+  JSValue m_jsApp;
+  JSHandler* m_jsHandler = nullptr;
 
   ResourceManager m_resources;
 
