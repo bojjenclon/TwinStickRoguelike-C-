@@ -403,7 +403,7 @@ void Game::mainLoop()
         }
       }
     }
-
+    
     m_webCore->Update();
 
     if (m_uiSurface->is_dirty())
@@ -476,6 +476,10 @@ void Game::handleBrowserEvents(sf::Event& p_event) const
     auto point = m_window.mapPixelToCoords(mousePosition);
 
     m_webView->InjectMouseMove(static_cast<int>(point.x), static_cast<int>(point.y));
+  }
+  else if (p_event.type == sf::Event::MouseWheelScrolled)
+  {
+    m_webView->InjectMouseWheel(static_cast<int>(p_event.mouseWheelScroll.delta * 10), 0);
   }
   else if (p_event.type == sf::Event::KeyPressed)
   {

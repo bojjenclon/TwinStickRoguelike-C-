@@ -186,5 +186,5 @@ Selectable.removeSelected = function(callback) {
     });
   }
 
-  setTimeout(callback, 300);
+  setTimeout(callback, 500);
 };

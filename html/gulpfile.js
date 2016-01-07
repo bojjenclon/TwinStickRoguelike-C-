@@ -59,7 +59,8 @@ gulp.task('concat-js', function() {
       .pipe(gulp.dest('dist/js/min'));
 
   let Shop = 
-    gulp.src(['dist/js/min/jquery-2.1.4.js', 'dist/js/min/InGameHud.js', 'dist/js/min/selectable.js', 'dist/js/min/jscrollpane/jquery.jscrollpane.js'])
+    gulp.src(['dist/js/min/jquery-2.1.4.js', 'dist/js/min/selectable.js', 
+      'dist/js/min/jscrollpane/jquery.jscrollpane.js', 'dist/js/min/jscrollpane/jquery.mousewheel.js', 'dist/js/min/jscrollpane/mwheelIntent.js'])
       .pipe(concat('Shop.min.js', {newLine: ' '}))
       .pipe(gulp.dest('dist/js/min'));
 

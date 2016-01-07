@@ -47,6 +47,7 @@
 
               <div class="button" onclick='addItem();'>Add Item</div>
               <div class="button" onclick='removeSelectedItems();'>Remove Selected Items</div>
+              <div class="button" onclick='addMultipleItems(10);'>Add 10 Item</div>
 
             </div>
             
@@ -73,6 +74,7 @@
     </div>
 
     <script src="js/min/Shop.min.js"></script>
+
     <script>
       var items = [
         'grapes',
@@ -88,8 +90,7 @@
 
       $(function() {
         $('.scroll-pane').jScrollPane({
-          showArrows: true,
-          maintainPosition: true
+          showArrows: true
         });
 
         $('.scroll-pane').each(function() {
@@ -169,7 +170,14 @@
         Selectable.removeSelected(function() {
           var api = $('#itemList-scroll-pane').data('jsp');
           api.reinitialise();
+          console.log("calling");
         });
+      }
+
+      function addMultipleItems(amount) {
+        for (var i = 0; i < amount; i++) {
+          addItem();
+        }
       }
 
       function displayImage(base64) {
