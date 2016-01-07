@@ -40,6 +40,9 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
   
   if (targetCNodeWatch->nodeChanged)
   {
+    parentCMicroPather->path.clear();
+    parentCMicroPather->smoothedPath.clear();
+
     auto targetCRender = m_target->get<RenderComponent>();
     auto targetSprite = static_cast<sf::Sprite*>(targetCRender->drawable);
 
@@ -184,7 +187,7 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
 
     auto dx = node.x - parentBody->GetPosition().x * Constants::PIXELS_PER_METER;
     auto dy = node.y - parentBody->GetPosition().y * Constants::PIXELS_PER_METER;
-    
+
     auto thresholdX = Constants::COLLISION_TILE_WIDTH;
     auto thresholdY = Constants::COLLISION_TILE_HEIGHT;
 
@@ -194,85 +197,19 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
     }
     else
     {
-      auto signX = abs(dx) < 0.05f ? 0 : dx < 0 ? -1 : 1;
-      auto signY = abs(dy) < 0.05f ? 0 : dy < 0 ? -1 : 1;
-
-      //parentBody->ApplyLinearImpulse(b2Vec2(m_speed * signX, m_speed * signY), parentBody->GetWorldCenter(), true);
-
-      if (abs(dx) >= thresholdX)
-      {
-        parentBody->ApplyLinearImpulse(b2Vec2(m_speed * signX, 0), parentBody->GetWorldCenter(), true);
-      }
-      else
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
-      }
-
-      if (abs(dy) >= thresholdY)
-      {
-        parentBody->ApplyLinearImpulse(b2Vec2(0, m_speed * signY), parentBody->GetWorldCenter(), true);
-      }
-      else
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
-      }
-
-      if (signX == 0)
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
-      }
-      if (signY == 0)
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
-      }
-
-      /*if (parentCMicroPather->positionInPath + 1 < parentCMicroPather->smoothedPath.size())
-      {
-        auto nextNode = parentCMicroPather->smoothedPath[parentCMicroPather->positionInPath + 1];
-
-        auto dxNext = nextNode.x - node.x;
-        auto dyNext = nextNode.y - node.y;
-
-        if (abs(dxNext) < thresholdX)
-        {
-          parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
-        }
-        if (abs(dyNext) < thresholdY)
-        {
-          parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
-        }
-      }*/
-
-      /*if (abs(dx) >= thresholdX / 2 || abs(dy) >= thresholdY / 2)
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y * 0.9f));
-      }*/
-
-      /*if (abs(dx) >= thresholdX)
-      {
-        parentBody->ApplyLinearImpulse(b2Vec2(m_speed * sgn(dx), 0), parentBody->GetWorldCenter(), true);
-      }
-      else
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y));
-      }
-
-      if (abs(dy) >= thresholdY)
-      {
-        parentBody->ApplyLinearImpulse(b2Vec2(0, m_speed * sgn(dy)), parentBody->GetWorldCenter(), true);
-      }
-      else
-      {
-        parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x, parentBody->GetLinearVelocity().y * 0.9f));
-      }*/
+      b2Vec2 force(dx, dy);
+      force.Normalize();
+      
+      parentBody->SetLinearVelocity(b2Vec2(parentBody->GetLinearVelocity().x * 0.9f, parentBody->GetLinearVelocity().y * 0.9f));
+      parentBody->ApplyLinearImpulse(force * m_speed, parentBody->GetWorldCenter(), true);
     }
 
     moved = true;
   }
-  else if (parentCMicroPather->positionInPath >= parentCMicroPather->smoothedPath.size())
+  else if (parentCMicroPather->smoothedPath.size() == 0 || parentCMicroPather->positionInPath >= parentCMicroPather->smoothedPath.size())
   {
     parentBody->SetLinearVelocity(b2Vec2(0, 0));
   }
-
+  
   return moved ? BehaviorTree::BT_RUNNING : BehaviorTree::BT_SUCCESS;
 }

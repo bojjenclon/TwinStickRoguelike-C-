@@ -8,15 +8,15 @@
 class PathfindingNode : public BehaviorTree::BehaviorTreeNode
 {
 public:
-  PathfindingNode(ECS::Entity* p_target, TiledMap* p_map, float p_speed = 0.005f);
+  PathfindingNode(ECS::Entity* p_target, TiledMap* p_map,  float p_speed = 0.05f);
   virtual ~PathfindingNode();
 
   void init(void* p_agent) override;
   BehaviorTree::BEHAVIOR_STATUS execute(void* p_agent) override;
 
 private:
-  ECS::Entity* m_target;
-  TiledMap* m_map;
+  ECS::Entity* m_target = nullptr;
+  TiledMap* m_map = nullptr;
   float m_speed;
 };
 

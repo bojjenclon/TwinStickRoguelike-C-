@@ -352,6 +352,19 @@ void Game::mainLoop()
             m_engine->addEntity(bullet);
           }
         }
+        else if (event.mouseButton.button == sf::Mouse::Right)
+        {
+          auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+
+          auto mx = static_cast<int>(mousePos.x / Constants::COLLISION_TILE_WIDTH);
+          auto my = static_cast<int>(mousePos.y / Constants::COLLISION_TILE_HEIGHT);
+
+          auto tile = map->getCollisionTile(mx, my);
+
+          printf("x, y: (%d, %d)\n", mx, my);
+          printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
+          printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
+        }
       }
       else if (event.type == sf::Event::KeyPressed)
       {
