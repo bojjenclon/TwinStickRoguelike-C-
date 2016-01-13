@@ -180,7 +180,7 @@ bool Game::start()
   m_webView = m_webCore->CreateWebView(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
   m_webView->SetTransparent(true);
 
-  WebURL url(WSLit("asset://app/Shop.html"));
+  WebURL url(WSLit("asset://app/InGameHud.html"));
   m_webView->LoadURL(url);
 
   while (m_webView->IsLoading())
@@ -206,8 +206,8 @@ bool Game::start()
   m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
   m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
 
-  m_jsHandler = new ShopJSHandler(m_jsApp);
-  m_webView->set_js_method_handler(m_jsHandler);
+  /*m_jsHandler = new ShopJSHandler(m_jsApp);
+  m_webView->set_js_method_handler(m_jsHandler);*/
 
   /* Awesoimium Setup End */
 
@@ -309,7 +309,7 @@ void Game::mainLoop()
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map->getTileLayer(0).getDepth()));
   m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map->getTileLayer(1).getDepth()));
   map->addCollision(m_world, m_engine, true);
-
+  
   /*auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);*/
 

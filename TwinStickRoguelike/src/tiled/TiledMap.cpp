@@ -12,6 +12,10 @@
 
 TiledMap::TiledMap()
 {
+  m_exitDirections[North] = false;
+  m_exitDirections[South] = false;
+  m_exitDirections[East] = false;
+  m_exitDirections[West] = false;
 }
 
 int TiledMap::getWidth() const
@@ -65,6 +69,11 @@ TiledTileset TiledMap::findTilesetFromGid(int p_gid) const
 int TiledMap::getTileId(int p_layer, int p_x, int p_y) const
 {
   return m_tileLayers[p_layer].getTileId(p_x, p_y);
+}
+
+bool TiledMap::hasExit(ExitDirection p_direction) const
+{
+  return m_exitDirections.at(p_direction);
 }
 
 void TiledMap::addCollisionShape(CollisionShape p_shape)
@@ -518,6 +527,15 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
   auto tileDifY = mapTileHeight / Constants::COLLISION_TILE_HEIGHT;
 
   map->m_pather = new MicroPather(map, mapWidth * tileDifX * mapHeight * tileDifY, 8, true);
+
+  auto properties = parsedJson["properties"];
+
+  auto exits = properties["exits"].get<std::string>();
+
+  map->m_exitDirections[North] = exits.find("N") != std::string::npos;
+  map->m_exitDirections[South] = exits.find("S") != std::string::npos;
+  map->m_exitDirections[East] = exits.find("E") != std::string::npos;
+  map->m_exitDirections[West] = exits.find("W") != std::string::npos;
 
   // tilesets MUST be loaded before layers
   for (unsigned int i = 0; i < parsedJson["tilesets"].size(); ++i)

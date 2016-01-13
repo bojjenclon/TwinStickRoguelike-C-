@@ -24,6 +24,15 @@ private:
   };
 
 public:
+  enum ExitDirection
+  {
+    North,
+    South,
+    East,
+    West
+  };
+
+public:
   TiledMap();
 
   int getWidth() const;
@@ -41,6 +50,8 @@ public:
   bool isCollisionAdded() const;
   bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap = true);
   bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
+
+  bool hasExit(ExitDirection p_direction) const;
 
   MicroPather* getPather() const;
   MicroPatherNode* getPatherNode(unsigned int p_x, unsigned int p_y, int p_width = 1, int p_height = 1);
@@ -87,6 +98,8 @@ private:
   int m_collisionMapWidth = 1;
   int m_collisionMapHeight = 1;
   
+  std::map<ExitDirection, bool> m_exitDirections;
+
   std::vector<CollisionShape> m_collisionShapes;
   std::vector<TiledTileLayer> m_tileLayers;
   std::vector<TiledTileset> m_tilesets;
