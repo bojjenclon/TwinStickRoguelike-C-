@@ -303,16 +303,18 @@ void Game::mainLoop()
 
   sf::Clock deltaClock;
 
-  auto map = TiledMap::loadFromJson("../assets/levels/test.json");
-  TiledTileLayerDrawable tiledLayer0(m_resources.getTexture("terrain_atlas"), map->getTileLayer(0), map->getTileset(0));
-  TiledTileLayerDrawable tiledLayer1(m_resources.getTexture("terrain_atlas"), map->getTileLayer(1), map->getTileset(0));
-  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer0, map->getTileLayer(0).getDepth()));
-  m_engine->addEntity(BasicEntityFactory::makeDrawable(tiledLayer1, map->getTileLayer(1).getDepth()));
+  auto map = TiledMap::loadFromJson("../assets/levels/NW_01.json");
+  for (unsigned int i = 0; i < map->getTileLayerCount(); ++i)
+  {
+    auto mapLayer = map->getTileLayer(i);
+    auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture("terrain_atlas"), mapLayer, map->getTileset(mapLayer.getTilesetIndex()));
+    m_engine->addEntity(BasicEntityFactory::makeDrawable(*tiledLayer, mapLayer.getDepth()));
+  }
   map->addCollision(m_world, m_engine, true);
   
   /*auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);*/
-
+  
   while (m_window.isOpen())
   {
     sf::Event event;

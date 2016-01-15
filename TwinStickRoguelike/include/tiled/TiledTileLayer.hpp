@@ -24,6 +24,9 @@ public:
   int getDepth() const;
   void setDepth(int p_depth);
 
+  int getTilesetIndex() const;
+  void setTilesetIndex(int p_tilesetIndex);
+
   static TiledTileLayer createFromData(const TiledMap* p_map, std::string p_data, int p_width, int p_height);
 
 private:
@@ -31,6 +34,7 @@ private:
   int m_width;
   int m_height;
   int m_depth;
+  int m_tilesetIndex;
 };
 
 #endif

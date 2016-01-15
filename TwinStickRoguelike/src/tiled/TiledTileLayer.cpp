@@ -3,22 +3,20 @@
 #include <base64/base64.hpp>
 #include <zlib.h>
 
-TiledTileLayer::TiledTileLayer()
+TiledTileLayer::TiledTileLayer() : TiledTileLayer(0, 0)
 {
-  m_depth = 1;
 }
 
 TiledTileLayer::TiledTileLayer(TileCollection p_tiles) : m_tiles(p_tiles)
 {
   m_width = m_tiles.size();
   m_height = m_tiles[0].size();
-
-  m_depth = 1;
 }
 
 TiledTileLayer::TiledTileLayer(int p_width, int p_height) : m_tiles(p_width, std::vector<TiledTile>(p_height)), m_width(p_width), m_height(p_height)
 {
   m_depth = 1;
+  m_tilesetIndex = 0;
 }
 
 TiledTile TiledTileLayer::getTile(int p_x, int p_y) const
@@ -54,6 +52,16 @@ int TiledTileLayer::getDepth() const
 void TiledTileLayer::setDepth(int p_depth)
 {
   m_depth = p_depth;
+}
+
+int TiledTileLayer::getTilesetIndex() const
+{
+  return m_tilesetIndex;
+}
+
+void TiledTileLayer::setTilesetIndex(int p_tilesetIndex)
+{
+  m_tilesetIndex = p_tilesetIndex;
 }
 
 TiledTileLayer TiledTileLayer::createFromData(const TiledMap* p_map, std::string p_data, int p_width, int p_height)

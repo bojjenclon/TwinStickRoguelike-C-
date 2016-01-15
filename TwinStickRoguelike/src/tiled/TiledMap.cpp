@@ -38,6 +38,11 @@ TiledTileLayer TiledMap::getTileLayer(int p_index) const
   return m_tileLayers[p_index];
 }
 
+unsigned int TiledMap::getTileLayerCount() const
+{
+  return m_tileLayers.size();
+}
+
 void TiledMap::addTileset(TiledTileset p_tileset)
 {
   m_tilesets.push_back(p_tileset);
@@ -580,6 +585,12 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
       {
         auto layerDepth = atoi(curLayer["properties"]["depth"].get<std::string>().c_str());
         layer.setDepth(layerDepth);
+      }
+
+      if (!curLayer["properties"]["tilesetIndex"].is_null())
+      {
+        auto layerTilesetIndex = atoi(curLayer["properties"]["tilesetIndex"].get<std::string>().c_str());
+        layer.setTilesetIndex(layerTilesetIndex);
       }
 
       map->addTileLayer(layer);

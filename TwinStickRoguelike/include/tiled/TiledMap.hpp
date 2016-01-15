@@ -40,6 +40,7 @@ public:
 
   void addTileLayer(TiledTileLayer p_layer);
   TiledTileLayer getTileLayer(int p_index) const;
+  unsigned int getTileLayerCount() const;
 
   void addTileset(TiledTileset p_tileset);
   TiledTileset getTileset(int p_index) const;
