@@ -25,6 +25,10 @@ void ContactListener::BeginContact(b2Contact* p_contact)
   {
     BulletContactBegin(collisionDataA, collisionDataB);
   }
+  else if ((collisionDataA->type == EntityInfo::Player || collisionDataB->type == EntityInfo::Player) && (collisionDataA->type == EntityInfo::Exit || collisionDataB->type == EntityInfo::Exit))
+  {
+    PlayerExitContactBegin(collisionDataA, collisionDataB);
+  }
 }
 
 void ContactListener::EndContact(b2Contact* p_contact)
@@ -56,4 +60,12 @@ void ContactListener::BulletContactBegin(CollisionData* p_dataA, CollisionData* 
   {
     cBullet->collisionCallback(p_dataA, p_dataB);
   }
+}
+
+void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
+{
+  auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
+  auto exitCollisionData = p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB;;
+
+  printf("You hit an exit!\n");
 }

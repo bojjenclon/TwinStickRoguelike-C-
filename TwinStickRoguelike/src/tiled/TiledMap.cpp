@@ -9,6 +9,7 @@
 #include <components/TiledCollisionShapeComponent.hpp>
 #include <Constants.hpp>
 #include <pathfinding/MicropatherNode.hpp>
+#include <collisions/CollisionData.hpp>
 
 TiledMap::TiledMap()
 {
@@ -109,6 +110,7 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
 
       auto fixtureDef = new b2FixtureDef();
       fixtureDef->density = 1.0f;
+      fixtureDef->isSensor = shape.isSensor;
 
       auto sep = new b2Separator();
 
@@ -132,8 +134,16 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
       auto body = p_world->CreateBody(&shape.bodyDef);
       it->body = body;
 
-      body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+      if (shape.type == "exit")
+      {
+        auto collisionData = new CollisionData();
+        collisionData->type = EntityInfo::Exit;
+        body->SetUserData(collisionData);
+      }
 
+      auto fixture = body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
+      fixture->SetSensor(shape.isSensor);
+      
       auto entity = p_engine->createEntity();
 
       auto cPhysics = p_engine->createComponent<PhysicsComponent>();
@@ -626,7 +636,7 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map->addCollisionShape(CollisionShape{ bodyDef, objectType, box });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, false, box });
           }
           else if (objectType == "circle")
           {
@@ -645,7 +655,7 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map->addCollisionShape(CollisionShape{ bodyDef, objectType, circle });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, false, circle });
           }
           // currently broken
           else if (objectType == "ellipse")
@@ -678,7 +688,7 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map->addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, false, polygon });
           }
           else if (objectType == "convex_polygon")
           {
@@ -705,7 +715,7 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map->addCollisionShape(CollisionShape{ bodyDef, objectType, polygon });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, false, polygon });
           }
           else if (objectType == "concave_polygon")
           {
@@ -727,8 +737,38 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
             bodyDef.fixedRotation = true;
             bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
 
-            map->addCollisionShape(CollisionShape{ bodyDef, objectType, points });
+            map->addCollisionShape(CollisionShape{ bodyDef, objectType, false, points });
           }
+        }
+      }
+      else if (layerName == "exits")
+      {
+        for (unsigned int j = 0; j < curLayer["objects"].size(); ++j)
+        {
+          auto curExit = curLayer["objects"][j];
+
+          if (!curExit["visible"].get<bool>())
+          {
+            continue;
+          }
+
+          auto exitDirection = curExit["type"].get<std::string>();
+
+          auto width = curExit["width"].get<int>() / 2;
+          auto height = curExit["height"].get<int>() / 2;
+
+          auto box = new b2PolygonShape();
+          box->SetAsBox(width / Constants::PIXELS_PER_METER, height / Constants::PIXELS_PER_METER);
+
+          auto x = curExit["x"].get<int>() + width;
+          auto y = curExit["y"].get<int>() + height;
+
+          b2BodyDef bodyDef;
+          bodyDef.type = b2_staticBody;
+          bodyDef.fixedRotation = true;
+          bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
+          
+          map->addCollisionShape(CollisionShape{ bodyDef, "exit", true, box });
         }
       }
     }

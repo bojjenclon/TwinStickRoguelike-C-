@@ -78,11 +78,12 @@ private:
   {
     b2BodyDef bodyDef;
     std::string type;
+    bool isSensor = false;
     void* data = nullptr;
     b2Body* body = nullptr;
 
-    CollisionShape(b2BodyDef p_bodyDef, std::string p_type, void* p_data = nullptr, b2Body* p_body = nullptr)
-      : bodyDef(p_bodyDef), type(p_type), data(p_data), body(p_body)
+    CollisionShape(b2BodyDef p_bodyDef, std::string p_type, bool p_isSensor = false, void* p_data = nullptr, b2Body* p_body = nullptr)
+      : bodyDef(p_bodyDef), type(p_type), isSensor(p_isSensor), data(p_data), body(p_body)
     {
       
     }

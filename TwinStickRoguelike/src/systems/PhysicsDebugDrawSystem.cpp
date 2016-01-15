@@ -34,7 +34,7 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
         body->GetPosition().y * Constants::PIXELS_PER_METER + boxCircle->m_p.y * Constants::PIXELS_PER_METER
       );
       circle.setFillColor(sf::Color::Transparent);
-      circle.setOutlineColor(sf::Color::Red);
+      circle.setOutlineColor(fixture->IsSensor() ? sf::Color::Cyan : sf::Color::Red);
       circle.setOutlineThickness(1);
       m_renderTarget.draw(circle);
     }
@@ -45,9 +45,9 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
       sf::ConvexShape sfPolygon;
       sfPolygon.setPosition(body->GetPosition().x * Constants::PIXELS_PER_METER, body->GetPosition().y * Constants::PIXELS_PER_METER);
       sfPolygon.setFillColor(sf::Color::Transparent);
-      sfPolygon.setOutlineColor(sf::Color::Red);
+      sfPolygon.setOutlineColor(fixture->IsSensor() ? sf::Color::Cyan : sf::Color::Red);
       sfPolygon.setOutlineThickness(1);
-
+      
       sfPolygon.setPointCount(boxPolygon->GetVertexCount());
       for (auto i = 0; i < boxPolygon->GetVertexCount(); i++)
       {

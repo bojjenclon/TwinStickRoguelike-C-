@@ -6,6 +6,7 @@ struct EntityInfo
   enum Type
   {
     Obstacle,
+    Exit,
     Player,
     Enemy,
     Bullet
