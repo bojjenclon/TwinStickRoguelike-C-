@@ -165,7 +165,15 @@ Game::Game()
 bool Game::start()
 {
   m_window.create(sf::VideoMode(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT), "SFML + Awesomium");
+  m_window.setPosition(sf::Vector2i(m_window.getPosition().x, 0));
   m_window.setFramerateLimit(60);
+  
+  m_mapTexture.create(Constants::VIEW_WIDTH, Constants::MAP_HEIGHT, false);
+
+  m_mapSprite.setTexture(m_mapTexture.getTexture());
+  m_mapSprite.setPosition(0, static_cast<float>(Constants::MAP_OFFSET));
+
+  m_window.setView(sf::View(sf::FloatRect(0, 0, static_cast<float>(Constants::VIEW_WIDTH), static_cast<float>(Constants::VIEW_HEIGHT))));
 
   loadMedia();
 
@@ -177,7 +185,7 @@ bool Game::start()
   DataSource* data_source = new DataPakSource(WSLit((GetApplicationDir() + "/../assets/resources.pak").c_str()));
   m_webSession->AddDataSource(WSLit("app"), data_source);
 
-  m_webView = m_webCore->CreateWebView(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, m_webSession, kWebViewType_Offscreen);
+  m_webView = m_webCore->CreateWebView(Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT, m_webSession, kWebViewType_Offscreen);
   m_webView->SetTransparent(true);
 
   WebURL url(WSLit("asset://app/InGameHud.html"));
@@ -198,13 +206,13 @@ bool Game::start()
   m_uiSurface = static_cast<BitmapSurface*>(m_webView->surface());
 
   m_uiTexture = new sf::Texture();
-  m_uiTexture->create(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
+  m_uiTexture->create(Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT);
   m_uiSprite.setTexture(*m_uiTexture);
 
-  m_uiRGBABuffer = new unsigned char[Constants::SCREEN_WIDTH * Constants::SCREEN_HEIGHT * 4];
+  m_uiRGBABuffer = new unsigned char[Constants::VIEW_WIDTH * Constants::VIEW_HEIGHT * 4];
 
-  m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::SCREEN_WIDTH * 4, 4, true, false);
-  m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
+  m_uiSurface->CopyTo(m_uiRGBABuffer, Constants::VIEW_WIDTH * 4, 4, true, false);
+  m_uiTexture->update(m_uiRGBABuffer, Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT, 0, 0);
 
   /*m_jsHandler = new ShopJSHandler(m_jsApp);
   m_webView->set_js_method_handler(m_jsHandler);*/
@@ -249,15 +257,15 @@ bool Game::start()
   auto uiUpdateSystem = new UIUpdateSystem();
   m_engine->addSystem(uiUpdateSystem);
 
-  auto renderSystem = new RenderSystem(m_window);
+  auto renderSystem = new RenderSystem(m_mapTexture);
   m_engine->addSystem(renderSystem);
 
 #ifdef _DEBUG
-  auto physicsDebugDrawSystem = new PhysicsDebugDrawSystem(m_window);
+  auto physicsDebugDrawSystem = new PhysicsDebugDrawSystem(m_mapTexture);
   physicsDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(physicsDebugDrawSystem);
 
-  auto pathfindingDebugDrawSystem = new PathfindingDebugDrawSystem(m_window);
+  auto pathfindingDebugDrawSystem = new PathfindingDebugDrawSystem(m_mapTexture);
   pathfindingDebugDrawSystem->setProcessing(false);
   m_engine->addSystem(pathfindingDebugDrawSystem);
 #endif
@@ -274,7 +282,7 @@ bool Game::start()
 
   /* Entity Setup Begin */
 
-  auto uiContainer = BasicEntityFactory::makeUIContainer(m_uiSprite, m_webView, m_uiValues);
+  auto uiContainer = BasicEntityFactory::makeUIContainer(m_webView, m_uiValues);
   m_engine->addEntity(uiContainer);
 
   m_player = BasicEntityFactory::makePlayer(m_resources, sf::Vector2f(300, 200));
@@ -295,15 +303,12 @@ void Game::mainLoop()
   fpsText.setCharacterSize(16);
   fpsText.setStyle(sf::Text::Bold);
   fpsText.setColor(sf::Color::Red);
-  fpsText.setPosition(5, Constants::SCREEN_HEIGHT - 21);
-
-  auto fpsEntity = BasicEntityFactory::makeDrawable(fpsText, -10);
-  m_engine->addEntity(fpsEntity);
+  fpsText.setPosition(5, Constants::VIEW_HEIGHT - 21);
 #endif
 
   sf::Clock deltaClock;
 
-  auto map = TiledMap::loadFromJson("../assets/levels/NW_01.json");
+  auto map = TiledMap::loadFromJson("../assets/levels/NW_02.json");
   for (unsigned int i = 0; i < map->getTileLayerCount(); ++i)
   {
     auto mapLayer = map->getTileLayer(i);
@@ -312,9 +317,10 @@ void Game::mainLoop()
   }
   map->addCollision(m_world, m_engine, true);
   
-  /*auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
-  m_engine->addEntity(enemy);*/
+  auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
+  m_engine->addEntity(enemy);
   
+  m_window.requestFocus();
   while (m_window.isOpen())
   {
     sf::Event event;
@@ -339,9 +345,9 @@ void Game::mainLoop()
 
               auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
               auto playerTransform = dynamic_cast<sf::Transformable*>(m_player->get<RenderComponent>()->drawable);
-
+              
               auto dx = mousePos.x - playerTransform->getPosition().x;
-              auto dy = mousePos.y - playerTransform->getPosition().y;
+              auto dy = mousePos.y - playerTransform->getPosition().y - Constants::MAP_OFFSET;
 
               auto angle = atan2(dy, dx);
 
@@ -367,15 +373,19 @@ void Game::mainLoop()
           else if (event.mouseButton.button == sf::Mouse::Right)
           {
             auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+            mousePos.y -= Constants::MAP_OFFSET;
 
             auto mx = static_cast<int>(mousePos.x / Constants::COLLISION_TILE_WIDTH);
             auto my = static_cast<int>(mousePos.y / Constants::COLLISION_TILE_HEIGHT);
 
-            auto tile = map->getCollisionTile(mx, my);
+            if (mx >= 0 && my >= 0)
+            {
+              auto tile = map->getCollisionTile(mx, my);
 
-            printf("x, y: (%d, %d)\n", mx, my);
-            printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
-            printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
+              printf("x, y: (%d, %d)\n", mx, my);
+              printf("horizontal clearance: (%d, %d)\n", tile.horizontalClearance.x, tile.horizontalClearance.y);
+              printf("vertical clearance: (%d, %d)\n\n", tile.verticalClearance.x, tile.verticalClearance.y);
+            }
           }
 #endif
         }
@@ -401,6 +411,14 @@ void Game::mainLoop()
               map->addCollision(m_world, m_engine);
             }
           }
+          else if (event.key.code == sf::Keyboard::Numpad8)
+          {
+            m_window.setSize(sf::Vector2u(Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT));
+          }
+          else if (event.key.code == sf::Keyboard::Numpad9)
+          {
+            m_window.setSize(sf::Vector2u(Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT));
+          }
 #endif
         }
       }
@@ -411,7 +429,7 @@ void Game::mainLoop()
     if (m_uiSurface->is_dirty())
     {
       m_uiSurface->CopyTo(m_uiRGBABuffer, m_uiSurface->row_span(), 4, true, false);
-      m_uiTexture->update(m_uiRGBABuffer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT, 0, 0);
+      m_uiTexture->update(m_uiRGBABuffer, Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT, 0, 0);
     }
 
     auto dt = deltaClock.restart();
@@ -421,7 +439,8 @@ void Game::mainLoop()
     fpsText.setString("FPS: " + std::to_string(1 / dt.asSeconds()));
 #endif
 
-    m_window.clear(sf::Color::White);
+    m_window.clear(sf::Color::Black);
+    m_mapTexture.clear(sf::Color::Black);
 
     m_engine->update(dtMillis);
 
@@ -429,6 +448,13 @@ void Game::mainLoop()
     //map->drawCollisionMap(m_window);
 #endif
 
+    m_mapTexture.display();
+    m_window.draw(m_mapSprite);
+
+    m_window.draw(fpsText);
+
+    m_window.draw(m_uiSprite);
+    
     m_window.display();
   }
 }

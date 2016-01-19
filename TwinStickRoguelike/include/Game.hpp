@@ -41,6 +41,9 @@ private:
   sf::RenderWindow m_window;
   sf::Sprite m_uiSprite;
 
+  sf::RenderTexture m_mapTexture;
+  sf::Sprite m_mapSprite;
+
   WebCore* m_webCore = nullptr;
   WebSession* m_webSession = nullptr;
   WebView* m_webView = nullptr;

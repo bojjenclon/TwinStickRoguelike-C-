@@ -27,16 +27,11 @@ ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_de
   return entity;
 }
 
-ECS::Entity* BasicEntityFactory::makeUIContainer(sf::Sprite& p_sprite, WebView* p_webView, UIValues& p_uiValues)
+ECS::Entity* BasicEntityFactory::makeUIContainer(WebView* p_webView, UIValues& p_uiValues)
 {
   auto& engine = Game::Get().getEngine();
 
   auto entity = engine.createEntity();
-
-  auto cRender = engine.createComponent<RenderComponent>();
-  entity->add(cRender);
-  cRender->drawable = &p_sprite;
-  cRender->depth = -999;
 
   auto cUI = engine.createComponent<UIComponent>();
   entity->add(cUI);
