@@ -1,29 +1,29 @@
 #playerHud {
   position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 250px;
+  left: 5px;
+  top: 5px;
+  width: 200px;
 
   #hpBar {
     position: relative;
     left: 5px;
     top: 5px;
-    width: 200px;
+    width: 150px;
   }
 }
 
 #enemyHud {
   position: absolute;
-  right: 10px;
-  top: 10px;
-  width: 250px;
+  right: 5px;
+  top: 5px;
+  width: 200px;
   display: none;
 
   #hpBar {
     position: relative;
     right: 5px;
     top: 5px;
-    width: 200px;
+    width: 150px;
     margin-left: auto;
   }
 }

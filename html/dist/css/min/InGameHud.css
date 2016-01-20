@@ -1,1 +1,1 @@
-#enemyHud,#playerHud{position:absolute;top:10px;width:250px}#enemyHud #hpBar,#playerHud #hpBar{position:relative;top:5px;width:200px}#playerHud{left:10px}#playerHud #hpBar{left:5px}#enemyHud{right:10px;display:none}#enemyHud #hpBar{right:5px;margin-left:auto}
+#enemyHud,#playerHud{position:absolute;width:200px}#enemyHud #hpBar,#playerHud #hpBar{position:relative;top:5px;width:150px}#playerHud{left:5px;top:5px}#playerHud #hpBar{left:5px}#enemyHud{right:5px;top:5px;display:none}#enemyHud #hpBar{right:5px;margin-left:auto}

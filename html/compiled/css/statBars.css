@@ -1,12 +1,12 @@
 .meter {
-  height: 10px;
+  height: 6px;
   /* Can be anything */
   position: relative;
   background: #555;
   -moz-border-radius: 25px;
   -webkit-border-radius: 25px;
   border-radius: 25px;
-  padding: 4px;
+  padding: 2px;
   box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3); }
 
 .meter > span {
