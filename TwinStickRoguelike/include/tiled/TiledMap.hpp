@@ -9,6 +9,7 @@
 #include <pathfinding/micropather.h>
 #include <SFML/Graphics.hpp>
 #include <pathfinding/MicropatherNode.hpp>
+#include <map/Exit.hpp>
 
 using json = nlohmann::json;
 using namespace micropather;
@@ -52,6 +53,8 @@ public:
   bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap = true);
   bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
 
+  void addExit(const ExitDirection& p_direction, const Exit& p_exit);
+  const Exit& getExit(const ExitDirection& p_direction) const;
   bool hasExit(ExitDirection p_direction) const;
 
   MicroPather* getPather() const;
@@ -101,11 +104,12 @@ private:
   int m_collisionMapHeight = 1;
   
   std::map<ExitDirection, bool> m_exitDirections;
+  std::map<ExitDirection, Exit> m_exits;
 
   std::vector<CollisionShape> m_collisionShapes;
   std::vector<TiledTileLayer> m_tileLayers;
   std::vector<TiledTileset> m_tilesets;
-
+  
   std::vector<std::vector<CollisionNode>> m_collisionMap;
   std::vector<std::vector<MicroPatherNode*>> m_pathfindingMap;
 

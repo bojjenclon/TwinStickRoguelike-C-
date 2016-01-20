@@ -10,6 +10,7 @@
 #include <Constants.hpp>
 #include <pathfinding/MicropatherNode.hpp>
 #include <collisions/CollisionData.hpp>
+#include <collisions/ExitCollisionData.hpp>
 
 TiledMap::TiledMap()
 {
@@ -56,8 +57,6 @@ TiledTileset TiledMap::getTileset(int p_index) const
 
 TiledTileset TiledMap::findTilesetFromGid(int p_gid) const
 {
-  auto id = 0;
-
   for (auto i = m_tilesets.size() - 1; i > 0; --i)
   {
     auto tileset = m_tilesets[i];
@@ -75,6 +74,17 @@ TiledTileset TiledMap::findTilesetFromGid(int p_gid) const
 int TiledMap::getTileId(int p_layer, int p_x, int p_y) const
 {
   return m_tileLayers[p_layer].getTileId(p_x, p_y);
+}
+
+void TiledMap::addExit(const ExitDirection& p_direction, const Exit& p_exit)
+{
+  m_exits[p_direction] = p_exit;
+  m_exitDirections[p_direction] = true;
+}
+
+const Exit& TiledMap::getExit(const ExitDirection& p_direction) const
+{
+  return m_exits.at(p_direction);
 }
 
 bool TiledMap::hasExit(ExitDirection p_direction) const
@@ -136,8 +146,53 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
 
       if (shape.type == "exit")
       {
-        auto collisionData = new CollisionData();
+        sf::Vector2f exitPosition(
+          body->GetPosition().x * Constants::PIXELS_PER_METER,
+          body->GetPosition().y * Constants::PIXELS_PER_METER);
+
+        /*Exit* exit = nullptr;
+
+        for (unsigned int i = 0; i < m_exits.size(); ++i)
+        {
+          auto curExit = m_exits[i];
+          auto curPos = curExit.getPosition();
+
+          static const auto TOLERANCE = 0.005f;
+          if (abs(curPos.x - exitPosition.x) < TOLERANCE && abs(curPos.y - exitPosition.y) < TOLERANCE)
+          {
+            exit = &curExit;
+
+            break;
+          }
+        }*/
+
+        Exit* exit = nullptr;
+
+        static const auto X_LOWER_BOUND = Constants::COLLISION_TILE_WIDTH * 2;
+        static const auto Y_LOWER_BOUND = Constants::COLLISION_TILE_HEIGHT * 2;
+        static const auto X_UPPER_BOUND = m_width - X_LOWER_BOUND;
+        static const auto Y_UPPER_BOUND = m_height - Y_LOWER_BOUND;
+
+        if (exitPosition.y < Y_LOWER_BOUND)
+        {
+          exit = &m_exits[North];
+        }
+        else if (exitPosition.y > Y_UPPER_BOUND)
+        {
+          exit = &m_exits[South];
+        }
+        else if (exitPosition.x < X_LOWER_BOUND)
+        {
+          exit = &m_exits[West];
+        }
+        else if (exitPosition.x > X_UPPER_BOUND)
+        {
+          exit = &m_exits[East];
+        }
+
+        auto collisionData = new ExitCollisionData();
         collisionData->type = EntityInfo::Exit;
+        collisionData->exit = exit;
         body->SetUserData(collisionData);
       }
 
@@ -545,13 +600,6 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
 
   auto properties = parsedJson["properties"];
 
-  auto exits = properties["exits"].get<std::string>();
-
-  map->m_exitDirections[North] = exits.find("N") != std::string::npos;
-  map->m_exitDirections[South] = exits.find("S") != std::string::npos;
-  map->m_exitDirections[East] = exits.find("E") != std::string::npos;
-  map->m_exitDirections[West] = exits.find("W") != std::string::npos;
-
   // tilesets MUST be loaded before layers
   for (unsigned int i = 0; i < parsedJson["tilesets"].size(); ++i)
   {
@@ -769,6 +817,25 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
           bodyDef.position.Set(x / Constants::PIXELS_PER_METER, y / Constants::PIXELS_PER_METER);
           
           map->addCollisionShape(CollisionShape{ bodyDef, "exit", true, box });
+
+          Exit exit(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)), sf::Vector2f(width * 2.f, height * 2.f), nullptr);
+          
+          if (exitDirection == "north")
+          {
+            map->addExit(North, exit);
+          }
+          else if (exitDirection == "south")
+          {
+            map->addExit(South, exit);
+          }
+          else if (exitDirection == "west")
+          {
+            map->addExit(West, exit);
+          }
+          else if (exitDirection == "east")
+          {
+            map->addExit(East, exit);
+          }
         }
       }
     }

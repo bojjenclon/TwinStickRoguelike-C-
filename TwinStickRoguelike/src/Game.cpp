@@ -308,11 +308,12 @@ void Game::mainLoop()
 
   sf::Clock deltaClock;
 
-  auto map = TiledMap::loadFromJson("../assets/levels/NW_02.json");
+  auto map = TiledMap::loadFromJson("../assets/levels/S_01.json"); // NW_02
   for (unsigned int i = 0; i < map->getTileLayerCount(); ++i)
   {
     auto mapLayer = map->getTileLayer(i);
-    auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture("terrain_atlas"), mapLayer, map->getTileset(mapLayer.getTilesetIndex()));
+    auto tileset = map->getTileset(mapLayer.getTilesetIndex());
+    auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture(tileset.getName()), mapLayer, tileset);
     m_engine->addEntity(BasicEntityFactory::makeDrawable(*tiledLayer, mapLayer.getDepth()));
   }
   map->addCollision(m_world, m_engine, true);
@@ -484,6 +485,7 @@ void Game::loadMedia()
   m_resources.loadTexture("pinkBullet", "../assets/pinkBullet.png");
 
   m_resources.loadTexture("terrain_atlas", "F:/Images/Game Graphics/Tilesets/Atlas_0/terrain_atlas.png");
+  m_resources.loadTexture("build_atlas", "F:/Images/Game Graphics/Tilesets/Atlas2/build_atlas.png");
 }
 
 void Game::handleBrowserEvents(sf::Event& p_event) const

@@ -18,6 +18,11 @@ TiledTileLayerDrawable::TiledTileLayerDrawable(sf::Texture& p_texture, const Til
     {
       // get the current tile number
       auto tileNumber = p_layer.getTileId(x, y);
+
+      if (tileNumber < 0)
+      {
+        continue;
+      }
       
       // find its position in the tileset texture
       auto tu = tileNumber % (p_tileset.getImageWidth() / tileWidth);
