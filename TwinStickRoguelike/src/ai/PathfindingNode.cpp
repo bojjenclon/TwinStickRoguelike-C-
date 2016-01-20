@@ -61,8 +61,8 @@ BehaviorTree::BEHAVIOR_STATUS PathfindingNode::execute(void* p_agent)
     auto startNode = m_map->getPatherNode(startX, startY, parentWidth, parentHeight);
 
     // calculate end node
-    auto targetWidth = static_cast<int>(ceil(targetSprite->getTextureRect().width / Constants::COLLISION_TILE_WIDTH / 2));
-    auto targetHeight = static_cast<int>(ceil(targetSprite->getTextureRect().height / Constants::COLLISION_TILE_HEIGHT / 2));
+    auto targetWidth = static_cast<int>(ceil(targetSprite->getTextureRect().width / Constants::COLLISION_TILE_WIDTH));
+    auto targetHeight = static_cast<int>(ceil(targetSprite->getTextureRect().height / Constants::COLLISION_TILE_HEIGHT));
 
     auto endX = static_cast<int>(targetBody->GetPosition().x * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_WIDTH) - (targetWidth / 2);
     auto endY = static_cast<int>(targetBody->GetPosition().y * Constants::PIXELS_PER_METER / Constants::COLLISION_TILE_HEIGHT) - (targetHeight / 2);

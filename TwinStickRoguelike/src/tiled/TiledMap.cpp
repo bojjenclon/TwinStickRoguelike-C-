@@ -464,7 +464,7 @@ int TiledMap::Passable(int nx, int ny, int width, int height) const
   {
     auto node = m_collisionMap[nx][ny];
 
-    auto canPass = height >= width ?
+    auto canPass = height > width ?
       width <= node.verticalClearance.x && height <= node.verticalClearance.y :
       width <= node.horizontalClearance.x && height <= node.horizontalClearance.y;
 
