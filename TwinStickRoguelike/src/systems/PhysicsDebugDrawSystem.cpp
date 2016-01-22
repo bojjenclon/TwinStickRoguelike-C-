@@ -14,6 +14,11 @@ void PhysicsDebugDrawSystem::processEntity(ECS::Entity* p_entity, float p_dt)
   auto cPhysics = p_entity->get<PhysicsComponent>();
 
   auto body = cPhysics->body;
+
+  if (!body->IsActive())
+  {
+    return;
+  }
   
   for (auto fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext())
   {

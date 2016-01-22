@@ -3,6 +3,9 @@
 #include <components/HealthComponent.hpp>
 #include <components/BulletComponent.hpp>
 #include <EntityInfo.hpp>
+#include <collisions/ExitCollisionData.hpp>
+#include <tiled/TiledMap.hpp>
+#include <Game.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -65,7 +68,13 @@ void ContactListener::BulletContactBegin(CollisionData* p_dataA, CollisionData* 
 void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
 {
   auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
-  auto exitCollisionData = p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB;;
+  auto exitCollisionData = static_cast<ExitCollisionData*>(p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB);;
 
-  printf("You hit an exit!\n");
+  /*printf("You hit an exit!\n");
+  printf("Destination: %s\n", exitCollisionData->exit->getDestination() == nullptr ? "none" : "exists");*/
+  if (exitCollisionData->exit->getDestination() != nullptr)
+  {
+    auto& game = Game::Get();
+    game.changeMap(exitCollisionData->exit->getDestination());
+  }
 }

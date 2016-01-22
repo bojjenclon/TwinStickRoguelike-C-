@@ -1,4 +1,4 @@
-#include <BulletEntityFactory.hpp>
+#include <factories/BulletEntityFactory.hpp>
 #include <components/LifetimeComponent.hpp>
 #include <components/HitOnceComponent.hpp>
 #include <components/BulletComponent.hpp>
@@ -8,6 +8,7 @@
 #include <components/RenderComponent.hpp>
 #include <components/PhysicsComponent.hpp>
 #include <Constants.hpp>
+#include <components/ActiveComponent.hpp>
 
 ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, Bullet::Options p_options)
 {
@@ -15,6 +16,9 @@ ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, 
   auto& engine = game.getEngine();
 
   auto entity = engine.createEntity();
+
+  auto cActive = engine.createComponent<ActiveComponent>();
+  entity->add(cActive);
 
   auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);

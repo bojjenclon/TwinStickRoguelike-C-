@@ -6,7 +6,7 @@ Exit::Exit()
 }
 
 
-Exit::Exit(const sf::Vector2f& p_position, const sf::Vector2f& p_size, TiledMap* p_destination)
+Exit::Exit(const sf::Vector2f& p_position, const sf::Vector2f& p_size, GameMap* p_destination)
   : m_position(p_position), m_size(p_size), m_destination(p_destination)
 {
   
@@ -32,12 +32,12 @@ void Exit::setSize(const sf::Vector2f& p_size)
   m_size = p_size;
 }
 
-TiledMap* Exit::getDestination() const
+GameMap* Exit::getDestination() const
 {
   return m_destination;
 }
 
-void Exit::setDesintation(TiledMap* p_destination)
+void Exit::setDesintation(GameMap* p_destination)
 {
   m_destination = p_destination;
 }

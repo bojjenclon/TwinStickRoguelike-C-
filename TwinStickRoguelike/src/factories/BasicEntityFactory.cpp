@@ -1,4 +1,4 @@
-#include <BasicEntityFactory.hpp>
+#include <factories/BasicEntityFactory.hpp>
 #include <components/RenderComponent.hpp>
 #include <components/HealthComponent.hpp>
 #include <components/UIComponent.hpp>
@@ -12,17 +12,22 @@
 #include <EntityInfo.hpp>
 #include <Constants.hpp>
 #include <components/NodeWatchComponent.hpp>
+#include <components/ActiveComponent.hpp>
 
-ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, int p_depth)
+ECS::Entity* BasicEntityFactory::makeDrawable(sf::Drawable& p_drawable, const DrawableOptions& p_options)
 {
   auto& engine = Game::Get().getEngine();
 
   auto entity = engine.createEntity();
 
+  auto cActive = engine.createComponent<ActiveComponent>();
+  entity->add(cActive);
+  cActive->isActive = p_options.isActive;
+
   auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);
   cRender->drawable = &p_drawable;
-  cRender->depth = p_depth;
+  cRender->depth = p_options.depth;
 
   return entity;
 }
@@ -32,6 +37,9 @@ ECS::Entity* BasicEntityFactory::makeUIContainer(WebView* p_webView, UIValues& p
   auto& engine = Game::Get().getEngine();
 
   auto entity = engine.createEntity();
+
+  auto cActive = engine.createComponent<ActiveComponent>();
+  entity->add(cActive);
 
   auto cUI = engine.createComponent<UIComponent>();
   entity->add(cUI);
@@ -46,6 +54,9 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
   auto& engine = Game::Get().getEngine();
 
   auto entity = engine.createEntity();
+
+  auto cActive = engine.createComponent<ActiveComponent>();
+  entity->add(cActive);
 
   auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);

@@ -9,6 +9,8 @@
 #include <ResourceManager.hpp>
 #include <UIValues.hpp>
 #include <js/JSHandler.hpp>
+#include <tiled/TiledTileLayerDrawable.hpp>
+#include <GameMap.hpp>
 
 using namespace Awesomium;
 
@@ -32,6 +34,9 @@ public:
   void setTarget(ECS::Entity* p_target);
   void clearTarget();
 
+  void addMap(GameMap* p_map, bool p_active = false);
+  void changeMap(GameMap* p_gameMap);
+
   static Game& Get();
   static std::string GetApplicationDir();
 
@@ -43,6 +48,11 @@ private:
 
   sf::RenderTexture m_mapTexture;
   sf::Sprite m_mapSprite;
+
+  std::vector<GameMap*> m_maps;
+  GameMap* m_previousMap = nullptr;
+  GameMap* m_currentMap = nullptr;
+  bool m_mapChanged = false;
 
   WebCore* m_webCore = nullptr;
   WebSession* m_webSession = nullptr;

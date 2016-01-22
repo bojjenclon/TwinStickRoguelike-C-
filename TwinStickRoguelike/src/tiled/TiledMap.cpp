@@ -82,7 +82,7 @@ void TiledMap::addExit(const ExitDirection& p_direction, const Exit& p_exit)
   m_exitDirections[p_direction] = true;
 }
 
-const Exit& TiledMap::getExit(const ExitDirection& p_direction) const
+Exit& TiledMap::getExit(const ExitDirection& p_direction)
 {
   return m_exits.at(p_direction);
 }
@@ -102,7 +102,7 @@ bool TiledMap::isCollisionAdded() const
   return m_collisionAdded;
 }
 
-bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap)
+bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap, bool p_isCollisionEnabled)
 {
   if (m_collisionAdded)
   {
@@ -150,28 +150,12 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
           body->GetPosition().x * Constants::PIXELS_PER_METER,
           body->GetPosition().y * Constants::PIXELS_PER_METER);
 
-        /*Exit* exit = nullptr;
-
-        for (unsigned int i = 0; i < m_exits.size(); ++i)
-        {
-          auto curExit = m_exits[i];
-          auto curPos = curExit.getPosition();
-
-          static const auto TOLERANCE = 0.005f;
-          if (abs(curPos.x - exitPosition.x) < TOLERANCE && abs(curPos.y - exitPosition.y) < TOLERANCE)
-          {
-            exit = &curExit;
-
-            break;
-          }
-        }*/
-
         Exit* exit = nullptr;
-
-        static const auto X_LOWER_BOUND = Constants::COLLISION_TILE_WIDTH * 2;
-        static const auto Y_LOWER_BOUND = Constants::COLLISION_TILE_HEIGHT * 2;
-        static const auto X_UPPER_BOUND = m_width - X_LOWER_BOUND;
-        static const auto Y_UPPER_BOUND = m_height - Y_LOWER_BOUND;
+        
+        static const auto X_LOWER_BOUND = m_tileWidth * 2;
+        static const auto Y_LOWER_BOUND = m_tileHeight * 2;
+        static const auto X_UPPER_BOUND = m_width * m_tileWidth - X_LOWER_BOUND;
+        static const auto Y_UPPER_BOUND = m_height * m_tileHeight - Y_LOWER_BOUND;
 
         if (exitPosition.y < Y_LOWER_BOUND)
         {
@@ -194,6 +178,11 @@ bool TiledMap::addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<E
         collisionData->type = EntityInfo::Exit;
         collisionData->exit = exit;
         body->SetUserData(collisionData);
+      }
+
+      if (!p_isCollisionEnabled)
+      {
+        body->SetActive(false);
       }
 
       auto fixture = body->CreateFixture(static_cast<b2Shape*>(shape.data), 1);
@@ -244,6 +233,40 @@ bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_pt
 
   m_collisionAdded = false;
 
+  return true;
+}
+
+bool TiledMap::enableCollision() const
+{
+  if (!m_collisionAdded)
+  {
+    return false;
+  }
+
+  for (auto it = m_collisionShapes.begin(); it != m_collisionShapes.end(); ++it)
+  {
+    auto shape = *it;
+
+    shape.body->SetActive(true);
+  }
+  
+  return true;
+}
+
+bool TiledMap::disableCollision() const
+{
+  if (!m_collisionAdded)
+  {
+    return false;
+  }
+
+  for (auto it = m_collisionShapes.begin(); it != m_collisionShapes.end(); ++it)
+  {
+    auto shape = *it;
+
+    shape.body->SetActive(false);
+  }
+  
   return true;
 }
 

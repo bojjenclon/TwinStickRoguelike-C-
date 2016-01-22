@@ -2,6 +2,7 @@
 #include <components/PhysicsComponent.hpp>
 #include <components/RenderComponent.hpp>
 #include <Constants.hpp>
+#include <components/ActiveComponent.hpp>
 
 // based on: http://saltares.com/blog/games/fixing-your-timestep-in-libgdx-and-box2d/
 
@@ -32,6 +33,13 @@ void PhysicsSystem::update(float p_dt)
 
 void PhysicsSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 {
+  auto cActive = p_entity->get<ActiveComponent>();
+
+  if (!cActive->isActive)
+  {
+    return;
+  }
+
   auto cPhysics = p_entity->get<PhysicsComponent>();
   auto body = cPhysics->body;
 

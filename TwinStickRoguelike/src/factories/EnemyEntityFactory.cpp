@@ -1,4 +1,4 @@
-#include <EnemyEntityFactory.hpp>
+#include <factories/EnemyEntityFactory.hpp>
 #include <Game.hpp>
 #include <components/RenderComponent.hpp>
 #include <components/DirectionComponent.hpp>
@@ -11,6 +11,7 @@
 #include <Constants.hpp>
 #include <ai/PathfindingNode.hpp>
 #include <components/MicroPatherComponent.hpp>
+#include <components/ActiveComponent.hpp>
 
 ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, TiledMap* p_map, sf::Vector2f p_position)
 {
@@ -18,6 +19,9 @@ ECS::Entity* EnemyEntityFactory::makeBasicEnemy(ResourceManager& p_resources, Ti
   auto& engine = game.getEngine();
 
   auto entity = engine.createEntity();
+
+  auto cActive = engine.createComponent<ActiveComponent>();
+  entity->add(cActive);
 
   auto cRender = engine.createComponent<RenderComponent>();
   entity->add(cRender);

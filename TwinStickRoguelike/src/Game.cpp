@@ -6,7 +6,7 @@
 #include <Awesomium/STLHelpers.h>
 #include <Awesomium/DataPak.h>
 #include <Constants.hpp>
-#include <BasicEntityFactory.hpp>
+#include <factories/BasicEntityFactory.hpp>
 #include <systems/RenderSystem.hpp>
 #include <systems/UIUpdateSystem.hpp>
 #include <systems/PlayerInputSystem.hpp>
@@ -21,14 +21,16 @@
 #include <components/TargetedComponent.hpp>
 #include <systems/TargetStatsSyncSystem.hpp>
 #include <systems/BulletSystem.hpp>
-#include <BulletEntityFactory.hpp>
-#include <EnemyEntityFactory.hpp>
+#include <factories/BulletEntityFactory.hpp>
+#include <factories/EnemyEntityFactory.hpp>
 #include <tiled/TiledMap.hpp>
 #include <tiled/TiledTileLayerDrawable.hpp>
 #include <chrono>
 #include <systems/NodeWatchSystem.hpp>
 #include <systems/PathfindingDebugDrawSystem.hpp>
 #include <js/ShopJSHandler.hpp>
+#include <components/ActiveComponent.hpp>
+#include <components/PhysicsComponent.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -220,7 +222,7 @@ bool Game::start()
   /* Awesoimium Setup End */
 
   // Engine parameters: entityPoolInitialSize, entityPoolMaxSize, componentPoolInitialSize
-  m_engine = std::make_unique<ECS::Engine>(10, 100, 100);
+  m_engine = std::make_unique<ECS::Engine>(25, 250, 150);
 
   /* Systems Setup Begin */
 
@@ -308,16 +310,42 @@ void Game::mainLoop()
 
   sf::Clock deltaClock;
 
+  /* Maps Begin */
+
+  auto offscreenMap = TiledMap::loadFromJson("../assets/levels/NW_02.json");
+  auto offscreenGameMap = new GameMap(offscreenMap);
+  addMap(offscreenGameMap);
+  //m_maps.push_back(new GameMap(offscreenMap));
+
   auto map = TiledMap::loadFromJson("../assets/levels/S_01.json"); // NW_02
+  auto gameMap = new GameMap(map);
+  addMap(gameMap, true);
+  /*m_maps.push_back(new GameMap(map));
+  m_currentMap = m_maps.back();
+
   for (unsigned int i = 0; i < map->getTileLayerCount(); ++i)
   {
     auto mapLayer = map->getTileLayer(i);
     auto tileset = map->getTileset(mapLayer.getTilesetIndex());
+
     auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture(tileset.getName()), mapLayer, tileset);
-    m_engine->addEntity(BasicEntityFactory::makeDrawable(*tiledLayer, mapLayer.getDepth()));
+    auto layerEntity = BasicEntityFactory::makeDrawable(*tiledLayer, mapLayer.getDepth());
+    
+    m_engine->addEntity(layerEntity);
+
+    m_currentMap->mapLayerDrawables.push_back(tiledLayer);
+    m_currentMap->mapLayerEntities.push_back(layerEntity);
   }
-  map->addCollision(m_world, m_engine, true);
+  map->addCollision(m_world, m_engine, true);*/
   
+  auto& southExit = map->getExit(TiledMap::ExitDirection::South);
+  southExit.setDesintation(offscreenGameMap);
+
+  auto& northExit = offscreenMap->getExit(TiledMap::ExitDirection::North);
+  northExit.setDesintation(gameMap);
+
+  /* Maps End */
+
   auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
   
@@ -444,6 +472,26 @@ void Game::mainLoop()
     m_mapTexture.clear(sf::Color::Black);
 
     m_engine->update(dtMillis);
+
+    // has to be done here as Box2D bodies cannot be changed during a simulation,
+    // which would occur if this were called in changeMap as that function is called
+    // in the contact listener upon touching an exit (during the Box2D simulation)
+    if (m_mapChanged)
+    {
+      /*m_previousMap->tiledMap->removeCollision(m_world, m_engine);
+      m_currentMap->tiledMap->addCollision(m_world, m_engine, true);*/
+      m_previousMap->tiledMap->disableCollision();
+      m_currentMap->tiledMap->enableCollision();
+
+      auto cPhysics = m_player->get<PhysicsComponent>();
+      cPhysics->body->SetTransform(
+        b2Vec2(
+          Constants::VIEW_WIDTH / 2 / Constants::PIXELS_PER_METER,
+          Constants::VIEW_HEIGHT / 2 / Constants::PIXELS_PER_METER),
+        cPhysics->body->GetAngle());
+
+      m_mapChanged = false;
+    }
 
 #ifdef _DEBUG
     //map->drawCollisionMap(m_window);
@@ -651,6 +699,62 @@ void Game::clearTarget()
 
   m_uiValues.enemy.display = false;
   m_uiValues.enemy.displayChanged = true;
+}
+
+void Game::addMap(GameMap* p_map, bool p_active)
+{
+  m_maps.push_back(p_map);
+
+  auto tiledMap = p_map->tiledMap;
+
+  for (unsigned int i = 0; i < tiledMap->getTileLayerCount(); ++i)
+  {
+    auto mapLayer = tiledMap->getTileLayer(i);
+    auto tileset = tiledMap->getTileset(mapLayer.getTilesetIndex());
+
+    auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture(tileset.getName()), mapLayer, tileset);
+    auto layerEntity = BasicEntityFactory::makeDrawable(*tiledLayer, { p_active, mapLayer.getDepth() });
+
+    m_engine->addEntity(layerEntity);
+
+    p_map->mapLayerDrawables.push_back(tiledLayer);
+    p_map->mapLayerEntities.push_back(layerEntity);
+  }
+
+  tiledMap->addCollision(m_world, m_engine, true, p_active);
+
+  if (p_active)
+  {
+    m_currentMap = p_map;
+  }
+}
+
+void Game::changeMap(GameMap* p_gameMap)
+{
+  if (m_currentMap != nullptr)
+  {
+    for (auto it = m_currentMap->mapLayerEntities.begin(); it != m_currentMap->mapLayerEntities.end(); ++it)
+    {
+      auto layerEntity = *it;
+
+      auto cActive = layerEntity->get<ActiveComponent>();
+      cActive->isActive = false;
+    }
+
+    m_previousMap = m_currentMap;
+  }
+
+  m_currentMap = p_gameMap;
+
+  for (auto it = m_currentMap->mapLayerEntities.begin(); it != m_currentMap->mapLayerEntities.end(); ++it)
+  {
+    auto layerEntity = *it;
+
+    auto cActive = layerEntity->get<ActiveComponent>();
+    cActive->isActive = true;
+  }
+
+  m_mapChanged = true;
 }
 
 Game& Game::Get()

@@ -50,11 +50,13 @@ public:
   int getTileId(int p_layer, int p_x, int p_y) const;
 
   bool isCollisionAdded() const;
-  bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap = true);
+  bool addCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine, bool p_generateCollisionMap = true, bool p_isCollisionEnabled = true);
   bool removeCollision(std::unique_ptr<b2World>& p_world, std::unique_ptr<ECS::Engine>& p_engine);
+  bool enableCollision() const;
+  bool disableCollision() const;
 
   void addExit(const ExitDirection& p_direction, const Exit& p_exit);
-  const Exit& getExit(const ExitDirection& p_direction) const;
+  Exit& getExit(const ExitDirection& p_direction);
   bool hasExit(ExitDirection p_direction) const;
 
   MicroPather* getPather() const;
