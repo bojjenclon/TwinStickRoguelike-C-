@@ -31,6 +31,7 @@
 #include <js/ShopJSHandler.hpp>
 #include <components/ActiveComponent.hpp>
 #include <components/PhysicsComponent.hpp>
+#include <components/BulletComponent.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -348,6 +349,8 @@ void Game::mainLoop()
 
   auto enemy = EnemyEntityFactory::makeBasicEnemy(m_resources, map, sf::Vector2f(600, 200));
   m_engine->addEntity(enemy);
+
+  m_currentMap->tiledMap->addEntity(enemy);
   
   m_window.requestFocus();
   while (m_window.isOpen())
@@ -731,6 +734,14 @@ void Game::addMap(GameMap* p_map, bool p_active)
 
 void Game::changeMap(GameMap* p_gameMap)
 {
+  // remove all bullets, as they are neither carried over to the new map nor maintained on the old map
+  auto allBullets = m_engine->getEntitiesFor(ECS::Family::all<BulletComponent>().get());
+  for (auto it = allBullets->begin(); it != allBullets->end(); ++it)
+  {
+    auto bullet = *it;
+    m_engine->removeEntity(bullet);
+  }
+
   if (m_currentMap != nullptr)
   {
     for (auto it = m_currentMap->mapLayerEntities.begin(); it != m_currentMap->mapLayerEntities.end(); ++it)
@@ -740,6 +751,8 @@ void Game::changeMap(GameMap* p_gameMap)
       auto cActive = layerEntity->get<ActiveComponent>();
       cActive->isActive = false;
     }
+
+    m_currentMap->tiledMap->disableEntities();
 
     m_previousMap = m_currentMap;
   }
@@ -753,6 +766,8 @@ void Game::changeMap(GameMap* p_gameMap)
     auto cActive = layerEntity->get<ActiveComponent>();
     cActive->isActive = true;
   }
+
+  m_currentMap->tiledMap->enableEntities();
 
   m_mapChanged = true;
 }

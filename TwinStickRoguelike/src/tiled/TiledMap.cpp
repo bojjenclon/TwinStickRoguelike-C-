@@ -11,6 +11,7 @@
 #include <pathfinding/MicropatherNode.hpp>
 #include <collisions/CollisionData.hpp>
 #include <collisions/ExitCollisionData.hpp>
+#include <components/ActiveComponent.hpp>
 
 TiledMap::TiledMap()
 {
@@ -478,6 +479,33 @@ MicroPatherNode* TiledMap::getPatherNode(unsigned int p_x, unsigned int p_y, int
 MicroPather* TiledMap::getPather() const
 {
   return m_pather;
+}
+
+void TiledMap::addEntity(ECS::Entity* p_entity)
+{
+  m_entities.push_back(p_entity);
+}
+
+void TiledMap::enableEntities()
+{
+  for (auto it = m_entities.begin(); it != m_entities.end(); ++it)
+  {
+    auto entity = *it;
+
+    auto cActive = entity->get<ActiveComponent>();
+    cActive->isActive = true;
+  }
+}
+
+void TiledMap::disableEntities()
+{
+  for (auto it = m_entities.begin(); it != m_entities.end(); ++it)
+  {
+    auto entity = *it;
+
+    auto cActive = entity->get<ActiveComponent>();
+    cActive->isActive = false;
+  }
 }
 
 int TiledMap::Passable(int nx, int ny, int width, int height) const

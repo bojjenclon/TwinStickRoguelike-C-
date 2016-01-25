@@ -62,6 +62,10 @@ public:
   MicroPather* getPather() const;
   MicroPatherNode* getPatherNode(unsigned int p_x, unsigned int p_y, int p_width = 1, int p_height = 1);
 
+  void addEntity(ECS::Entity* p_entity);
+  void enableEntities();
+  void disableEntities();
+
 #ifdef _DEBUG
   // FOR DEBUGGING, SHOULD PROBABLY BE REMOVED LATER
   CollisionNode getCollisionTile(int p_x, int p_y) const;
@@ -118,6 +122,8 @@ private:
   MicroPather* m_pather = nullptr;
 
   bool m_collisionAdded = false;
+
+  std::vector<ECS::Entity*> m_entities;
 
 #ifdef _DEBUG
   // FOR DEBUGGING, SHOULD PROBABLY BE REMOVED LATER
