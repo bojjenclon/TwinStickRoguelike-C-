@@ -869,24 +869,28 @@ TiledMap* TiledMap::loadFromJson(std::string p_path)
           
           map->addCollisionShape(CollisionShape{ bodyDef, "exit", true, box });
 
-          Exit exit(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)), sf::Vector2f(width * 2.f, height * 2.f), nullptr);
-          
+          ExitDirection direction;
+
           if (exitDirection == "north")
           {
-            map->addExit(North, exit);
+            direction = North;
           }
           else if (exitDirection == "south")
           {
-            map->addExit(South, exit);
+            direction = South;
           }
           else if (exitDirection == "west")
           {
-            map->addExit(West, exit);
+            direction = West;
           }
           else if (exitDirection == "east")
           {
-            map->addExit(East, exit);
+            direction = East;
           }
+
+          Exit exit(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)), sf::Vector2f(width * 2.f, height * 2.f), direction, nullptr);
+          
+          map->addExit(direction, exit);
         }
       }
     }

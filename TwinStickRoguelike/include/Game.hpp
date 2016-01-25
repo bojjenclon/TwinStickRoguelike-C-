@@ -35,7 +35,7 @@ public:
   void clearTarget();
 
   void addMap(GameMap* p_map, bool p_active = false);
-  void changeMap(GameMap* p_gameMap);
+  void changeMap(GameMap* p_gameMap, const sf::Vector2f& p_playerPosition);
 
   static Game& Get();
   static std::string GetApplicationDir();
@@ -53,6 +53,7 @@ private:
   GameMap* m_previousMap = nullptr;
   GameMap* m_currentMap = nullptr;
   bool m_mapChanged = false;
+  sf::Vector2f m_newPlayerPosition;
 
   WebCore* m_webCore = nullptr;
   WebSession* m_webSession = nullptr;

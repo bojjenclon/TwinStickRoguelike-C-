@@ -10,6 +10,7 @@
 #include <SFML/Graphics.hpp>
 #include <pathfinding/MicropatherNode.hpp>
 #include <map/Exit.hpp>
+#include <map/ExitDirection.hpp>
 
 using json = nlohmann::json;
 using namespace micropather;
@@ -22,15 +23,6 @@ private:
     int type = 0;
     sf::Vector2i horizontalClearance = sf::Vector2i(1, 1);
     sf::Vector2i verticalClearance = sf::Vector2i(1, 1);
-  };
-
-public:
-  enum ExitDirection
-  {
-    North,
-    South,
-    East,
-    West
   };
 
 public:

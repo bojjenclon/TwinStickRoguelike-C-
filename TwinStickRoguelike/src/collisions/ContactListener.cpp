@@ -6,6 +6,8 @@
 #include <collisions/ExitCollisionData.hpp>
 #include <tiled/TiledMap.hpp>
 #include <Game.hpp>
+#include <components/RenderComponent.hpp>
+#include <SFML/Graphics/Rect.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -69,12 +71,69 @@ void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionDa
 {
   auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
   auto exitCollisionData = static_cast<ExitCollisionData*>(p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB);;
-
-  /*printf("You hit an exit!\n");
-  printf("Destination: %s\n", exitCollisionData->exit->getDestination() == nullptr ? "none" : "exists");*/
+  
   if (exitCollisionData->exit->getDestination() != nullptr)
   {
     auto& game = Game::Get();
-    game.changeMap(exitCollisionData->exit->getDestination());
+
+    auto destination = exitCollisionData->exit->getDestination();
+
+    auto cRender = playerCollisionData->entity->get<RenderComponent>();
+    auto sprite = static_cast<sf::Sprite*>(cRender->drawable);
+    auto playerSize = sprite->getLocalBounds();
+
+    sf::Vector2f playerPosition;
+
+    switch (exitCollisionData->exit->getDirection())
+    {
+      case (North) :
+      {
+        auto exit = destination->tiledMap->getExit(South);
+
+        auto exitPosition = exit.getPosition();
+
+        playerPosition.x = exitPosition.x;
+        playerPosition.y = exitPosition.y - playerSize.height;
+
+        break;
+      }
+      case (South) :
+      {
+        auto exit = destination->tiledMap->getExit(North);
+
+        auto exitPosition = exit.getPosition();
+        auto exitSize = exit.getSize();
+
+        playerPosition.x = exitPosition.x;
+        playerPosition.y = exitPosition.y + exitSize.y + playerSize.height;
+
+        break;
+      }
+      case (West) :
+      {
+        auto exit = destination->tiledMap->getExit(East);
+
+        auto exitPosition = exit.getPosition();
+
+        playerPosition.x = exitPosition.x - playerSize.width;
+        playerPosition.y = exitPosition.y;
+
+        break;
+      }
+      case (East) :
+      {
+        auto exit = destination->tiledMap->getExit(West);
+
+        auto exitPosition = exit.getPosition();
+        auto exitSize = exit.getSize();
+
+        playerPosition.x = exitPosition.x + exitSize.x + playerSize.width;
+        playerPosition.y = exitPosition.y;
+
+        break;
+      }
+    }
+
+    game.changeMap(destination, playerPosition);
   }
 }

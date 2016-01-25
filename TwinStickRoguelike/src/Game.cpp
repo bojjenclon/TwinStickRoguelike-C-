@@ -316,33 +316,15 @@ void Game::mainLoop()
   auto offscreenMap = TiledMap::loadFromJson("../assets/levels/NW_02.json");
   auto offscreenGameMap = new GameMap(offscreenMap);
   addMap(offscreenGameMap);
-  //m_maps.push_back(new GameMap(offscreenMap));
 
   auto map = TiledMap::loadFromJson("../assets/levels/S_01.json"); // NW_02
   auto gameMap = new GameMap(map);
   addMap(gameMap, true);
-  /*m_maps.push_back(new GameMap(map));
-  m_currentMap = m_maps.back();
-
-  for (unsigned int i = 0; i < map->getTileLayerCount(); ++i)
-  {
-    auto mapLayer = map->getTileLayer(i);
-    auto tileset = map->getTileset(mapLayer.getTilesetIndex());
-
-    auto tiledLayer = new TiledTileLayerDrawable(m_resources.getTexture(tileset.getName()), mapLayer, tileset);
-    auto layerEntity = BasicEntityFactory::makeDrawable(*tiledLayer, mapLayer.getDepth());
-    
-    m_engine->addEntity(layerEntity);
-
-    m_currentMap->mapLayerDrawables.push_back(tiledLayer);
-    m_currentMap->mapLayerEntities.push_back(layerEntity);
-  }
-  map->addCollision(m_world, m_engine, true);*/
   
-  auto& southExit = map->getExit(TiledMap::ExitDirection::South);
+  auto& southExit = map->getExit(South);
   southExit.setDesintation(offscreenGameMap);
 
-  auto& northExit = offscreenMap->getExit(TiledMap::ExitDirection::North);
+  auto& northExit = offscreenMap->getExit(North);
   northExit.setDesintation(gameMap);
 
   /* Maps End */
@@ -481,16 +463,14 @@ void Game::mainLoop()
     // in the contact listener upon touching an exit (during the Box2D simulation)
     if (m_mapChanged)
     {
-      /*m_previousMap->tiledMap->removeCollision(m_world, m_engine);
-      m_currentMap->tiledMap->addCollision(m_world, m_engine, true);*/
       m_previousMap->tiledMap->disableCollision();
       m_currentMap->tiledMap->enableCollision();
 
       auto cPhysics = m_player->get<PhysicsComponent>();
       cPhysics->body->SetTransform(
         b2Vec2(
-          Constants::VIEW_WIDTH / 2 / Constants::PIXELS_PER_METER,
-          Constants::VIEW_HEIGHT / 2 / Constants::PIXELS_PER_METER),
+          m_newPlayerPosition.x / Constants::PIXELS_PER_METER,
+          m_newPlayerPosition.y / Constants::PIXELS_PER_METER),
         cPhysics->body->GetAngle());
 
       m_mapChanged = false;
@@ -732,7 +712,7 @@ void Game::addMap(GameMap* p_map, bool p_active)
   }
 }
 
-void Game::changeMap(GameMap* p_gameMap)
+void Game::changeMap(GameMap* p_gameMap, const sf::Vector2f& p_playerPosition)
 {
   // remove all bullets, as they are neither carried over to the new map nor maintained on the old map
   auto allBullets = m_engine->getEntitiesFor(ECS::Family::all<BulletComponent>().get());
@@ -769,6 +749,7 @@ void Game::changeMap(GameMap* p_gameMap)
 
   m_currentMap->tiledMap->enableEntities();
 
+  m_newPlayerPosition = p_playerPosition;
   m_mapChanged = true;
 }
 
