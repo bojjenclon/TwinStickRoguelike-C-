@@ -466,6 +466,9 @@ void Game::mainLoop()
       m_previousMap->tiledMap->disableCollision();
       m_currentMap->tiledMap->enableCollision();
 
+      m_previousMap->tiledMap->disableEntities();
+      m_currentMap->tiledMap->enableEntities();
+
       auto cPhysics = m_player->get<PhysicsComponent>();
       cPhysics->body->SetTransform(
         b2Vec2(
@@ -732,8 +735,6 @@ void Game::changeMap(GameMap* p_gameMap, const sf::Vector2f& p_playerPosition)
       cActive->isActive = false;
     }
 
-    m_currentMap->tiledMap->disableEntities();
-
     m_previousMap = m_currentMap;
   }
 
@@ -746,8 +747,6 @@ void Game::changeMap(GameMap* p_gameMap, const sf::Vector2f& p_playerPosition)
     auto cActive = layerEntity->get<ActiveComponent>();
     cActive->isActive = true;
   }
-
-  m_currentMap->tiledMap->enableEntities();
 
   m_newPlayerPosition = p_playerPosition;
   m_mapChanged = true;

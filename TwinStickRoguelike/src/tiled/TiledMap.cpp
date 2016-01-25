@@ -494,6 +494,9 @@ void TiledMap::enableEntities()
 
     auto cActive = entity->get<ActiveComponent>();
     cActive->isActive = true;
+
+    auto cPhysics = entity->get<PhysicsComponent>();
+    cPhysics->body->SetActive(true);
   }
 }
 
@@ -505,6 +508,9 @@ void TiledMap::disableEntities()
 
     auto cActive = entity->get<ActiveComponent>();
     cActive->isActive = false;
+
+    auto cPhysics = entity->get<PhysicsComponent>();
+    cPhysics->body->SetActive(false);
   }
 }
 
