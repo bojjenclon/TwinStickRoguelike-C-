@@ -680,6 +680,11 @@ void Game::setTarget(ECS::Entity* p_target)
 
 void Game::clearTarget()
 {
+  if (m_target == nullptr)
+  {
+    return;
+  }
+
   m_target->remove<TargetedComponent>();
   m_target = nullptr;
 
@@ -747,6 +752,8 @@ void Game::changeMap(GameMap* p_gameMap, const sf::Vector2f& p_playerPosition)
     auto cActive = layerEntity->get<ActiveComponent>();
     cActive->isActive = true;
   }
+
+  clearTarget();
 
   m_newPlayerPosition = p_playerPosition;
   m_mapChanged = true;
