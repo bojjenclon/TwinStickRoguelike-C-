@@ -32,6 +32,7 @@
 #include <components/ActiveComponent.hpp>
 #include <components/PhysicsComponent.hpp>
 #include <components/BulletComponent.hpp>
+#include <factories/ItemEntityFactory.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -245,7 +246,7 @@ bool Game::start()
   auto nodeWatchSystem = new NodeWatchSystem();
   m_engine->addSystem(nodeWatchSystem);
 
-  auto lifetimeSystem = new LifetimeSystem(m_engine);
+  auto lifetimeSystem = new LifetimeSystem(m_engine, m_world);
   m_engine->addSystem(lifetimeSystem);
 
   auto playerStatsSyncSystem = new PlayerStatsSyncSystem(m_uiValues);
@@ -308,6 +309,8 @@ void Game::mainLoop()
   fpsText.setColor(sf::Color::Red);
   fpsText.setPosition(5, Constants::VIEW_HEIGHT - 21);
 #endif
+
+  srand(static_cast<unsigned int>(time(nullptr)));
 
   sf::Clock deltaClock;
 
@@ -425,6 +428,28 @@ void Game::mainLoop()
               map->addCollision(m_world, m_engine);
             }
           }
+          else if (event.key.code == sf::Keyboard::I)
+          {
+            auto mousePos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+            mousePos.y -= Constants::MAP_OFFSET;
+
+            auto sprite = new sf::Sprite(m_resources.getTexture("items"));
+
+            auto rectX = rand() % 224;
+            rectX = static_cast<int>(rectX / 32.f) * 32;
+
+            auto rectY = rand() % 544;
+            rectY = static_cast<int>(rectY / 32.f) * 32;
+
+            sprite->setTextureRect(sf::IntRect(rectX, rectY, 32, 32));
+            sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
+            sprite->setPosition(mousePos);
+
+            auto item = ItemEntityFactory::makeItem({ "Test", *sprite, mousePos });
+            m_engine->addEntity(item);
+
+            m_currentMap->tiledMap->addEntity(item);
+          }
           else if (event.key.code == sf::Keyboard::Numpad8)
           {
             m_window.setSize(sf::Vector2u(Constants::VIEW_WIDTH, Constants::VIEW_HEIGHT));
@@ -496,6 +521,8 @@ void Game::mainLoop()
 
 void Game::quit()
 {
+  m_engine->removeAllEntities();
+
   m_webView->Destroy();
   m_webSession->Release();
   m_webCore->Shutdown();

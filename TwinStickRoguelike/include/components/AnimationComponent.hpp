@@ -12,8 +12,15 @@ struct AnimationComponent : public ECS::Component<AnimationComponent>
 
   void reset() override
   {
+    // animation components should always be paired with a render component, 
+    // therefore deleting the sprite is not this component's responsibility
     sprite = nullptr;
-    animator = nullptr;
+    
+    if (animator != nullptr)
+    {
+      delete animator;
+      animator = nullptr;
+    }
   }
 };
 

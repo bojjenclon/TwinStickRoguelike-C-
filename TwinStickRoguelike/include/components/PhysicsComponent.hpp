@@ -2,7 +2,8 @@
 #define PHYSICS_COMPONENT_HPP
 
 #include <ecstasy/core/Component.h>
-#include <Box2D/Dynamics/b2Body.h>
+#include <Box2D/Box2D.h>
+#include <iostream>
 
 struct PhysicsComponent : public ECS::Component<PhysicsComponent>
 {
@@ -16,7 +17,13 @@ struct PhysicsComponent : public ECS::Component<PhysicsComponent>
 
   void reset() override
   {
-    body = nullptr;
+    if (body != nullptr)
+    {
+      auto world = body->GetWorld();
+      world->DestroyBody(body);
+
+      body = nullptr;
+    }
 
     hasMaxSpeed = true;
     maxSpeed = b2Vec2(2, 2);

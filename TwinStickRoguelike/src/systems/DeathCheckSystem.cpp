@@ -21,13 +21,6 @@ void DeathCheckSystem::processEntity(ECS::Entity* p_entity, float p_dt)
 
   if (cHealth->currentHealth <= 0)
   {
-    if (p_entity->has<PhysicsComponent>())
-    {
-      auto cPhysics = p_entity->get<PhysicsComponent>();
-      m_world->DestroyBody(cPhysics->body);
-      cPhysics = nullptr;
-    }
-
     m_engine->removeEntity(p_entity);
   }
 }

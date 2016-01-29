@@ -1,8 +1,10 @@
 #include <systems/LifetimeSystem.hpp>
 #include <components/LifetimeComponent.hpp>
 #include <components/ActiveComponent.hpp>
+#include <components/PhysicsComponent.hpp>
+#include <components/RenderComponent.hpp>
 
-LifetimeSystem::LifetimeSystem(std::unique_ptr<ECS::Engine>& p_engine) : IteratingSystem(ECS::Family::all<LifetimeComponent>().get()), m_engine(p_engine)
+LifetimeSystem::LifetimeSystem(std::unique_ptr<ECS::Engine>& p_engine, std::unique_ptr<b2World>& p_world) : IteratingSystem(ECS::Family::all<LifetimeComponent>().get()), m_engine(p_engine), m_world(p_world)
 {
 }
 

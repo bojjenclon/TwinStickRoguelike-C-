@@ -160,7 +160,7 @@ ECS::Entity* BasicEntityFactory::makePlayer(ResourceManager& p_resources, sf::Ve
   fixtureDef.restitution = 0.15f;
 
   fixtureDef.filter.categoryBits = Collision::Player;
-  fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Enemy | Collision::EnemyBullet;
+  fixtureDef.filter.maskBits = Collision::Obstacle | Collision::Enemy | Collision::EnemyBullet | Collision::Item;
 
   body->CreateFixture(&fixtureDef);
 

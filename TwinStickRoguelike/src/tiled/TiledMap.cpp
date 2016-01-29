@@ -225,9 +225,6 @@ bool TiledMap::removeCollision(std::unique_ptr<b2World>& p_world, std::unique_pt
   {
     auto entity = entities->front();
 
-    auto cPhysics = entity->get<PhysicsComponent>();
-    p_world->DestroyBody(cPhysics->body);
-
     entity->removeAll();
     p_engine->removeEntity(entity);
   }

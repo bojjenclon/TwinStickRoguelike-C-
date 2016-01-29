@@ -9,7 +9,8 @@ struct EntityInfo
     Exit,
     Player,
     Enemy,
-    Bullet
+    Bullet,
+    Item
   };
 };
 
@@ -21,7 +22,8 @@ struct Collision
     Player = 1 << 1,
     Enemy = 1 << 2,
     PlayerBullet = 1 << 3,
-    EnemyBullet = 1 << 4
+    EnemyBullet = 1 << 4,
+    Item = 1 << 5
   };
 };
 

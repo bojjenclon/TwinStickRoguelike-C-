@@ -8,6 +8,8 @@
 #include <Game.hpp>
 #include <components/RenderComponent.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include <collisions/ItemCollisionData.hpp>
+#include <components/LifetimeComponent.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -33,6 +35,10 @@ void ContactListener::BeginContact(b2Contact* p_contact)
   else if ((collisionDataA->type == EntityInfo::Player || collisionDataB->type == EntityInfo::Player) && (collisionDataA->type == EntityInfo::Exit || collisionDataB->type == EntityInfo::Exit))
   {
     PlayerExitContactBegin(collisionDataA, collisionDataB);
+  }
+  else if ((collisionDataA->type == EntityInfo::Player || collisionDataB->type == EntityInfo::Player) && (collisionDataA->type == EntityInfo::Item || collisionDataB->type == EntityInfo::Item))
+  {
+    PlayerItemContactBegin(collisionDataA, collisionDataB);
   }
 }
 
@@ -70,7 +76,7 @@ void ContactListener::BulletContactBegin(CollisionData* p_dataA, CollisionData* 
 void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
 {
   auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
-  auto exitCollisionData = static_cast<ExitCollisionData*>(p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB);;
+  auto exitCollisionData = static_cast<ExitCollisionData*>(p_dataA->type == EntityInfo::Exit ? p_dataA : p_dataB);
   
   if (exitCollisionData->exit->getDestination() != nullptr)
   {
@@ -136,4 +142,22 @@ void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionDa
 
     game.changeMap(destination, playerPosition);
   }
+}
+
+void ContactListener::PlayerItemContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
+{
+  auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
+  auto itemCollisionData = static_cast<ItemCollisionData*>(p_dataA->type == EntityInfo::Item ? p_dataA : p_dataB);
+
+  printf("Collided with item: %s\n", itemCollisionData->name.c_str());
+
+  auto item = itemCollisionData->entity;
+
+  auto& game = Game::Get();
+  auto& engine = game.getEngine();
+
+  auto cLifetime = engine.createComponent<LifetimeComponent>();
+  cLifetime->maxLifetime = 0;
+
+  item->add(cLifetime);
 }

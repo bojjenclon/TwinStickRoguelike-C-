@@ -4,20 +4,24 @@
 #include <ecstasy/core/Engine.h>
 #include <ResourceManager.hpp>
 #include <EntityInfo.hpp>
+#include <factories/FactoryOptions.hpp>
 
-struct Bullet
+namespace BulletEntityFactory
 {
-  struct Options
+  struct BulletOptions : public FactoryOptions
   {
     EntityInfo::Type owner;
     sf::Vector2f position;
     sf::Vector2f velocity;
-  };
-};
 
-namespace BulletEntityFactory
-{
-  ECS::Entity* makeBasicBullet(ResourceManager& p_resources, Bullet::Options p_options);
+    BulletOptions(EntityInfo::Type p_owner, sf::Vector2f p_position, sf::Vector2f p_velocity, bool p_isActive = true)
+      : FactoryOptions(p_isActive), owner(p_owner), position(p_position), velocity(p_velocity)
+    {
+
+    }
+  };
+
+  ECS::Entity* makeBasicBullet(ResourceManager& p_resources, BulletOptions p_options);
 };
 
 #endif

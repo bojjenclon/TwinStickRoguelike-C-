@@ -15,6 +15,7 @@ private:
   static void PlayerEnemyContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
   static void BulletContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
   static void PlayerExitContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
+  static void PlayerItemContactBegin(CollisionData* p_dataA, CollisionData* p_dataB);
 };
 
 #endif

@@ -10,7 +10,7 @@
 #include <Constants.hpp>
 #include <components/ActiveComponent.hpp>
 
-ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, Bullet::Options p_options)
+ECS::Entity* BulletEntityFactory::makeBasicBullet(ResourceManager& p_resources, BulletOptions p_options)
 {
   auto& game = Game::Get();
   auto& engine = game.getEngine();
