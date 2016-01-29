@@ -492,6 +492,11 @@ void TiledMap::enableEntities()
   {
     auto entity = *it;
 
+    if (!entity->isValid())
+    {
+      continue;
+    }
+
     auto cActive = entity->get<ActiveComponent>();
     cActive->isActive = true;
 
@@ -505,6 +510,11 @@ void TiledMap::disableEntities()
   for (auto it = m_entities.begin(); it != m_entities.end(); ++it)
   {
     auto entity = *it;
+
+    if (!entity->isValid())
+    {
+      continue;
+    }
 
     auto cActive = entity->get<ActiveComponent>();
     cActive->isActive = false;

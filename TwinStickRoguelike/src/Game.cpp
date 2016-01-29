@@ -518,6 +518,8 @@ void Game::loadMedia()
   m_resources.loadTexture("deer", "../assets/deer.png");
   m_resources.loadTexture("pinkBullet", "../assets/pinkBullet.png");
 
+  m_resources.loadTexture("items", "../assets/items.png");
+
   m_resources.loadTexture("terrain_atlas", "F:/Images/Game Graphics/Tilesets/Atlas_0/terrain_atlas.png");
   m_resources.loadTexture("build_atlas", "F:/Images/Game Graphics/Tilesets/Atlas2/build_atlas.png");
 }
