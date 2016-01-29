@@ -4,7 +4,8 @@
 #include <components/RenderComponent.hpp>
 #include <Constants.hpp>
 #include <components/PhysicsComponent.hpp>
-#include <collisions/ItemCollisionData.hpp>
+#include <components/ItemComponent.hpp>
+#include <collisions/CollisionData.hpp>
 
 ECS::Entity* ItemEntityFactory::makeItem(const ItemOptions& p_options)
 {
@@ -23,6 +24,11 @@ ECS::Entity* ItemEntityFactory::makeItem(const ItemOptions& p_options)
   cRender->drawable = static_cast<sf::Drawable*>(&p_options.sprite);
   cRender->depth = 2;
 
+  auto cItem = engine.createComponent<ItemComponent>();
+  entity->add(cItem);
+  cItem->name = p_options.name;
+  cItem->callback = p_options.callback;
+
   /* Physics Begin */
 
   auto& world = game.getWorld();
@@ -37,10 +43,9 @@ ECS::Entity* ItemEntityFactory::makeItem(const ItemOptions& p_options)
 
   auto body = world.CreateBody(&bodyDef);
 
-  auto collisionData = new ItemCollisionData();
+  auto collisionData = new CollisionData();
   collisionData->type = EntityInfo::Item;
   collisionData->entity = entity;
-  collisionData->name = p_options.name;
   body->SetUserData(collisionData);
   
   b2CircleShape dynamicCircle;

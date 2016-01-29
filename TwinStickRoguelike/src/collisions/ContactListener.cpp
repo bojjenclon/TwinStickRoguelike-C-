@@ -8,8 +8,8 @@
 #include <Game.hpp>
 #include <components/RenderComponent.hpp>
 #include <SFML/Graphics/Rect.hpp>
-#include <collisions/ItemCollisionData.hpp>
 #include <components/LifetimeComponent.hpp>
+#include <components/ItemComponent.hpp>
 
 void ContactListener::BeginContact(b2Contact* p_contact)
 {
@@ -147,17 +147,30 @@ void ContactListener::PlayerExitContactBegin(CollisionData* p_dataA, CollisionDa
 void ContactListener::PlayerItemContactBegin(CollisionData* p_dataA, CollisionData* p_dataB)
 {
   auto playerCollisionData = p_dataA->type == EntityInfo::Player ? p_dataA : p_dataB;
-  auto itemCollisionData = static_cast<ItemCollisionData*>(p_dataA->type == EntityInfo::Item ? p_dataA : p_dataB);
+  auto itemCollisionData = p_dataA->type == EntityInfo::Item ? p_dataA : p_dataB;
 
-  printf("Collided with item: %s\n", itemCollisionData->name.c_str());
+  auto itemEntity = itemCollisionData->entity;
 
-  auto item = itemCollisionData->entity;
+  auto cItem = itemEntity->get<ItemComponent>();
 
-  auto& game = Game::Get();
-  auto& engine = game.getEngine();
+  auto destroyItem = true;
+  if (cItem->callback != nullptr)
+  {
+    destroyItem = cItem->callback(playerCollisionData->entity);
+  }
 
-  auto cLifetime = engine.createComponent<LifetimeComponent>();
-  cLifetime->maxLifetime = 0;
+  printf("Collided with item: %s\n", cItem->name.c_str());
 
-  item->add(cLifetime);
+  if (destroyItem)
+  {
+    // cheap hack to delete the item
+
+    auto& game = Game::Get();
+    auto& engine = game.getEngine();
+
+    auto cLifetime = engine.createComponent<LifetimeComponent>();
+    cLifetime->maxLifetime = 0;
+
+    itemEntity->add(cLifetime);
+  }
 }

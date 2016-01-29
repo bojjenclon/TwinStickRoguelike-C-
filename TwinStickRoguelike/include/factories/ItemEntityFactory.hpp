@@ -12,13 +12,14 @@ namespace ItemEntityFactory
 {
   struct ItemOptions : public FactoryOptions
   {
-    std::string name = "Item";
+    std::string name;
+    std::function<bool(ECS::Entity* p_entity)> callback = nullptr;
     sf::Sprite& sprite;
     sf::Vector2f position;
     int lifetime = -1;
 
-    ItemOptions(const std::string p_name, sf::Sprite& p_sprite, const sf::Vector2f& p_position, int p_lifetime = -1, bool p_isActive = true)
-      : FactoryOptions(p_isActive), name(p_name), sprite(p_sprite), position(p_position), lifetime(p_lifetime)
+    ItemOptions(std::string p_name, std::function<bool(ECS::Entity* p_entity)> p_callback, sf::Sprite& p_sprite, const sf::Vector2f& p_position, int p_lifetime = -1, bool p_isActive = true)
+      : FactoryOptions(p_isActive), name(p_name), callback(p_callback), sprite(p_sprite), position(p_position), lifetime(p_lifetime)
     {
 
     }

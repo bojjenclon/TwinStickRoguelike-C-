@@ -33,6 +33,7 @@
 #include <components/PhysicsComponent.hpp>
 #include <components/BulletComponent.hpp>
 #include <factories/ItemEntityFactory.hpp>
+#include <ItemBehavior.hpp>
 
 int GetKeyboardModifiers()
 {
@@ -444,8 +445,8 @@ void Game::mainLoop()
             sprite->setTextureRect(sf::IntRect(rectX, rectY, 32, 32));
             sprite->setOrigin(sprite->getTextureRect().width / 2.0f, sprite->getTextureRect().height / 2.0f);
             sprite->setPosition(mousePos);
-
-            auto item = ItemEntityFactory::makeItem({ "Test", *sprite, mousePos });
+            
+            auto item = ItemEntityFactory::makeItem({ ("Test " + std::to_string(rand() % 255)), ItemBehavior::testItem, *sprite, mousePos });
             m_engine->addEntity(item);
 
             m_currentMap->tiledMap->addEntity(item);
